@@ -68,8 +68,6 @@ git clone [YOUR_REPO_URL]
 cd nutrition-plan-generator
 
 
-
-
 Configure Firebase Security:
 
 Create a user account for the primary editor (coach) in Firebase Authentication. Copy the unique User ID (UID).
@@ -92,11 +90,6 @@ Configure the Firebase Firestore nodes to use the correct paths and credentials.
 
 🔑 Security and Data Privacy
 
-Client plan data is highly sensitive. All client-specific plan documents are stored in a private path locked down by Firebase Security Rules.
-
-Only the authenticated coach (editor) whose UID is hardcoded into the Firestore Rules can access or modify client plan data.
-
-For detailed security information, including the exact rules used, please refer to the SECURITY.md file.
 Client plan data is highly sensitive. All client-specific plan documents are stored in a private path locked down by Firebase Security Rules.
 
 Only the authenticated coach (editor) whose UID is hardcoded into the Firestore Rules can access or modify client plan data.
