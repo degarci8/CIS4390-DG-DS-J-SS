@@ -6,47 +6,17 @@ This project is a custom, secure web application designed to automate the proces
 
 This application is built on a "backend-as-a-service" architecture, prioritizing security and real-time performance.
 
-Component
+Data Ingestion: Uses Google Forms and n8n Webhooks to collect client intake data and trigger the plan generation workflow.
 
-Technology
+Plan Generation Logic: Handled by n8n Function Nodes (including your existing Java/Code Adapters) to calculate client targets (TDEE, Macros) and generate the initial plan draft.
 
-Purpose
+Database: Firebase Firestore (Standard Edition) provides secure, scalable NoSQL storage for all profiles, food data, and editable meal plans.
 
-Data Ingestion
+Security: Enforced via Firebase Authentication & Security Rules to lock client data down, ensuring only the authenticated coach (editor) can view or modify plans.
 
-Google Forms, n8n (Webhooks)
+Editing Interface: The editor.html file (HTML, Tailwind CSS, JavaScript) provides the coach with a real-time UI where changes to food amounts instantly update calorie and macro totals.
 
-Collects client intake data and triggers the plan generation workflow.
-
-Plan Generation Logic
-
-n8n (Function Nodes, Java/Code Adapters)
-
-Calculates client targets (TDEE, Macros) and generates the initial meal plan draft.
-
-Database
-
-Firebase Firestore (Standard Edition)
-
-Secure, scalable NoSQL storage for client profiles, nutrition data, and editable meal plans.
-
-Security
-
-Firebase Authentication & Security Rules
-
-Locks client data down, ensuring only the authenticated coach (editor) can view or modify plans.
-
-Editing Interface
-
-editor.html (HTML, Tailwind CSS, JavaScript)
-
-Provides the coach with a real-time UI where changes to food amounts instantly update calorie and macro totals.
-
-PDF Delivery
-
-n8n (Future: PDF/Email Nodes)
-
-Converts the finalized plan into a professional PDF and emails it to the client.
+PDF Delivery: Managed by n8n (Future: PDF/Email Nodes) to convert the finalized plan into a professional PDF and email it to the client.
 
 ⚙️ Getting Started (For Contributors)
 
