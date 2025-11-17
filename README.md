@@ -1,141 +1,102 @@
-Real-Time Nutrition Plan Generator
+# Xtreme Fitness — Real-Time Nutrition Plan Generator
 
-This repository contains the architecture and core code for Xtreme Fitness, a professional coaching platform specializing in high-performance training and custom nutrition planning.
+This repository contains the core architecture and codebase for the Xtreme Fitness Nutrition Platform—a system designed to securely generate, edit, and manage custom nutrition plans in real time.
 
-This project solves the challenge of integrating legal compliance (PII/PHI) with a high-performance, custom-built, real-time nutrition plan generator. 
+The platform combines secure data handling with a fast, coach-focused editing experience built around Firebase, Stitch, and N8N.
 
+---
 
+## Overview
 
-I. System Architecture: The Dual-Hub Approach
+The system provides:
 
-The system uses a "Best-of-Breed" architecture, ensuring the business is both fully functional and legally secure.
+- A custom real-time nutrition plan editor  
+- Automated nutrition plan generation using client intake data  
+- A master food database sourced from the USDA  
+- Secure storage and real-time syncing through Firebase Firestore  
+- A Stitch-based UI for the client and coach dashboards
 
+---
 
-- Wix
+## System Architecture
 
-Primary Role: Marketing Hub
+The platform uses a dual-hub architecture to separate marketing, client experience, and backend automation.
 
-Core Function: Public-facing website, branding, and secure e-commerce checkout.
+### Wix (Marketing Hub)
+- Public-facing website  
+- Branding and checkout  
 
+### Stitch (Client & Coach UI)
+- Client intake screens  
+- Coach dashboards  
+- Triggers N8N workflows via webhooks  
 
-- Practice Better
+### N8N (Automation Engine)
+- Flow A: Nutrition plan generation  
+- Flow B: USDA food ingestion  
+- Connects Stitch to Firebase  
 
-Primary Role: Compliance & Client Hub
+### Firebase Firestore (Real-Time Database)
+- Stores nutrition plans  
+- Stores the Food Master List  
+- Powers the live editing engine in the custom editor  
 
-Core Function: CRITICAL: Securely manages PII/PHI (health history), client files, and handles billing/scheduling.
+---
 
+## Real-Time Nutrition Plan Editor
 
-- N8N
+The `/editor` directory contains the custom single-page application used by coaches to edit plans in real time.
 
-Primary Role: Automation Engine
+Key capabilities include:
 
-Core Function: Runs Flow A (Generator) and Flow B (Data Ingestion) to connect the two hubs.
+- Live macro and calorie calculations  
+- Instant auto-save  
+- Real-time Firestore updates  
+- Tailwind CSS styling  
+- Fast, coach-focused workflow  
 
+This editor is custom-built and separate from Stitch due to its need for direct, real-time database performance.
 
-- Firebase Firestore
+---
 
-Primary Role: Real-Time Database
+## Data Workflows
 
-Core Function: The Custom Engine: Stores the clean Food Master List and powers the real-time editing feature.
+### Flow A: Nutrition Plan Generation
+1. Client submits intake data through Stitch  
+2. Stitch sends webhook to N8N  
+3. N8N computes calorie and macro targets  
+4. N8N builds a draft plan using the Food Master List  
+5. N8N saves the plan to Firestore  
+6. Coach edits the plan through the real-time editor  
 
+### Flow B: Food Library Ingestion
+1. Manual trigger in N8N  
+2. USDA data fetched via API  
+3. Data normalized and cleaned  
+4. Food items stored in Firestore for plan generation  
 
+---
 
-II. Custom Feature: Real-Time Editor
+## Getting Started
 
-The core value proposition is the ability for the coach to adjust meal plans instantly, seeing macro and calorie totals update live.
+### 1. Firebase Setup
+- Create a Firebase project  
+- Enable Authentication  
+- Configure Firestore  
+- Apply security rules found in `SECURITY.md`  
 
-The Tool: The editor.html file is a single-page application (SPA) that acts as the custom editor.
+### 2. Deploy the Real-Time Editor
+Deploy the `/editor` folder to Firebase Hosting using your Firebase CLI.
 
-The Engine: It uses Firebase Firestore's onSnapshot listener to maintain a live connection to the plan data. Any change made by the coach is saved instantly and reflected immediately for calculation.
+### 3. Configure N8N
+- Import Flow A and Flow B from the `/n8n` folder  
+- Connect Stitch webhooks to Flow A  
+- Connect Firebase credentials for data read/write  
 
+---
 
-III. Technical Stack
+## Security
 
-- Frontend
+Details on Firestore rules, access control, and PII/PHI handling are documented in: SECURITY.md
 
-Component: Custom HTML/JS/Tailwind
 
-Purpose: Coach's Real-Time Editor (editor.html).
-
-
-
-- Database
-
-Component: Firebase Firestore
-
-Purpose: Secure storage for plans and the public Food Master List.
-
-
-
-- Automation
-
-Component: N8N (Self-Hosted/Cloud)
-
-Purpose: Orchestrates data movement, computation, and PDF generation.
-
-
-
-- Data Ingestion
-
-Component: USDA API
-
-Purpose: Source of raw food nutrient data (Flow B).
-
-
-
-- Styling
-
-Component: Tailwind CSS
-
-Purpose: Ensures the UI is modern, responsive, and matches the Black/Red/White Xtreme Fitness brand.
-
-
-
-
-IV. Data Flow Schematics
-
-
-The system is defined by three critical workflows.
-
-
-A. Coach Workflow (The Seamless Experience)
-
-This process minimizes the coach's technical burden by making Practice Better the main hub.
-
-Coach receives alert in Practice Better.
-
-Coach clicks the custom link: "Edit Nutrition Plan."
-
-The link launches the custom editor.html (powered by Firebase).
-
-Coach edits the plan live and saves the final version.
-
-
-B. Backend Automation (Flow A: Plan Generation)
-
-This flow runs the instant a client finishes their intake form.
-
-$$\text{Practice Better Webhook} \rightarrow \text{N8N} \rightarrow \text{Compute Targets} \rightarrow \text{Read Food Master List} \rightarrow \text{Assemble Plan Draft} \rightarrow \text{Write Securely to Firebase}$$
-
-
-C. Data Ingestion (Flow B: Master Food Library)
-
-This flow runs manually to populate the database with clean, unique food facts for Flow A to use.
-
-$$\text{Manual Trigger} \rightarrow \text{USDA API Fetch} \rightarrow \text{Normalize Data} \rightarrow \text{Generate Unique ID} \rightarrow \text{Sequential Write to Firebase}$$
-
-
-
-V. Getting Started
-
-To run this project locally and deploy the full system:
-
-Firebase Setup: Create a Firebase Project and configure Authentication (for the coach's UID) and Firestore (with the correct Security Rules).
-
-Code Deployment: Deploy the editor.html file to your Firebase Hosting URL.
-
-N8N Integration: Configure Flow B to populate the public /artifacts/{appId}/public/data/FoodItems collection.
-
-System Activation: Configure Flow A with the Practice Better Webhook Trigger to begin generating live plans.
-
-For detailed security information, including the exact rules used, please refer to the SECURITY.md file.
