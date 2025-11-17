@@ -1,6 +1,6 @@
 # Xtreme Fitness — Real-Time Nutrition Plan Generator
 
-This repository contains the core architecture and codebase for the Xtreme Fitness Nutrition Platform—a system designed to securely generate, edit, and manage custom nutrition plans in real time.
+This repository contains the core architecture and codebase for the Xtreme Fitness Nutrition Platform: a system designed to securely generate, edit, and manage custom nutrition plans in real time.
 
 The platform combines secure data handling with a fast, coach-focused editing experience built around Firebase, Stitch, and N8N.
 
