@@ -104,7 +104,8 @@ These items are excluded from Flow A.
 Only the fields listed in sections 1–6 are required for the automatic plan generator.  
 This file is referenced by:
 
-- **Issue 4 (Required Data Fields)**
+This document supports **Issue #4: Extract Required Data Fields for Calculation**.
+This document will be referenced by:
 - **Issue 8 (Database Schema)**  
 - **Issue 10 (Intake Form Design)**  
 - **Issue 24/26 (Rules Engine)**  
