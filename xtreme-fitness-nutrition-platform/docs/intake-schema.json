@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Client Intake Submission",
+  "type": "object",
+  "required": [
+    "name",
+    "email",
+    "age",
+    "gender",
+    "height_cm",
+    "weight_kg",
+    "activity_level",
+    "exercise_days_per_week",
+    "exercise_minutes_per_session",
+    "primary_goal"
+  ],
+  "properties": {
+    "name": { "type": "string", "minLength": 2 },
+    "email": { "type": "string", "format": "email" },
+    "age": { "type": "integer", "minimum": 13, "maximum": 120 },
+    "gender": {
+      "type": "string",
+      "enum": ["Male", "Female", "Non-Binary", "Prefer not to say"]
+    },
+
+    "height_cm": { "type": "number", "minimum": 50, "maximum": 300 },
+    "weight_kg": { "type": "number", "minimum": 20, "maximum": 500 },
+    "body_fat_percent": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 70
+    },
+
+    "activity_level": {
+      "type": "string",
+      "enum": ["Sedentary", "Moderately Active", "Active", "Very Active"]
+    },
+    "exercise_days_per_week": { "type": "integer", "minimum": 0, "maximum": 7 },
+    "exercise_minutes_per_session": { "type": "integer", "minimum": 0, "maximum": 300 },
+
+    "primary_goal": {
+      "type": "string",
+      "enum": ["Weight Loss", "Maintain", "Gain Weight", "Build Muscle"]
+    },
+    "goal_weight_kg": { "type": "number", "minimum": 20, "maximum": 500 },
+
+    "body_type": {
+      "type": "string",
+      "enum": [
+        "Hard to gain weight",
+        "Can gain or lose with activity changes",
+        "Gain weight easily, struggle to lose"
+      ]
+    },
+
+    "allergies": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "favorite_foods": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "disliked_foods": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+
+    "wake_time": { "type": "string", "pattern": "^\\d{1,2}:\\d{2}$" },
+    "bed_time": { "type": "string", "pattern": "^\\d{1,2}:\\d{2}$" },
+
+    "smokes_per_day": { "type": "integer", "minimum": 0 },
+    "years_smoked": { "type": "integer", "minimum": 0 },
+    "alcohol_per_day": { "type": "string" },
+
+    "health_conditions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Heart Disease", "Anemia", "Hypoglycemia", "Liver Disease",
+          "Kidney Disease", "Diabetes", "Pancreatic Disease",
+          "Lactation", "Hypertension", "Other"
+        ]
+      }
+    },
+
+    "previous_program": {
+      "type": "object",
+      "properties": {
+        "has_had_program": { "type": "boolean" },
+        "provider": { "type": "string" },
+        "description": { "type": "string" },
+        "results": { "type": "string" }
+      }
+    }
+  }
+}
