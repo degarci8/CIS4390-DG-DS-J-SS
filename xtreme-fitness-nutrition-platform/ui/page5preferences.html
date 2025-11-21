@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Step 5: Preferences &amp; Health</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24
+      }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#ec1313",
+              "background-light": "#f8f6f6",
+              "background-dark": "#221010",
+            },
+            fontFamily: {
+              "display": ["Lexend", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark">
+<div class="relative flex min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<div class="px-4 sm:px-8 md:px-20 lg:px-40 flex flex-1 justify-center py-10 sm:py-12">
+<div class="layout-content-container flex flex-col w-full max-w-[960px] flex-1">
+<!-- ProgressBar -->
+<div class="flex flex-col gap-3 p-4">
+<div class="flex gap-6 justify-between">
+<p class="text-[#1b0d0d] dark:text-gray-200 text-base font-medium leading-normal">Step 5 of 6</p>
+</div>
+<div class="rounded bg-[#e7cfcf] dark:bg-gray-700">
+<div class="h-2 rounded bg-primary" style="width: 83%;"></div>
+</div>
+</div>
+<!-- PageHeading -->
+<div class="flex flex-wrap justify-between gap-3 p-4 mt-4">
+<div class="flex min-w-72 flex-col gap-3">
+<p class="text-[#1b0d0d] dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">Step 5: Preferences &amp; Health</p>
+<p class="text-[#9a4c4c] dark:text-gray-400 text-base font-normal leading-normal">Help us understand your lifestyle and any health considerations.</p>
+</div>
+</div>
+<!-- Main Content Card -->
+<div class="bg-white dark:bg-[#2c1d1d] rounded-xl shadow-md mt-8 p-6 sm:p-8">
+<form action="/api/intake/submit" method="POST">
+<!-- Section 1: Food Preferences -->
+<section class="mb-8">
+<h2 class="text-[#1b0d0d] dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pb-5">Food Preferences</h2>
+<div class="grid grid-cols-1 gap-6">
+<!-- Allergies -->
+<div>
+<label class="block text-sm font-medium text-[#1b0d0d] dark:text-gray-200 mb-1" for="allergies">Do you have any allergies?</label>
+<p class="text-[#9a4c4c] dark:text-gray-400 text-sm font-normal leading-normal pb-2">Type and press Enter to add an allergy.</p>
+<div class="flex flex-wrap items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 p-2 focus-within:ring-2 focus-within:ring-primary focus-within:border-primary">
+<div class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-[#f3e7e7] dark:bg-gray-700 px-3">
+<p class="text-[#1b0d0d] dark:text-gray-200 text-sm font-medium leading-normal">Peanuts</p>
+<button class="text-gray-500 hover:text-primary" type="button"><span class="material-symbols-outlined text-base">close</span></button>
+</div>
+<input class="flex-grow bg-transparent border-none p-1 focus:ring-0 text-[#1b0d0d] dark:text-white" id="allergies" name="allergies" placeholder="Add another..." type="text"/>
+</div>
+</div>
+<!-- Favorite Foods -->
+<div>
+<label class="block text-sm font-medium text-[#1b0d0d] dark:text-gray-200 mb-1" for="favorite_foods">What are your favorite foods?</label>
+<div class="flex flex-wrap items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 p-2 focus-within:ring-2 focus-within:ring-primary focus-within:border-primary">
+<input class="flex-grow bg-transparent border-none p-1 focus:ring-0 text-[#1b0d0d] dark:text-white" id="favorite_foods" name="favorite_foods" placeholder="Type and press Enter..." type="text"/>
+</div>
+</div>
+<!-- Disliked Foods -->
+<div>
+<label class="block text-sm font-medium text-[#1b0d0d] dark:text-gray-200 mb-1" for="disliked_foods">Are there any foods you dislike?</label>
+<div class="flex flex-wrap items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 p-2 focus-within:ring-2 focus-within:ring-primary focus-within:border-primary">
+<input class="flex-grow bg-transparent border-none p-1 focus:ring-0 text-[#1b0d0d] dark:text-white" id="disliked_foods" name="disliked_foods" placeholder="Type and press Enter..." type="text"/>
+</div>
+<p class="text-red-500 text-sm mt-1">This field is required.</p>
+</div>
+</div>
+</section>
+<!-- Section 2: Daily Schedule -->
+<section class="mb-8">
+<h2 class="text-[#1b0d0d] dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pb-5">Daily Schedule</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div>
+<label class="block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="wake_time">Typical Wake-up Time</label>
+<input class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary focus:ring-primary" id="wake_time" name="wake_time" type="time"/>
+</div>
+<div>
+<label class="block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="bed_time">Typical Bedtime</label>
+<input class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary focus:ring-primary" id="bed_time" name="bed_time" type="time"/>
+</div>
+</div>
+</section>
+<!-- Section 3: Lifestyle Habits -->
+<section class="mb-8">
+<h2 class="text-[#1b0d0d] dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pb-5">Lifestyle Habits</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div>
+<label class="block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="smokes_per_day">Cigarettes per Day</label>
+<input class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary focus:ring-primary" id="smokes_per_day" min="0" name="smokes_per_day" type="number" value="0"/>
+</div>
+<div>
+<label class="block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="years_smoked">Years Smoked</label>
+<input class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary focus:ring-primary" id="years_smoked" min="0" name="years_smoked" type="number" value="0"/>
+</div>
+<div>
+<label class="block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="alcohol_per_day">Daily Alcohol Consumption</label>
+<select class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary focus:ring-primary" id="alcohol_per_day" name="alcohol_per_day">
+<option>None</option>
+<option>1-2 drinks</option>
+<option>3+ drinks</option>
+</select>
+</div>
+</div>
+</section>
+<!-- Section 4: Health Conditions -->
+<section class="mb-8">
+<h2 class="text-[#1b0d0d] dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">Health Conditions</h2>
+<p class="text-[#9a4c4c] dark:text-gray-400 text-sm font-normal leading-normal pb-5">Please select any existing health conditions.</p>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+<div class="flex items-center">
+<input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="cond-heart-disease" name="health_conditions" type="checkbox" value="Heart Disease"/>
+<label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="cond-heart-disease">Heart Disease</label>
+</div>
+<div class="flex items-center">
+<input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="cond-anemia" name="health_conditions" type="checkbox" value="Anemia"/>
+<label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="cond-anemia">Anemia</label>
+</div>
+<div class="flex items-center">
+<input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="cond-hypoglycemia" name="health_conditions" type="checkbox" value="Hypoglycemia"/>
+<label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="cond-hypoglycemia">Hypoglycemia</label>
+</div>
+<div class="flex items-center">
+<input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="cond-liver-disease" name="health_conditions" type="checkbox" value="Liver Disease"/>
+<label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="cond-liver-disease">Liver Disease</label>
+</div>
+<div class="flex items-center">
+<input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="cond-kidney-disease" name="health_conditions" type="checkbox" value="Kidney Disease"/>
+<label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="cond-kidney-disease">Kidney Disease</label>
+</div>
+<div class="flex items-center">
+<input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="cond-diabetes" name="health_conditions" type="checkbox" value="Diabetes"/>
+<label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="cond-diabetes">Diabetes</label>
+</div>
+<div class="flex items-center">
+<input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="cond-pancreatic-disease" name="health_conditions" type="checkbox" value="Pancreatic Disease"/>
+<label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="cond-pancreatic-disease">Pancreatic Disease</label>
+</div>
+<div class="flex items-center">
+<input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="cond-lactation" name="health_conditions" type="checkbox" value="Lactation"/>
+<label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="cond-lactation">Lactation</label>
+</div>
+<div class="flex items-center">
+<input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="cond-hypertension" name="health_conditions" type="checkbox" value="Hypertension"/>
+<label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="cond-hypertension">Hypertension</label>
+</div>
+<div class="flex items-center">
+<input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="cond-other" name="health_conditions" type="checkbox" value="Other"/>
+<label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="cond-other">Other</label>
+</div>
+</div>
+</section>
+<!-- Form Actions -->
+<div class="mt-10 flex justify-between items-center border-t border-gray-200 dark:border-gray-700 pt-6">
+<button class="rounded-lg px-6 py-3 text-base font-semibold text-[#1b0d0d] dark:text-white bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500" type="button">Back</button>
+<button class="rounded-lg bg-primary px-8 py-3 text-base font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background-dark" type="submit">Continue</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body></html>

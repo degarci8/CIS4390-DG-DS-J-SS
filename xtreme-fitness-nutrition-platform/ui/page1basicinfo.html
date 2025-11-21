@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Step 1: Basic Information</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<style type="text/tailwindcss">
+        .material-symbols-outlined {
+          font-variation-settings:
+          'FILL' 0,
+          'wght' 400,
+          'GRAD' 0,
+          'opsz' 24
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#ec1313",
+              "background-light": "#f8f6f6",
+              "background-dark": "#221010",
+              "brand-red": "#FF3B30",
+              "brand-off-white": "#F5F5F7",
+              "brand-white": "#FFFFFF",
+              "brand-charcoal": "#1D1D1F",
+              "brand-gray": "#86868B",
+              "brand-error": "#D93025",
+            },
+            fontFamily: {
+              "display": ["Lexend", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+</head>
+<body class="font-display bg-brand-off-white dark:bg-background-dark text-brand-charcoal dark:text-gray-200">
+<div class="relative flex min-h-screen w-full flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+<main class="w-full max-w-2xl">
+<div class="mb-8 px-4">
+<p class="text-brand-charcoal dark:text-gray-300 text-sm font-medium leading-normal">Step 1 of 6</p>
+<div class="mt-2 h-1.5 w-full rounded-full bg-gray-200 dark:bg-gray-700">
+<div class="h-1.5 rounded-full bg-brand-red" style="width: 16.67%;"></div>
+</div>
+</div>
+<div class="w-full rounded-xl bg-brand-white dark:bg-background-dark p-6 shadow-sm sm:p-8">
+<div class="mb-8">
+<h1 class="text-brand-charcoal dark:text-white text-3xl font-bold leading-tight tracking-tight sm:text-4xl">Basic Information</h1>
+<p class="text-brand-gray dark:text-gray-400 mt-2 text-base leading-normal">Tell us a bit about yourself to get started.</p>
+</div>
+<form action="/api/intake/submit" class="space-y-6" method="POST">
+<div>
+<label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="full-name">Full Name</label>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal" id="full-name" minlength="2" name="fullName" placeholder="Enter your full name" required="" type="text" value=""/>
+<!-- Example validation message -->
+<p class="mt-1.5 text-xs text-brand-error hidden">This field is required.</p>
+</div>
+<div>
+<label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="email">Email Address</label>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal" id="email" name="email" placeholder="Enter your email address" required="" type="email" value=""/>
+<!-- Example validation message -->
+<p class="mt-1.5 text-xs text-brand-error hidden">Please enter a valid email.</p>
+</div>
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+<div>
+<label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="age">Age</label>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal" id="age" max="120" min="13" name="age" placeholder="e.g., 28" required="" type="number" value=""/>
+</div>
+<div>
+<label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="gender">Gender</label>
+<div class="relative">
+<select class="form-select flex w-full appearance-none min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 px-4 text-base font-normal leading-normal" id="gender" name="gender" required="">
+<option disabled="" selected="" value="">Select an option</option>
+<option value="male">Male</option>
+<option value="female">Female</option>
+<option value="non-binary">Non-Binary</option>
+<option value="prefer-not-to-say">Prefer not to say</option>
+</select>
+<span class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-brand-gray dark:text-gray-400" data-icon="unfold_more">unfold_more</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col-reverse items-center gap-4 pt-4 sm:flex-row sm:justify-between">
+<button class="flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg px-6 text-base font-semibold text-brand-gray dark:text-gray-400 transition-colors hover:text-brand-charcoal dark:hover:text-white sm:w-auto" type="button">
+                            Back
+                        </button>
+<button class="flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-brand-red px-8 text-base font-semibold text-white shadow-sm transition-transform hover:scale-105 active:scale-95 sm:w-auto" type="submit">
+                            Next
+                            <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</form>
+</div>
+</main>
+</div>
+</body></html>
