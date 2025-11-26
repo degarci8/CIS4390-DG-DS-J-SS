@@ -1,89 +1,181 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Client Intake Submission",
+  "title": "Client Profile Intake",
   "type": "object",
   "required": [
-    "name",
+    "first_name",
+    "last_name",
     "email",
-    "age",
+    "date_of_birth",
     "gender",
-    "height_cm",
-    "weight_kg",
-    "activity_level",
-    "exercise_days_per_week",
-    "exercise_minutes_per_session",
-    "primary_goal"
+    "which_best_describes_you",
+    "work_activity_level",
+    "wake_time",
+    "bed_time",
+    "medical_conditions",
+    "medications",
+    "currently_exercising",
+    "full_day_food_log",
+    "favorite_foods",
+    "disliked_foods",
+    "food_allergies",
+    "dietary_preferences",
+    "body_type_description",
+    "primary_goal",
+    "height",
+    "weight"
   ],
   "properties": {
-    "name": { "type": "string", "minLength": 2 },
+    "first_name": { "type": "string", "minLength": 1 },
+    "last_name": { "type": "string", "minLength": 1 },
     "email": { "type": "string", "format": "email" },
-    "age": { "type": "integer", "minimum": 13, "maximum": 120 },
+    "date_of_birth": { "type": "string", "format": "date" },
+    "phone_number": { "type": "string" },
+    "address": { "type": "string" },
+
     "gender": {
       "type": "string",
       "enum": ["Male", "Female", "Non-Binary", "Prefer not to say"]
     },
 
-    "height_cm": { "type": "number", "minimum": 50, "maximum": 300 },
-    "weight_kg": { "type": "number", "minimum": 20, "maximum": 500 },
-    "body_fat_percent": {
-      "type": "number",
-      "minimum": 1,
-      "maximum": 70
-    },
+    "emergency_contact": { "type": "string" },
 
-    "activity_level": {
-      "type": "string",
-      "enum": ["Sedentary", "Moderately Active", "Active", "Very Active"]
-    },
-    "exercise_days_per_week": { "type": "integer", "minimum": 0, "maximum": 7 },
-    "exercise_minutes_per_session": { "type": "integer", "minimum": 0, "maximum": 300 },
-
-    "primary_goal": {
-      "type": "string",
-      "enum": ["Weight Loss", "Maintain", "Gain Weight", "Build Muscle"]
-    },
-    "goal_weight_kg": { "type": "number", "minimum": 20, "maximum": 500 },
-
-    "body_type": {
+    "which_best_describes_you": {
       "type": "string",
       "enum": [
-        "Hard to gain weight",
-        "Can gain or lose with activity changes",
-        "Gain weight easily, struggle to lose"
+        "Sedentary Adult",
+        "Exercising Adult",
+        "Competitive Athlete",
+        "Growing Teenage Athlete",
+        "Adult Building Muscle",
+        "Athlete Restricting Calories"
       ]
     },
 
-    "allergies": {
-      "type": "array",
-      "items": { "type": "string" }
-    },
-    "favorite_foods": {
-      "type": "array",
-      "items": { "type": "string" }
-    },
-    "disliked_foods": {
-      "type": "array",
-      "items": { "type": "string" }
+    "work_activity_level": {
+      "type": "string",
+      "enum": ["Sedentary", "Moderately Active", "Active", "Very Active"]
     },
 
     "wake_time": { "type": "string", "pattern": "^\\d{1,2}:\\d{2}$" },
     "bed_time": { "type": "string", "pattern": "^\\d{1,2}:\\d{2}$" },
 
-    "smokes_per_day": { "type": "integer", "minimum": 0 },
-    "years_smoked": { "type": "integer", "minimum": 0 },
+    "smoking_per_day": { "type": "integer", "minimum": 0 },
     "alcohol_per_day": { "type": "string" },
 
-    "health_conditions": {
+    "medical_conditions": {
       "type": "array",
       "items": {
         "type": "string",
         "enum": [
-          "Heart Disease", "Anemia", "Hypoglycemia", "Liver Disease",
-          "Kidney Disease", "Diabetes", "Pancreatic Disease",
-          "Lactation", "Hypertension", "Other"
+          "Heart Disease",
+          "Liver Disease",
+          "Pancreatic Disease",
+          "Anemia",
+          "Kidney Disease",
+          "Lactation",
+          "Hypoglycemia",
+          "Diabetes",
+          "Hypertension",
+          "None",
+          "Other"
         ]
       }
     },
+
+    "medical_conditions_other": { "type": "string" },
+
+    "injuries_or_surgeries": { "type": "string" },
+
+    "medications": { "type": "string" },
+
+    "currently_exercising": { "type": "boolean" },
+
+    "exercise_routine_details": { "type": "string" },
+
+    "full_day_food_log": { "type": "string" },
+
+    "favorite_foods": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+
+    "disliked_foods": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+
+    "food_allergies": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Milk",
+          "Eggs",
+          "Peanuts",
+          "Tree Nuts",
+          "Soy",
+          "Wheat",
+          "Fish",
+          "Shellfish",
+          "Sesame",
+          "Lactose",
+          "Gluten",
+          "Histamine",
+          "None",
+          "Other"
+        ]
+      }
+    },
+
+    "food_allergies_other": { "type": "string" },
+
+    "dietary_preferences": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Vegetarian",
+          "Vegan",
+          "Gluten-Free",
+          "Pescatarian",
+          "Gluten-Free/Celiac",
+          "Dairy-Free",
+          "Keto",
+          "Paleo",
+          "Kosher",
+          "Halal",
+          "Low-Carb",
+          "Low-Sugar",
+          "Low-Sodium",
+          "Diabetes Diet",
+          "None",
+          "Other"
+        ]
+      }
+    },
+
+    "dietary_preferences_other": { "type": "string" },
+
+    "body_type_description": {
+      "type": "string",
+      "enum": [
+        "I can eat practically anything without gaining weight",
+        "I find it very hard to gain weight",
+        "I can lose or gain weight by adjusting habits",
+        "I gain weight easily and struggle to lose"
+      ]
+    },
+
+    "primary_goal": {
+      "type": "string",
+      "enum": ["Weight Loss", "Maintain / Improve Eating Habits", "Gain Weight", "Other"]
+    },
+
+    "primary_goal_other": { "type": "string" },
+
+    "goal_weight": { "type": "number" },
+    "goal_timeframe": { "type": "string" },
 
     "previous_program": {
       "type": "object",
@@ -91,8 +183,35 @@
         "has_had_program": { "type": "boolean" },
         "provider": { "type": "string" },
         "description": { "type": "string" },
-        "results": { "type": "string" }
+        "results": { "type": "string" },
+        "challenges": { "type": "string" }
       }
-    }
+    },
+
+    "height": { "type": "number" },
+    "weight": { "type": "number" },
+
+    "had_body_fat_tested": { "type": "boolean" },
+
+    "body_fat_test_method": {
+      "type": "string",
+      "enum": [
+        "Calipers",
+        "Bioelectrical Impedance Analysis",
+        "Hydrostatic Weighing",
+        "Bod Pod",
+        "Body Mass Index",
+        "Waist Circumference",
+        "None",
+        "Other"
+      ]
+    },
+
+    "body_fat_test_other": { "type": "string" },
+
+    "body_fat_percentage": { "type": "number" },
+
+    "assessment_date": { "type": "string", "format": "date" }
   }
 }
+
