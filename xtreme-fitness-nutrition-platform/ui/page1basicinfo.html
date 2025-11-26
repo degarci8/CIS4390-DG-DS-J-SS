@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-
 <html class="light" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Step 1: Basic Information</title>
+<title>Step 1: Personal Information</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -54,27 +53,42 @@
 </div>
 <div class="w-full rounded-xl bg-brand-white dark:bg-background-dark p-6 shadow-sm sm:p-8">
 <div class="mb-8">
-<h1 class="text-brand-charcoal dark:text-white text-3xl font-bold leading-tight tracking-tight sm:text-4xl">Basic Information</h1>
-<p class="text-brand-gray dark:text-gray-400 mt-2 text-base leading-normal">Tell us a bit about yourself to get started.</p>
+<h1 class="text-brand-charcoal dark:text-white text-3xl font-bold leading-tight tracking-tight sm:text-4xl">Personal Information</h1>
+<p class="text-brand-gray dark:text-gray-400 mt-2 text-base leading-normal">Please fill out your personal details below.</p>
 </div>
 <form action="/api/intake/submit" class="space-y-6" method="POST">
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
 <div>
-<label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="full-name">Full Name</label>
-<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal" id="full-name" minlength="2" name="fullName" placeholder="Enter your full name" required="" type="text" value=""/>
-<!-- Example validation message -->
+<label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="first-name">First Name</label>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal" id="first-name" name="firstName" placeholder="Enter your first name" required="" type="text" value=""/>
 <p class="mt-1.5 text-xs text-brand-error hidden">This field is required.</p>
+</div>
+<div>
+<label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="last-name">Last Name</label>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal" id="last-name" name="lastName" placeholder="Enter your last name" required="" type="text" value=""/>
+<p class="mt-1.5 text-xs text-brand-error hidden">This field is required.</p>
+</div>
 </div>
 <div>
 <label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="email">Email Address</label>
 <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal" id="email" name="email" placeholder="Enter your email address" required="" type="email" value=""/>
-<!-- Example validation message -->
 <p class="mt-1.5 text-xs text-brand-error hidden">Please enter a valid email.</p>
 </div>
 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
 <div>
-<label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="age">Age</label>
-<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal" id="age" max="120" min="13" name="age" placeholder="e.g., 28" required="" type="number" value=""/>
+<label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="dob">Date of Birth</label>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal" id="dob" name="dateOfBirth" required="" type="date" value=""/>
 </div>
+<div>
+<label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="phone">Phone Number</label>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal" id="phone" name="phoneNumber" placeholder="(123) 456-7890" required="" type="tel" value=""/>
+</div>
+</div>
+<div>
+<label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="address">Address</label>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal" id="address" name="address" placeholder="Enter your full address" required="" type="text" value=""/>
+</div>
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
 <div>
 <label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="gender">Gender</label>
 <div class="relative">
@@ -82,11 +96,15 @@
 <option disabled="" selected="" value="">Select an option</option>
 <option value="male">Male</option>
 <option value="female">Female</option>
-<option value="non-binary">Non-Binary</option>
+<option value="other">Other</option>
 <option value="prefer-not-to-say">Prefer not to say</option>
 </select>
 <span class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-brand-gray dark:text-gray-400" data-icon="unfold_more">unfold_more</span>
 </div>
+</div>
+<div>
+<label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="emergency-contact">Emergency Contact</label>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal" id="emergency-contact" name="emergencyContact" placeholder="Name and phone number" required="" type="text" value=""/>
 </div>
 </div>
 <div class="flex flex-col-reverse items-center gap-4 pt-4 sm:flex-row sm:justify-between">
