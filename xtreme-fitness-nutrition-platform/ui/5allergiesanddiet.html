@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Step 5: Allergies &amp; Dietary Preferences</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24
+      }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#ec1313",
+              "background-light": "#f8f6f6",
+              "background-dark": "#221010",
+            },
+            fontFamily: {
+              "display": ["Lexend", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark">
+<div class="relative flex min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<div class="px-4 sm:px-8 md:px-20 lg:px-40 flex flex-1 justify-center py-10 sm:py-12">
+<div class="layout-content-container flex flex-col w-full max-w-[960px] flex-1">
+<div class="flex flex-col gap-3 p-4">
+<div class="flex gap-6 justify-between">
+<p class="text-[#1b0d0d] dark:text-gray-200 text-base font-medium leading-normal">Step 5 of 6</p>
+</div>
+<div class="rounded bg-[#e7cfcf] dark:bg-gray-700">
+<div class="h-2 rounded bg-primary" style="width: 83%;"></div>
+</div>
+</div>
+<div class="flex flex-wrap justify-between gap-3 p-4 mt-4">
+<div class="flex min-w-72 flex-col gap-3">
+<p class="text-[#1b0d0d] dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">Step 5: Allergies &amp; Dietary Preferences</p>
+<p class="text-[#9a4c4c] dark:text-gray-400 text-base font-normal leading-normal">Help us tailor your nutrition plan.</p>
+</div>
+</div>
+<div class="bg-white dark:bg-[#2c1d1d] rounded-xl shadow-md mt-8 p-6 sm:p-8">
+<form action="/api/intake/submit" method="POST">
+<section class="mb-8">
+<h2 class="text-[#1b0d0d] dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">Food Allergies/Intolerances</h2>
+<p class="text-[#9a4c4c] dark:text-gray-400 text-sm font-normal leading-normal pb-5">Select any that apply to you.</p>
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="allergy-milk" name="allergies" type="checkbox" value="Milk"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="allergy-milk">Milk</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="allergy-eggs" name="allergies" type="checkbox" value="Eggs"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="allergy-eggs">Eggs</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="allergy-peanuts" name="allergies" type="checkbox" value="Peanuts"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="allergy-peanuts">Peanuts</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="allergy-tree-nuts" name="allergies" type="checkbox" value="Tree Nuts"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="allergy-tree-nuts">Tree Nuts</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="allergy-soy" name="allergies" type="checkbox" value="Soy"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="allergy-soy">Soy</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="allergy-wheat" name="allergies" type="checkbox" value="Wheat"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="allergy-wheat">Wheat</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="allergy-fish" name="allergies" type="checkbox" value="Fish"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="allergy-fish">Fish</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="allergy-shellfish" name="allergies" type="checkbox" value="Shellfish"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="allergy-shellfish">Shellfish</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="allergy-sesame" name="allergies" type="checkbox" value="Sesame"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="allergy-sesame">Sesame</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="allergy-lactose" name="allergies" type="checkbox" value="Lactose"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="allergy-lactose">Lactose</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="allergy-gluten" name="allergies" type="checkbox" value="Gluten"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="allergy-gluten">Gluten</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="allergy-histamine" name="allergies" type="checkbox" value="Histamine"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="allergy-histamine">Histamine</label></div>
+<div class="flex items-center col-span-full mt-2"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="allergy-none" name="allergies" type="checkbox" value="None"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="allergy-none">None</label></div>
+<div class="flex items-start col-span-full mt-2">
+<input class="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="allergy-other-checkbox" name="allergies" type="checkbox" value="Other"/>
+<div class="ml-3 flex-grow">
+<label class="block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="allergy-other-text">Other</label>
+<input class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm" id="allergy-other-text" name="allergy_other_text" placeholder="Please specify" type="text"/>
+</div>
+</div>
+</div>
+<p class="text-red-500 text-sm mt-2">This field is required.</p>
+</section>
+<section class="mb-8">
+<h2 class="text-[#1b0d0d] dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">Dietary Preferences</h2>
+<p class="text-[#9a4c4c] dark:text-gray-400 text-sm font-normal leading-normal pb-5">Select any dietary approaches you follow or are interested in.</p>
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="diet-vegetarian" name="dietary_preferences" type="checkbox" value="Vegetarian"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="diet-vegetarian">Vegetarian</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="diet-vegan" name="dietary_preferences" type="checkbox" value="Vegan"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="diet-vegan">Vegan</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="diet-pescatarian" name="dietary_preferences" type="checkbox" value="Pescatarian"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="diet-pescatarian">Pescatarian</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="diet-gluten-free" name="dietary_preferences" type="checkbox" value="Gluten-free"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="diet-gluten-free">Gluten-free</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="diet-celiac" name="dietary_preferences" type="checkbox" value="Gluten-free/Celiac"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="diet-celiac">Gluten-free/Celiac</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="diet-dairy-free" name="dietary_preferences" type="checkbox" value="Dairy-free"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="diet-dairy-free">Dairy-free</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="diet-keto" name="dietary_preferences" type="checkbox" value="Keto"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="diet-keto">Keto</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="diet-paleo" name="dietary_preferences" type="checkbox" value="Paleo"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="diet-paleo">Paleo</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="diet-kosher" name="dietary_preferences" type="checkbox" value="Kosher"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="diet-kosher">Kosher</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="diet-halal" name="dietary_preferences" type="checkbox" value="Halal"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="diet-halal">Halal</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="diet-low-carb" name="dietary_preferences" type="checkbox" value="Low-carb"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="diet-low-carb">Low-carb</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="diet-low-sugar" name="dietary_preferences" type="checkbox" value="Low-sugar"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="diet-low-sugar">Low-sugar</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="diet-low-sodium" name="dietary_preferences" type="checkbox" value="Low-sodium"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="diet-low-sodium">Low-sodium</label></div>
+<div class="flex items-center"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="diet-diabetes" name="dietary_preferences" type="checkbox" value="Diabetes diet"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="diet-diabetes">Diabetes diet</label></div>
+<div class="flex items-center col-span-full mt-2"><input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="diet-none" name="dietary_preferences" type="checkbox" value="None"/><label class="ml-3 block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="diet-none">None</label></div>
+<div class="flex items-start col-span-full mt-2">
+<input class="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:bg-gray-700 dark:border-gray-600" id="diet-other-checkbox" name="dietary_preferences" type="checkbox" value="Other"/>
+<div class="ml-3 flex-grow">
+<label class="block text-sm font-medium text-[#1b0d0d] dark:text-gray-200" for="diet-other-text">Other</label>
+<input class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm" id="diet-other-text" name="diet_other_text" placeholder="Please specify" type="text"/>
+</div>
+</div>
+</div>
+</section>
+<section class="mb-8">
+<h2 class="text-[#1b0d0d] dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">Metabolic Description</h2>
+<p class="text-[#9a4c4c] dark:text-gray-400 text-sm font-normal leading-normal pb-5">Which statement best describes your body's response to food?</p>
+<div>
+<select class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary focus:ring-primary" id="metabolic_description" name="metabolic_description">
+<option disabled="" selected="" value="">Select an option</option>
+<option value="fast">I can eat anything and not gain weight.</option>
+<option value="hard-gainer">Hard to gain weight.</option>
+<option value="balanced">Can gain or lose by adjusting habits.</option>
+<option value="slow">Gain weight easily and struggle to lose.</option>
+</select>
+</div>
+</section>
+<div class="mt-10 flex justify-between items-center border-t border-gray-200 dark:border-gray-700 pt-6">
+<button class="rounded-lg px-6 py-3 text-base font-semibold text-[#1b0d0d] dark:text-white bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500" type="button">Back</button>
+<button class="rounded-lg bg-primary px-8 py-3 text-base font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background-dark" type="submit">Continue</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body></html>
