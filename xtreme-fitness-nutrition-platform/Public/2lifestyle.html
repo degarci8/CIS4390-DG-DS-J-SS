@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lifestyle + Daily Routine - Step 2 of 6</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#ec1313",
+              "background-light": "#f8f6f6",
+              "background-dark": "#221010",
+              "surface-light": "#ffffff",
+              "surface-dark": "#2a1515",
+              "text-light": "#1b0d0d",
+              "text-dark": "#f8f6f6",
+              "subtext-light": "#9a4c4c",
+              "subtext-dark": "#a38b8b",
+              "border-light": "#e7cfcf",
+              "border-dark": "#4a2b2b"
+            },
+            fontFamily: {
+              "display": ["Lexend", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-light dark:text-text-dark">
+<div class="relative flex min-h-screen w-full flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+<main class="w-full max-w-2xl">
+<div class="flex flex-col gap-6">
+<div class="w-full">
+<p class="mb-2 text-sm font-medium text-subtext-light dark:text-subtext-dark">Step 2 of 6</p>
+<div class="h-2 w-full rounded-full bg-primary/20">
+<div class="h-2 rounded-full bg-primary" style="width: 33.33%;"></div>
+</div>
+</div>
+<div class="rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-6 shadow-sm sm:p-8">
+<form action="/api/intake/submit" class="flex flex-col gap-8" method="POST">
+<div class="flex flex-col gap-2">
+<h1 class="text-3xl font-bold tracking-tight text-text-light dark:text-text-dark sm:text-4xl">Lifestyle + Daily Routine</h1>
+<p class="text-base text-subtext-light dark:text-subtext-dark">Help us understand your daily life to better tailor your plan.</p>
+</div>
+<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-2">
+<label class="text-base font-medium text-text-light dark:text-text-dark" for="description">Which Best Describes You?</label>
+<select class="form-select h-14 w-full rounded-lg border border-border-light bg-background-light p-4 text-base text-text-light placeholder:text-subtext-light focus:border-primary focus:ring-2 focus:ring-primary/50 dark:border-border-dark dark:bg-background-dark dark:text-text-dark dark:placeholder:text-subtext-dark dark:focus:border-primary" id="description" name="description" required="">
+<option disabled="" selected="" value="">Select an option</option>
+<option value="sedentary_adult">Sedentary Adult</option>
+<option value="exercising_adult">Exercising Adult</option>
+<option value="competitive_athlete">Competitive Athlete</option>
+<option value="growing_teenage_athlete">Growing Teenage Athlete</option>
+<option value="adult_building_muscle">Adult Building Muscle</option>
+<option value="athlete_restricting_calories">Athlete Restricting Calories</option>
+</select>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-base font-medium text-text-light dark:text-text-dark" for="work_activity_level">What is your activity level at work?</label>
+<select class="form-select h-14 w-full rounded-lg border border-border-light bg-background-light p-4 text-base text-text-light placeholder:text-subtext-light focus:border-primary focus:ring-2 focus:ring-primary/50 dark:border-border-dark dark:bg-background-dark dark:text-text-dark dark:placeholder:text-subtext-dark dark:focus:border-primary" id="work_activity_level" name="work_activity_level" required="">
+<option disabled="" selected="" value="">Select an option</option>
+<option value="sedentary">Sedentary</option>
+<option value="moderately_active">Moderately Active</option>
+<option value="active">Active</option>
+<option value="very_active">Very Active</option>
+</select>
+</div>
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+<div class="flex flex-col gap-2">
+<label class="text-base font-medium text-text-light dark:text-text-dark" for="wake_time">Wake Time</label>
+<input class="form-input h-14 w-full rounded-lg border border-border-light bg-background-light p-4 text-base text-text-light placeholder:text-subtext-light focus:border-primary focus:ring-2 focus:ring-primary/50 dark:border-border-dark dark:bg-background-dark dark:text-text-dark dark:placeholder:text-subtext-dark dark:focus:border-primary" id="wake_time" name="wake_time" required="" type="time"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-base font-medium text-text-light dark:text-text-dark" for="bed_time">Bed Time</label>
+<input class="form-input h-14 w-full rounded-lg border border-border-light bg-background-light p-4 text-base text-text-light placeholder:text-subtext-light focus:border-primary focus:ring-2 focus:ring-primary/50 dark:border-border-dark dark:bg-background-dark dark:text-text-dark dark:placeholder:text-subtext-dark dark:focus:border-primary" id="bed_time" name="bed_time" required="" type="time"/>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-base font-medium text-text-light dark:text-text-dark" for="smoking_habit">If you smoke, how many per day?</label>
+<input class="form-input h-14 w-full rounded-lg border border-border-light bg-background-light p-4 text-base text-text-light placeholder:text-subtext-light focus:border-primary focus:ring-2 focus:ring-primary/50 dark:border-border-dark dark:bg-background-dark dark:text-text-dark dark:placeholder:text-subtext-dark dark:focus:border-primary" id="smoking_habit" min="0" name="smoking_habit" placeholder="e.g., 0" required="" type="number"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-base font-medium text-text-light dark:text-text-dark" for="alcohol_habit">If you drink alcohol, what &amp; how many per day?</label>
+<input class="form-input h-14 w-full rounded-lg border border-border-light bg-background-light p-4 text-base text-text-light placeholder:text-subtext-light focus:border-primary focus:ring-2 focus:ring-primary/50 dark:border-border-dark dark:bg-background-dark dark:text-text-dark dark:placeholder:text-subtext-dark dark:focus:border-primary" id="alcohol_habit" name="alcohol_habit" placeholder="e.g., 1 glass of wine" required="" type="text"/>
+</div>
+</div>
+<div class="mt-4 flex flex-col-reverse gap-4 sm:flex-row sm:justify-between">
+<button class="flex h-12 items-center justify-center gap-2 rounded-lg border border-border-light px-6 text-base font-semibold text-text-light transition-colors hover:bg-primary/10 dark:border-border-dark dark:text-text-dark dark:hover:bg-primary/20" type="button">
+<span class="material-symbols-outlined">arrow_back</span>
+                                Back
+                            </button>
+<button class="flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-base font-semibold text-white transition-opacity hover:opacity-90" type="submit">
+                                Next
+                                <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</form>
+</div>
+</div>
+</main>
+</div>
+
+</body></html>
