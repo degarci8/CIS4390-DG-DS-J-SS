@@ -108,16 +108,35 @@
 <label class="text-base font-medium leading-normal pb-2 text-[#1b0d0d] dark:text-gray-200" for="medications_supplements">List any medications or supplements you are currently taking. (Required)</label>
 <textarea class="form-textarea w-full resize-y rounded-lg border border-[#e7cfcf] dark:border-gray-600 bg-background-light dark:bg-gray-800 text-[#1b0d0d] dark:text-gray-200 placeholder:text-[#9a4c4c] dark:placeholder-gray-500 focus:border-primary focus:ring-primary p-3.5 text-base font-normal leading-normal" id="medications_supplements" name="medications_supplements" placeholder="e.g., Vitamin D, Multivitamin, Ibuprofen as needed." required="" rows="4"></textarea>
 </div>
-<div class="mt-4 flex flex-col-reverse items-center gap-4 sm:flex-row sm:justify-between">
-<button class="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-gray-200 dark:bg-gray-700 px-6 text-base font-bold text-gray-700 dark:text-gray-200 transition-colors hover:bg-gray-300 dark:hover:bg-gray-600 sm:w-auto" type="button">
-<span class="material-symbols-outlined">arrow_back</span>
-                                    Back
-                                </button>
-<button class="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 text-base font-bold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-primary/50 sm:w-auto" type="submit">
-                                    Next
-                                    <span class="material-symbols-outlined">arrow_forward</span>
-</button>
+<div class="flex flex-col-reverse items-center gap-4 pt-4 sm:flex-row sm:justify-between">
+  <!-- Back: go to step 2 -->
+  <button
+    type="button"
+    onclick="window.location.href='2lifestyle.html';"
+    class="flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg px-6 text-base font-semibold text-brand-gray dark:text-gray-400 transition-colors hover:text-brand-charcoal dark:hover:text-white sm:w-auto"
+  >
+    Back
+  </button>
+
+  <!-- Next: go to Step 4 -->
+  <button
+    type="button"
+    onclick="goToNextStep();"
+    class="flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-brand-red px-8 text-base font-semibold text-white shadow-sm transition-transform hover:scale-105 active:scale-95 sm:w-auto"
+  >
+    Next
+    <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+  </button>
 </div>
+
+<script>
+  function goToNextStep() {
+    const form = document.querySelector('form');
+    if (form.reportValidity()) {
+      window.location.href = '4exerciseandeating.html';
+    }
+  }
+</script>
 </form>
 </div>
 </main>

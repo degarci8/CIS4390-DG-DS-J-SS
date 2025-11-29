@@ -125,10 +125,35 @@
 </select>
 </div>
 </section>
-<div class="mt-10 flex justify-between items-center border-t border-gray-200 dark:border-gray-700 pt-6">
-<button class="rounded-lg px-6 py-3 text-base font-semibold text-[#1b0d0d] dark:text-white bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500" type="button">Back</button>
-<button class="rounded-lg bg-primary px-8 py-3 text-base font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background-dark" type="submit">Continue</button>
+<div class="flex flex-col-reverse items-center gap-4 pt-4 sm:flex-row sm:justify-between">
+  <!-- Back: go to step 4 -->
+  <button
+    type="button"
+    onclick="window.location.href='4exerciseandeating.html';"
+    class="flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg px-6 text-base font-semibold text-brand-gray dark:text-gray-400 transition-colors hover:text-brand-charcoal dark:hover:text-white sm:w-auto"
+  >
+    Back
+  </button>
+
+  <!-- Next: go to Step 6 -->
+  <button
+    type="button"
+    onclick="goToNextStep();"
+    class="flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-brand-red px-8 text-base font-semibold text-white shadow-sm transition-transform hover:scale-105 active:scale-95 sm:w-auto"
+  >
+    Next
+    <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+  </button>
 </div>
+
+<script>
+  function goToNextStep() {
+    const form = document.querySelector('form');
+    if (form.reportValidity()) {
+      window.location.href = '6goalsanddetails.html';
+    }
+  }
+</script>
 </form>
 </div>
 </div>
