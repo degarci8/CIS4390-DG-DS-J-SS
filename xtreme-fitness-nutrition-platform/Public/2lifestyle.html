@@ -112,11 +112,11 @@
     Back
   </button>
 
-  <!-- Next: go to Step 3 -->
+  <!-- Next: go to Step 3 (red button + hover grow like Step 1) -->
   <button
     type="button"
     onclick="goToNextStep();"
-    class="flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-brand-red px-8 text-base font-semibold text-white shadow-sm transition-transform hover:scale-105 active:scale-95 sm:w-auto"
+    class="flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-primary px-8 text-base font-semibold text-white shadow-sm transition-transform hover:scale-105 active:scale-95 sm:w-auto"
   >
     Next
     <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
@@ -127,7 +127,7 @@
   function goToNextStep() {
     const form = document.querySelector('form');
     if (form.reportValidity()) {
-      window.location.href = '3healthhistory.html'; // ⬅️ change if your Step 2 filename is different
+      window.location.href = '3healthhistory.html'; // ⬅️ Step 3 file
     }
   }
 </script>
