@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Xtreme Fitness - Confirm Action</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style type="text/tailwindcss">
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#ec1313",
+              "background-light": "#f8f6f6",
+              "background-dark": "#221010",
+            },
+            fontFamily: {
+              "display": ["Lexend", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+</head>
+<body class="font-display">
+<div class="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark group/design-root overflow-x-hidden" style='font-family: Lexend, "Noto Sans", sans-serif;'>
+<!-- This is a simulated background to represent the main dashboard -->
+<div class="absolute inset-0 bg-white dark:bg-gray-900 z-0">
+<div class="p-8">
+<h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">Coach Dashboard</h1>
+<div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg h-32 opacity-50"></div>
+<div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg h-32 opacity-50"></div>
+<div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg h-32 opacity-50"></div>
+</div>
+</div>
+</div>
+<!-- End simulated background -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+<div class="relative flex w-full max-w-md flex-col items-center justify-center overflow-hidden rounded-xl bg-background-light dark:bg-background-dark p-6 sm:p-8 text-center shadow-2xl">
+<button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+<div class="layout-content-container flex flex-col w-full max-w-sm">
+<h1 class="text-gray-900 dark:text-white tracking-light text-[32px] font-bold leading-tight pb-3 pt-6">Open Editor?</h1>
+<p class="text-gray-600 dark:text-gray-300 text-base font-normal leading-normal pb-3 pt-1">You are about to open the nutrition plan editor for:</p>
+<h2 class="text-gray-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3 pt-5">Jane Doe</h2>
+<div class="flex flex-col items-stretch gap-3 py-3 w-full">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] w-full hover:bg-primary/90 transition-colors">
+<span class="truncate">Open Nutrition Plan Editor</span>
+</button>
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-gray-200 dark:bg-white/10 text-gray-800 dark:text-white text-base font-bold leading-normal tracking-[0.015em] w-full hover:bg-gray-300 dark:hover:bg-white/20 transition-colors">
+<span class="truncate">Cancel</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body></html>
