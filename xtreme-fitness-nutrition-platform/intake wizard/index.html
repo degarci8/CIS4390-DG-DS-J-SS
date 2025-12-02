@@ -1,0 +1,1940 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Intake Portal</title>
+
+  <!-- Tailwind + fonts -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+
+  <style type="text/tailwindcss">
+    .material-symbols-outlined {
+      font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24
+    }
+  </style>
+
+  <style>
+  /* Show conditional sections when toggle is on */
+  #previous-program-toggle:checked ~ #previous-program-fields {
+    display: grid;
+  }
+  #bodyfat-tested-toggle:checked ~ #bodyfat-fields {
+    display: grid;
+  }
+  </style>
+
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#ec1313",
+            "background-light": "#f8f6f6",
+            "background-dark": "#221010",
+            "brand-red": "#FF3B30",
+            "brand-off-white": "#F5F5F7",
+            "brand-white": "#FFFFFF",
+            "brand-charcoal": "#1D1D1F",
+            "brand-gray": "#86868B",
+            "brand-error": "#D93025",
+          },
+          fontFamily: {
+            "display": ["Lexend", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+
+  <script>
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('formState', () => ({
+        isExercising: null,
+        favoriteFoods: [],
+        dislikedFoods: [],
+        newFavoriteFood: '',
+        newDislikedFood: '',
+        addFood(type) {
+          const input =
+            type === 'favorite'
+              ? this.newFavoriteFood.trim()
+              : this.newDislikedFood.trim();
+
+          if (!input) return;
+
+          if (type === 'favorite') {
+            if (!this.favoriteFoods.includes(input)) {
+              this.favoriteFoods.push(input);
+            }
+            this.newFavoriteFood = '';
+          } else {
+            if (!this.dislikedFoods.includes(input)) {
+              this.dislikedFoods.push(input);
+            }
+            this.newDislikedFood = '';
+          }
+        },
+        removeFood(type, index) {
+          if (type === 'favorite') {
+            this.favoriteFoods.splice(index, 1);
+          } else {
+            this.dislikedFoods.splice(index, 1);
+          }
+        }
+      }));
+    });
+  </script>
+
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+  ></script>
+
+</head>
+
+<body class="font-display bg-brand-off-white dark:bg-background-dark text-brand-charcoal dark:text-gray-200">
+  <div class="relative flex min-h-screen w-full flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+    <main class="w-full max-w-2xl">
+      <!-- Top intro / progress summary -->
+      <div class="mb-8 px-4">
+        <p id="step-label" class="text-brand-charcoal dark:text-gray-300 text-sm font-medium leading-normal">
+          Welcome
+        </p>
+        <p class="text-brand-gray dark:text-gray-400 mt-1 text-sm leading-normal">
+          This intake has 6 quick steps to complete.
+        </p>
+
+        <!-- Overall progress bar -->
+        <div class="mt-4 h-1.5 w-full rounded-full bg-gray-200 dark:bg-gray-700">
+          <div id="progress-bar" class="h-1.5 rounded-full bg-brand-red" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- Main card -->
+      <div class="w-full rounded-xl bg-brand-white dark:bg-background-dark p-6 shadow-sm sm:p-8">
+        <!-- Intro screen (shown first) -->
+        <div id="intro-screen">
+          <div class="mb-6 sm:mb-8">
+            <h1 class="text-brand-charcoal dark:text-white text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+              Client Intake Overview
+            </h1>
+            <p class="text-brand-gray dark:text-gray-400 mt-2 text-base leading-normal">
+              Start your intake and move through each step to provide your personal, health, and lifestyle details.
+            </p>
+          </div>
+
+          <!-- Primary call to action -->
+          <div class="mb-2">
+            <button
+              id="start-intake-btn"
+              type="button"
+              class="flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-brand-red px-8 text-base font-semibold text-white shadow-sm transition-transform hover:scale-105 active:scale-95"
+            >
+              Start Intake
+              <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+            </button>
+          </div>
+          <p class="text-xs text-brand-gray dark:text-gray-400">
+            Once you start, you’ll move through each step one by one.
+          </p>
+        </div>
+
+        <!-- Multi-step form (hidden until "Start Intake") -->
+        <form
+          id="intake-form"
+          action="/api/intake/submit"
+          method="POST"
+          class="space-y-6 hidden"
+        >
+          <!-- STEP 1: Personal Information -->
+          <section class="step" data-step="1">
+            <div class="mb-8">
+              <h1 class="text-brand-charcoal dark:text-white text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+                Personal Information
+              </h1>
+              <p class="text-brand-gray dark:text-gray-400 mt-2 text-base leading-normal">
+                Please fill out your personal details below.
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div>
+                <label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="first-name">
+                  First Name
+                </label>
+                <input
+                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal"
+                  id="first-name"
+                  name="firstName"
+                  placeholder="Enter your first name"
+                  required
+                  type="text"
+                />
+                <p class="mt-1.5 text-xs text-brand-error hidden">This field is required.</p>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="last-name">
+                  Last Name
+                </label>
+                <input
+                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal"
+                  id="last-name"
+                  name="lastName"
+                  placeholder="Enter your last name"
+                  required
+                  type="text"
+                />
+                <p class="mt-1.5 text-xs text-brand-error hidden">This field is required.</p>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="email">
+                Email Address
+              </label>
+              <input
+                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal"
+                id="email"
+                name="email"
+                placeholder="Enter your email address"
+                required
+                type="email"
+              />
+              <p class="mt-1.5 text-xs text-brand-error hidden">Please enter a valid email.</p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div>
+                <label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="dob">
+                  Date of Birth
+                </label>
+                <input
+                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal"
+                  id="dob"
+                  name="dateOfBirth"
+                  required
+                  type="date"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="phone">
+                  Phone Number
+                </label>
+                <input
+                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal"
+                  id="phone"
+                  name="phoneNumber"
+                  placeholder="(123) 456-7890"
+                  required
+                  type="tel"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="address">
+                Address
+              </label>
+              <input
+                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal"
+                id="address"
+                name="address"
+                placeholder="Enter your full address"
+                required
+                type="text"
+              />
+            </div>
+
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div>
+                <label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="gender">
+                  Gender
+                </label>
+                <div class="relative">
+                  <select
+                    class="form-select flex w-full appearance-none min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 px-4 text-base font-normal leading-normal"
+                    id="gender"
+                    name="gender"
+                    required
+                  >
+                    <option disabled selected value="">Select an option</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                    <option value="prefer-not-to-say">Prefer not to say</option>
+                  </select>
+                  <span
+                    class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-brand-gray dark:text-gray-400"
+                    data-icon="unfold_more"
+                  >
+                    unfold_more
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-brand-gray dark:text-gray-400 pb-2" for="emergency-contact">
+                  Emergency Contact
+                </label>
+                <input
+                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal"
+                  id="emergency-contact"
+                  name="emergencyContact"
+                  placeholder="Name and phone number"
+                  required
+                  type="text"
+                />
+              </div>
+            </div>
+
+            <div class="flex flex-col-reverse items-center gap-4 pt-4 sm:flex-row sm:justify-between">
+              <!-- Back: return to intro -->
+              <button
+                type="button"
+                class="prev-btn flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg px-6 text-base font-semibold text-brand-gray dark:text-gray-400 transition-colors hover:text-brand-charcoal dark:hover:text-white sm:w-auto"
+              >
+                Back
+              </button>
+
+              <!-- Next: go to Step 2 (once you add it) -->
+              <button
+                type="button"
+                class="next-btn flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-brand-red px-8 text-base font-semibold text-white shadow-sm transition-transform hover:scale-105 active:scale-95 sm:w-auto"
+              >
+                Next
+                <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+              </button>
+            </div>
+          </section>
+
+          <!-- STEP 2: Lifestyle + Daily Routine -->
+          <section class="step hidden" data-step="2">
+            <div class="mb-8">
+              <h1 class="text-brand-charcoal dark:text-white text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+                Lifestyle + Daily Routine
+              </h1>
+              <p class="text-brand-gray dark:text-gray-400 mt-2 text-base leading-normal">
+                Help us understand your daily life to better tailor your plan.
+              </p>
+            </div>
+
+            <div class="flex flex-col gap-6">
+              <!-- Which Best Describes You -->
+              <div class="flex flex-col gap-2">
+                <label
+                  class="text-base font-medium text-brand-charcoal dark:text-gray-100"
+                  for="description"
+                >
+                  Which Best Describes You?
+                </label>
+                <select
+                  id="description"
+                  name="description"
+                  required
+                  class="form-select flex w-full appearance-none min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 px-4 text-base font-normal leading-normal"
+                >
+                  <option disabled selected value="">Select an option</option>
+                  <option value="sedentary_adult">Sedentary Adult</option>
+                  <option value="exercising_adult">Exercising Adult</option>
+                  <option value="competitive_athlete">Competitive Athlete</option>
+                  <option value="growing_teenage_athlete">Growing Teenage Athlete</option>
+                  <option value="adult_building_muscle">Adult Building Muscle</option>
+                  <option value="athlete_restricting_calories">Athlete Restricting Calories</option>
+                </select>
+              </div>
+
+              <!-- Activity level at work -->
+              <div class="flex flex-col gap-2">
+                <label
+                  class="text-base font-medium text-brand-charcoal dark:text-gray-100"
+                  for="work_activity_level"
+                >
+                  What is your activity level at work?
+                </label>
+                <select
+                  id="work_activity_level"
+                  name="work_activity_level"
+                  required
+                  class="form-select flex w-full appearance-none min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 px-4 text-base font-normal leading-normal"
+                >
+                  <option disabled selected value="">Select an option</option>
+                  <option value="sedentary">Sedentary</option>
+                  <option value="moderately_active">Moderately Active</option>
+                  <option value="active">Active</option>
+                  <option value="very_active">Very Active</option>
+                </select>
+              </div>
+
+              <!-- Wake / Bed time -->
+              <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div class="flex flex-col gap-2">
+                  <label
+                    class="text-base font-medium text-brand-charcoal dark:text-gray-100"
+                    for="wake_time"
+                  >
+                    Wake Time
+                  </label>
+                  <input
+                    id="wake_time"
+                    name="wake_time"
+                    type="time"
+                    required
+                    class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal"
+                  />
+                </div>
+
+                <div class="flex flex-col gap-2">
+                  <label
+                    class="text-base font-medium text-brand-charcoal dark:text-gray-100"
+                    for="bed_time"
+                  >
+                    Bed Time
+                  </label>
+                  <input
+                    id="bed_time"
+                    name="bed_time"
+                    type="time"
+                    required
+                    class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal"
+                  />
+                </div>
+              </div>
+
+              <!-- Smoking habit -->
+              <div class="flex flex-col gap-2">
+                <label
+                  class="text-base font-medium text-brand-charcoal dark:text-gray-100"
+                  for="smoking_habit"
+                >
+                  If you smoke, how many per day?
+                </label>
+                <input
+                  id="smoking_habit"
+                  name="smoking_habit"
+                  type="number"
+                  min="0"
+                  required
+                  placeholder="e.g., 0"
+                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal"
+                />
+              </div>
+
+              <!-- Alcohol habit -->
+              <div class="flex flex-col gap-2">
+                <label
+                  class="text-base font-medium text-brand-charcoal dark:text-gray-100"
+                  for="alcohol_habit"
+                >
+                  If you drink alcohol, what &amp; how many per day?
+                </label>
+                <input
+                  id="alcohol_habit"
+                  name="alcohol_habit"
+                  type="text"
+                  required
+                  placeholder="e.g., 1 glass of wine"
+                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red focus:ring-opacity-50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 h-12 placeholder:text-brand-gray px-4 text-base font-normal leading-normal"
+                />
+              </div>
+            </div>
+
+            <!-- Navigation buttons -->
+            <div class="flex flex-col-reverse items-center gap-4 pt-4 sm:flex-row sm:justify-between">
+              <!-- Back: go to previous step (handled by JS) -->
+              <button
+                type="button"
+                class="prev-btn flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg px-6 text-base font-semibold text-brand-gray dark:text-gray-400 transition-colors hover:text-brand-charcoal dark:hover:text-white sm:w-auto"
+              >
+                Back
+              </button>
+
+              <!-- Next: go to Step 3 (handled by JS) -->
+              <button
+                type="button"
+                class="next-btn flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-brand-red px-8 text-base font-semibold text-white shadow-sm transition-transform hover:scale-105 active:scale-95 sm:w-auto"
+              >
+                Next
+                <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+              </button>
+            </div>
+          </section>
+
+          <!-- STEP 3: Medical History -->
+          <section class="step hidden" data-step="3">
+            <div class="mb-8">
+              <h1 class="text-brand-charcoal dark:text-white text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+                Your Medical History
+              </h1>
+              <p class="text-brand-gray dark:text-gray-400 mt-2 text-base leading-normal">
+                Please provide some details about your medical background to ensure our plan is safe and effective for you.
+              </p>
+            </div>
+
+            <div class="flex flex-col gap-6">
+              <!-- Medical conditions -->
+              <div class="flex flex-col">
+                <label
+                  class="text-base font-medium leading-normal pb-2 text-brand-charcoal dark:text-gray-200"
+                  for="medical_conditions_other_text"
+                >
+                  Do you have any of the following medical conditions?
+                </label>
+                <p class="mb-4 text-xs text-brand-gray dark:text-gray-500">
+                  Select all that apply.
+                </p>
+
+                <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                  <div class="flex items-center">
+                    <input
+                      class="form-checkbox h-5 w-5 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                      id="condition_heart"
+                      name="medical_conditions"
+                      type="checkbox"
+                      value="Heart Disease"
+                    />
+                    <label class="ml-3 text-base text-brand-charcoal dark:text-gray-200" for="condition_heart">
+                      Heart Disease
+                    </label>
+                  </div>
+
+                  <div class="flex items-center">
+                    <input
+                      class="form-checkbox h-5 w-5 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                      id="condition_liver"
+                      name="medical_conditions"
+                      type="checkbox"
+                      value="Liver Disease"
+                    />
+                    <label class="ml-3 text-base text-brand-charcoal dark:text-gray-200" for="condition_liver">
+                      Liver Disease
+                    </label>
+                  </div>
+
+                  <div class="flex items-center">
+                    <input
+                      class="form-checkbox h-5 w-5 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                      id="condition_pancreatic"
+                      name="medical_conditions"
+                      type="checkbox"
+                      value="Pancreatic Disease"
+                    />
+                    <label class="ml-3 text-base text-brand-charcoal dark:text-gray-200" for="condition_pancreatic">
+                      Pancreatic Disease
+                    </label>
+                  </div>
+
+                  <div class="flex items-center">
+                    <input
+                      class="form-checkbox h-5 w-5 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                      id="condition_anemia"
+                      name="medical_conditions"
+                      type="checkbox"
+                      value="Anemia"
+                    />
+                    <label class="ml-3 text-base text-brand-charcoal dark:text-gray-200" for="condition_anemia">
+                      Anemia
+                    </label>
+                  </div>
+
+                  <div class="flex items-center">
+                    <input
+                      class="form-checkbox h-5 w-5 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                      id="condition_kidney"
+                      name="medical_conditions"
+                      type="checkbox"
+                      value="Kidney Disease"
+                    />
+                    <label class="ml-3 text-base text-brand-charcoal dark:text-gray-200" for="condition_kidney">
+                      Kidney Disease
+                    </label>
+                  </div>
+
+                  <div class="flex items-center">
+                    <input
+                      class="form-checkbox h-5 w-5 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                      id="condition_lactation"
+                      name="medical_conditions"
+                      type="checkbox"
+                      value="Lactation"
+                    />
+                    <label class="ml-3 text-base text-brand-charcoal dark:text-gray-200" for="condition_lactation">
+                      Lactation
+                    </label>
+                  </div>
+
+                  <div class="flex items-center">
+                    <input
+                      class="form-checkbox h-5 w-5 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                      id="condition_hypoglycemia"
+                      name="medical_conditions"
+                      type="checkbox"
+                      value="Hypoglycemia"
+                    />
+                    <label class="ml-3 text-base text-brand-charcoal dark:text-gray-200" for="condition_hypoglycemia">
+                      Hypoglycemia
+                    </label>
+                  </div>
+
+                  <div class="flex items-center">
+                    <input
+                      class="form-checkbox h-5 w-5 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                      id="condition_diabetes"
+                      name="medical_conditions"
+                      type="checkbox"
+                      value="Diabetes"
+                    />
+                    <label class="ml-3 text-base text-brand-charcoal dark:text-gray-200" for="condition_diabetes">
+                      Diabetes
+                    </label>
+                  </div>
+
+                  <div class="flex items-center">
+                    <input
+                      class="form-checkbox h-5 w-5 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                      id="condition_hypertension"
+                      name="medical_conditions"
+                      type="checkbox"
+                      value="Hypertension"
+                    />
+                    <label class="ml-3 text-base text-brand-charcoal dark:text-gray-200" for="condition_hypertension">
+                      Hypertension
+                    </label>
+                  </div>
+
+                  <div class="flex items-center">
+                    <input
+                      class="form-checkbox h-5 w-5 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                      id="condition_none"
+                      name="medical_conditions"
+                      type="checkbox"
+                      value="None"
+                    />
+                    <label class="ml-3 text-base text-brand-charcoal dark:text-gray-200" for="condition_none">
+                      None
+                    </label>
+                  </div>
+
+                  <div class="flex items-center col-span-2 sm:col-span-1">
+                    <input
+                      class="form-checkbox h-5 w-5 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                      id="condition_other"
+                      name="medical_conditions"
+                      type="checkbox"
+                      value="Other"
+                    />
+                    <label class="ml-3 text-base text-brand-charcoal dark:text-gray-200" for="condition_other">
+                      Other
+                    </label>
+                  </div>
+                </div>
+
+                <input
+                  class="form-input mt-4 w-full resize-none rounded-lg border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 text-brand-charcoal dark:text-gray-200 placeholder:text-brand-gray dark:placeholder-gray-500 focus:border-brand-red focus:ring-brand-red h-14 p-3.5 text-base font-normal leading-normal"
+                  id="medical_conditions_other_text"
+                  name="medical_conditions_other_text"
+                  type="text"
+                  placeholder="Please specify"
+                />
+              </div>
+
+              <!-- Injuries / surgeries -->
+              <div class="flex flex-col">
+                <label
+                  class="text-base font-medium leading-normal pb-2 text-brand-charcoal dark:text-gray-200"
+                  for="injuries_surgeries"
+                >
+                  Any past or current injuries or surgeries? (Required)
+                </label>
+                <textarea
+                  id="injuries_surgeries"
+                  name="injuries_surgeries"
+                  rows="4"
+                  required
+                  placeholder="e.g., Torn ACL in 2021, lower back pain."
+                  class="form-textarea w-full resize-y rounded-lg border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 text-brand-charcoal dark:text-gray-200 placeholder:text-brand-gray dark:placeholder-gray-500 focus:border-brand-red focus:ring-brand-red p-3.5 text-base font-normal leading-normal"
+                ></textarea>
+              </div>
+
+              <!-- Medications / supplements -->
+              <div class="flex flex-col">
+                <label
+                  class="text-base font-medium leading-normal pb-2 text-brand-charcoal dark:text-gray-200"
+                  for="medications_supplements"
+                >
+                  List any medications or supplements you are currently taking. (Required)
+                </label>
+                <textarea
+                  id="medications_supplements"
+                  name="medications_supplements"
+                  rows="4"
+                  required
+                  placeholder="e.g., Vitamin D, Multivitamin, Ibuprofen as needed."
+                  class="form-textarea w-full resize-y rounded-lg border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 text-brand-charcoal dark:text-gray-200 placeholder:text-brand-gray dark:placeholder-gray-500 focus:border-brand-red focus:ring-brand-red p-3.5 text-base font-normal leading-normal"
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- Navigation buttons -->
+            <div class="flex flex-col-reverse items-center gap-4 pt-4 sm:flex-row sm:justify-between">
+              <!-- Back: go to previous step (handled by JS) -->
+              <button
+                type="button"
+                class="prev-btn flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg px-6 text-base font-semibold text-brand-gray dark:text-gray-400 transition-colors hover:text-brand-charcoal dark:hover:text-white sm:w-auto"
+              >
+                Back
+              </button>
+
+              <!-- Next: go to Step 4 (handled by JS) -->
+              <button
+                type="button"
+                class="next-btn flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-brand-red px-8 text-base font-semibold text-white shadow-sm transition-transform hover:scale-105 active:scale-95 sm:w-auto"
+              >
+                Next
+                <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+              </button>
+            </div>
+          </section>
+
+          <!-- STEP 4: Exercise & Eating Habits -->
+          <section class="step hidden" data-step="4" x-data="formState">
+            <div class="mb-8">
+              <h1 class="text-brand-charcoal dark:text-white text-3xl sm:text-4xl font-black leading-tight tracking-tight">
+                Exercise &amp; Eating Habits
+              </h1>
+              <p class="mt-2 text-base font-normal leading-normal text-brand-gray dark:text-gray-400">
+                Understanding your current habits helps us build a plan that works for you.
+              </p>
+            </div>
+
+            <div class="flex flex-col gap-6">
+              <!-- Currently exercising -->
+              <div class="flex flex-col">
+                <label class="text-base font-medium leading-normal pb-2 text-brand-charcoal dark:text-gray-100">
+                  Are you currently exercising?
+                </label>
+                <div class="flex w-full overflow-hidden rounded-lg border border-gray-300 dark:border-gray-600">
+                  <button
+                    type="button"
+                    @click.prevent="isExercising = true"
+                    :class="{
+                      'bg-brand-red text-white': isExercising === true,
+                      'bg-brand-white dark:bg-background-dark hover:bg-black/5 dark:hover:bg-white/5': isExercising !== true
+                    }"
+                    class="flex-1 px-4 py-3 text-base font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-red/50 focus:ring-inset"
+                  >
+                    Yes
+                  </button>
+                  <button
+                    type="button"
+                    @click.prevent="isExercising = false"
+                    :class="{
+                      'bg-brand-red text-white': isExercising === false,
+                      'bg-brand-white dark:bg-background-dark hover:bg-black/5 dark:hover:bg-white/5': isExercising !== false
+                    }"
+                    class="flex-1 border-l border-gray-300 dark:border-gray-600 px-4 py-3 text-base font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-red/50 focus:ring-inset"
+                  >
+                    No
+                  </button>
+                </div>
+                <!-- hidden field that actually submits -->
+                <input name="currently_exercising" type="hidden" required x-bind:value="isExercising" />
+              </div>
+
+              <!-- Exercise routine (only if exercising) -->
+              <div
+                class="flex flex-col"
+                x-show="isExercising"
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 -translate-y-2"
+                x-transition:enter-end="opacity-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-y-0"
+                x-transition:leave-end="opacity-0 -translate-y-2"
+              >
+                <label
+                  class="text-base font-medium leading-normal pb-2 text-brand-charcoal dark:text-gray-100"
+                  for="exercise_routine"
+                >
+                  Describe your current routine (time, frequency, duration)
+                </label>
+                <textarea
+                  id="exercise_routine"
+                  name="exercise_routine"
+                  placeholder="e.g., I lift weights 3 times a week for about 60 minutes."
+                  x-bind:required="isExercising"
+                  class="flex w-full min-w-0 flex-1 resize-y overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red/50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-background-dark min-h-[120px] placeholder:text-brand-gray dark:placeholder:text-gray-400 p-[15px] text-base font-normal leading-normal"
+                ></textarea>
+              </div>
+
+              <!-- 24-hour recall -->
+              <div class="flex flex-col">
+                <label
+                  class="text-base font-medium leading-normal pb-2 text-brand-charcoal dark:text-gray-100"
+                  for="food_recall"
+                >
+                  24-hour food recall
+                </label>
+                <textarea
+                  id="food_recall"
+                  name="food_recall"
+                  required
+                  placeholder="Please list everything you ate and drank in the last 24 hours."
+                  class="flex w-full min-w-0 flex-1 resize-y overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red/50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-background-dark min-h-[120px] placeholder:text-brand-gray dark:placeholder:text-gray-400 p-[15px] text-base font-normal leading-normal"
+                ></textarea>
+              </div>
+
+              <!-- Favorite foods -->
+              <div class="flex flex-col">
+                <label
+                  class="text-base font-medium leading-normal pb-2 text-brand-charcoal dark:text-gray-100"
+                  for="favorite_foods_input"
+                >
+                  Favorite foods
+                </label>
+                <div class="flex flex-col">
+                  <div class="flex gap-2">
+                    <input
+                      id="favorite_foods_input"
+                      type="text"
+                      placeholder="Add a food and press Enter"
+                      x-model="newFavoriteFood"
+                      @keydown.enter.prevent="addFood('favorite')"
+                      class="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red/50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-background-dark h-14 placeholder:text-brand-gray dark:placeholder:text-gray-400 p-[15px] text-base font-normal leading-normal"
+                    />
+                    <button
+                      type="button"
+                      @click.prevent="addFood('favorite')"
+                      class="flex h-14 w-14 items-center justify-center rounded-lg bg-brand-red text-white transition-opacity hover:opacity-90"
+                    >
+                      <span class="material-symbols-outlined">add</span>
+                    </button>
+                  </div>
+
+                  <div class="mt-4 flex flex-wrap gap-2" x-show="favoriteFoods.length > 0">
+                    <template x-for="(food, index) in favoriteFoods" :key="index">
+                      <span
+                        class="flex items-center gap-1 rounded-full bg-brand-red/10 dark:bg-brand-red/20 px-3 py-1.5 text-sm font-medium text-brand-red dark:text-white"
+                      >
+                        <span x-text="food"></span>
+                        <button
+                          type="button"
+                          @click.prevent="removeFood('favorite', index)"
+                          class="text-brand-red/70 dark:text-white/70 hover:text-brand-red dark:hover:text-white"
+                        >
+                          <span class="material-symbols-outlined !text-base">close</span>
+                        </button>
+                      </span>
+                    </template>
+                  </div>
+
+                  <!-- hidden to submit CSV list -->
+                  <input name="favorite_foods" type="hidden" x-bind:value="favoriteFoods.join(',')" />
+                </div>
+              </div>
+
+              <!-- Disliked foods -->
+              <div class="flex flex-col">
+                <label
+                  class="text-base font-medium leading-normal pb-2 text-brand-charcoal dark:text-gray-100"
+                  for="disliked_foods_input"
+                >
+                  Disliked foods
+                </label>
+                <div class="flex flex-col">
+                  <div class="flex gap-2">
+                    <input
+                      id="disliked_foods_input"
+                      type="text"
+                      placeholder="Add a food and press Enter"
+                      x-model="newDislikedFood"
+                      @keydown.enter.prevent="addFood('disliked')"
+                      class="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red/50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-background-dark h-14 placeholder:text-brand-gray dark:placeholder:text-gray-400 p-[15px] text-base font-normal leading-normal"
+                    />
+                    <button
+                      type="button"
+                      @click.prevent="addFood('disliked')"
+                      class="flex h-14 w-14 items-center justify-center rounded-lg bg-brand-red text-white transition-opacity hover:opacity-90"
+                    >
+                      <span class="material-symbols-outlined">add</span>
+                    </button>
+                  </div>
+
+                  <div class="mt-4 flex flex-wrap gap-2" x-show="dislikedFoods.length > 0">
+                    <template x-for="(food, index) in dislikedFoods" :key="index">
+                      <span
+                        class="flex items-center gap-1 rounded-full bg-brand-red/10 dark:bg-brand-red/20 px-3 py-1.5 text-sm font-medium text-brand-red dark:text-white"
+                      >
+                        <span x-text="food"></span>
+                        <button
+                          type="button"
+                          @click.prevent="removeFood('disliked', index)"
+                          class="text-brand-red/70 dark:text-white/70 hover:text-brand-red dark:hover:text-white"
+                        >
+                          <span class="material-symbols-outlined !text-base">close</span>
+                        </button>
+                      </span>
+                    </template>
+                  </div>
+
+                  <!-- hidden to submit CSV list -->
+                  <input name="disliked_foods" type="hidden" x-bind:value="dislikedFoods.join(',')" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Navigation buttons -->
+            <div class="flex flex-col-reverse items-center gap-4 pt-4 sm:flex-row sm:justify-between">
+              <!-- Back: handled by wizard JS -->
+              <button
+                type="button"
+                class="prev-btn flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg px-6 text-base font-semibold text-brand-gray dark:text-gray-400 transition-colors hover:text-brand-charcoal dark:hover:text-white sm:w-auto"
+              >
+                Back
+              </button>
+
+              <!-- Next: handled by wizard JS -->
+              <button
+                type="button"
+                class="next-btn flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-brand-red px-8 text-base font-semibold text-white shadow-sm transition-transform hover:scale-105 active:scale-95 sm:w-auto"
+              >
+                Next
+                <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+              </button>
+            </div>
+          </section>
+
+          <!-- STEP 5: Allergies & Dietary Preferences -->
+          <section class="step hidden" data-step="5">
+            <!-- Food Allergies / Intolerances -->
+            <div class="mb-8">
+              <h1 class="text-brand-charcoal dark:text-white text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+                Allergies &amp; Dietary Preferences
+              </h1>
+              <p class="text-brand-gray dark:text-gray-400 mt-2 text-base leading-normal">
+                Help us tailor your nutrition plan.
+              </p>
+            </div>
+
+            <div class="space-y-8">
+              <!-- Food Allergies -->
+              <section>
+                <h2 class="text-brand-charcoal dark:text-white text-xl font-bold leading-tight pb-3">
+                  Food Allergies / Intolerances
+                </h2>
+                <p class="text-brand-gray dark:text-gray-400 text-sm font-normal leading-normal pb-4">
+                  Select any that apply to you.
+                </p>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                  <!-- Milk -->
+                  <div class="flex items-center">
+                    <input
+                      id="allergy-milk"
+                      name="allergies"
+                      type="checkbox"
+                      value="Milk"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="allergy-milk" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Milk
+                    </label>
+                  </div>
+
+                  <!-- Eggs -->
+                  <div class="flex items-center">
+                    <input
+                      id="allergy-eggs"
+                      name="allergies"
+                      type="checkbox"
+                      value="Eggs"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="allergy-eggs" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Eggs
+                    </label>
+                  </div>
+
+                  <!-- Peanuts -->
+                  <div class="flex items-center">
+                    <input
+                      id="allergy-peanuts"
+                      name="allergies"
+                      type="checkbox"
+                      value="Peanuts"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="allergy-peanuts" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Peanuts
+                    </label>
+                  </div>
+
+                  <!-- Tree Nuts -->
+                  <div class="flex items-center">
+                    <input
+                      id="allergy-tree-nuts"
+                      name="allergies"
+                      type="checkbox"
+                      value="Tree Nuts"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="allergy-tree-nuts" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Tree Nuts
+                    </label>
+                  </div>
+
+                  <!-- Soy -->
+                  <div class="flex items-center">
+                    <input
+                      id="allergy-soy"
+                      name="allergies"
+                      type="checkbox"
+                      value="Soy"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="allergy-soy" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Soy
+                    </label>
+                  </div>
+
+                  <!-- Wheat -->
+                  <div class="flex items-center">
+                    <input
+                      id="allergy-wheat"
+                      name="allergies"
+                      type="checkbox"
+                      value="Wheat"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="allergy-wheat" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Wheat
+                    </label>
+                  </div>
+
+                  <!-- Fish -->
+                  <div class="flex items-center">
+                    <input
+                      id="allergy-fish"
+                      name="allergies"
+                      type="checkbox"
+                      value="Fish"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="allergy-fish" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Fish
+                    </label>
+                  </div>
+
+                  <!-- Shellfish -->
+                  <div class="flex items-center">
+                    <input
+                      id="allergy-shellfish"
+                      name="allergies"
+                      type="checkbox"
+                      value="Shellfish"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="allergy-shellfish" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Shellfish
+                    </label>
+                  </div>
+
+                  <!-- Sesame -->
+                  <div class="flex items-center">
+                    <input
+                      id="allergy-sesame"
+                      name="allergies"
+                      type="checkbox"
+                      value="Sesame"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="allergy-sesame" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Sesame
+                    </label>
+                  </div>
+
+                  <!-- Lactose -->
+                  <div class="flex items-center">
+                    <input
+                      id="allergy-lactose"
+                      name="allergies"
+                      type="checkbox"
+                      value="Lactose"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="allergy-lactose" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Lactose
+                    </label>
+                  </div>
+
+                  <!-- Gluten -->
+                  <div class="flex items-center">
+                    <input
+                      id="allergy-gluten"
+                      name="allergies"
+                      type="checkbox"
+                      value="Gluten"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="allergy-gluten" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Gluten
+                    </label>
+                  </div>
+
+                  <!-- Histamine -->
+                  <div class="flex items-center">
+                    <input
+                      id="allergy-histamine"
+                      name="allergies"
+                      type="checkbox"
+                      value="Histamine"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="allergy-histamine" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Histamine
+                    </label>
+                  </div>
+
+                  <!-- None -->
+                  <div class="flex items-center">
+                    <input
+                      id="allergy-none"
+                      name="allergies"
+                      type="checkbox"
+                      value="None"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="allergy-none" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      None
+                    </label>
+                  </div>
+
+                  <!-- Other + text -->
+                  <div class="flex items-start col-span-full mt-2 gap-3">
+                    <div class="flex items-center mt-1">
+                      <input
+                        id="allergy-other-checkbox"
+                        name="allergies"
+                        type="checkbox"
+                        value="Other"
+                        class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                      />
+                    </div>
+                    <div class="flex-1">
+                      <label
+                        for="allergy-other-text"
+                        class="block text-sm font-medium text-brand-charcoal dark:text-gray-200"
+                      >
+                        Other
+                      </label>
+                      <input
+                        id="allergy-other-text"
+                        name="allergy_other_text"
+                        type="text"
+                        placeholder="Please specify"
+                        class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 text-brand-charcoal dark:text-gray-200 placeholder:text-brand-gray dark:placeholder-gray-500 focus:border-brand-red focus:ring-brand-red h-12 px-4 text-base font-normal leading-normal"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Dietary Preferences -->
+              <section>
+                <h2 class="text-brand-charcoal dark:text-white text-xl font-bold leading-tight pb-3">
+                  Dietary Preferences
+                </h2>
+                <p class="text-brand-gray dark:text-gray-400 text-sm font-normal leading-normal pb-4">
+                  Select any dietary approaches you follow or are interested in.
+                </p>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                  <!-- Vegetarian -->
+                  <div class="flex items-center">
+                    <input
+                      id="diet-vegetarian"
+                      name="dietary_preferences"
+                      type="checkbox"
+                      value="Vegetarian"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="diet-vegetarian" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Vegetarian
+                    </label>
+                  </div>
+
+                  <!-- Vegan -->
+                  <div class="flex items-center">
+                    <input
+                      id="diet-vegan"
+                      name="dietary_preferences"
+                      type="checkbox"
+                      value="Vegan"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="diet-vegan" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Vegan
+                    </label>
+                  </div>
+
+                  <!-- Pescatarian -->
+                  <div class="flex items-center">
+                    <input
+                      id="diet-pescatarian"
+                      name="dietary_preferences"
+                      type="checkbox"
+                      value="Pescatarian"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="diet-pescatarian" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Pescatarian
+                    </label>
+                  </div>
+
+                  <!-- Gluten-free -->
+                  <div class="flex items-center">
+                    <input
+                      id="diet-gluten-free"
+                      name="dietary_preferences"
+                      type="checkbox"
+                      value="Gluten-free"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="diet-gluten-free" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Gluten-free
+                    </label>
+                  </div>
+
+                  <!-- Celiac -->
+                  <div class="flex items-center">
+                    <input
+                      id="diet-celiac"
+                      name="dietary_preferences"
+                      type="checkbox"
+                      value="Celiac"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="diet-celiac" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Celiac
+                    </label>
+                  </div>
+
+                  <!-- Dairy-free -->
+                  <div class="flex items-center">
+                    <input
+                      id="diet-dairy-free"
+                      name="dietary_preferences"
+                      type="checkbox"
+                      value="Dairy-free"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="diet-dairy-free" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Dairy-free
+                    </label>
+                  </div>
+
+                  <!-- Keto -->
+                  <div class="flex items-center">
+                    <input
+                      id="diet-keto"
+                      name="dietary_preferences"
+                      type="checkbox"
+                      value="Keto"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="diet-keto" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Keto
+                    </label>
+                  </div>
+
+                  <!-- Paleo -->
+                  <div class="flex items-center">
+                    <input
+                      id="diet-paleo"
+                      name="dietary_preferences"
+                      type="checkbox"
+                      value="Paleo"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="diet-paleo" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Paleo
+                    </label>
+                  </div>
+
+                  <!-- Kosher -->
+                  <div class="flex items-center">
+                    <input
+                      id="diet-kosher"
+                      name="dietary_preferences"
+                      type="checkbox"
+                      value="Kosher"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="diet-kosher" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Kosher
+                    </label>
+                  </div>
+
+                  <!-- Halal -->
+                  <div class="flex items-center">
+                    <input
+                      id="diet-halal"
+                      name="dietary_preferences"
+                      type="checkbox"
+                      value="Halal"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="diet-halal" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Halal
+                    </label>
+                  </div>
+
+                  <!-- Low-carb -->
+                  <div class="flex items-center">
+                    <input
+                      id="diet-low-carb"
+                      name="dietary_preferences"
+                      type="checkbox"
+                      value="Low-carb"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="diet-low-carb" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Low-carb
+                    </label>
+                  </div>
+
+                  <!-- Low-sugar -->
+                  <div class="flex items-center">
+                    <input
+                      id="diet-low-sugar"
+                      name="dietary_preferences"
+                      type="checkbox"
+                      value="Low-sugar"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="diet-low-sugar" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Low-sugar
+                    </label>
+                  </div>
+
+                  <!-- Low-sodium -->
+                  <div class="flex items-center">
+                    <input
+                      id="diet-low-sodium"
+                      name="dietary_preferences"
+                      type="checkbox"
+                      value="Low-sodium"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="diet-low-sodium" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Low-sodium
+                    </label>
+                  </div>
+
+                  <!-- Diabetes-related -->
+                  <div class="flex items-center">
+                    <input
+                      id="diet-diabetes"
+                      name="dietary_preferences"
+                      type="checkbox"
+                      value="Diabetes-focused"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="diet-diabetes" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      Diabetes-focused
+                    </label>
+                  </div>
+
+                  <!-- None -->
+                  <div class="flex items-center">
+                    <input
+                      id="diet-none"
+                      name="dietary_preferences"
+                      type="checkbox"
+                      value="None"
+                      class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <label for="diet-none" class="ml-3 block text-sm font-medium text-brand-charcoal dark:text-gray-200">
+                      None
+                    </label>
+                  </div>
+
+                  <!-- Other + text -->
+                  <div class="flex items-start col-span-full mt-2 gap-3">
+                    <div class="flex items-center mt-1">
+                      <input
+                        id="diet-other-checkbox"
+                        name="dietary_preferences"
+                        type="checkbox"
+                        value="Other"
+                        class="form-checkbox h-4 w-4 rounded border-gray-300 text-brand-red focus:ring-brand-red dark:border-gray-600 dark:bg-gray-800"
+                      />
+                    </div>
+                    <div class="flex-1">
+                      <label
+                        for="diet-other-text"
+                        class="block text-sm font-medium text-brand-charcoal dark:text-gray-200"
+                      >
+                        Other
+                      </label>
+                      <input
+                        id="diet-other-text"
+                        name="diet_other_text"
+                        type="text"
+                        placeholder="Please specify"
+                        class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-gray-800 text-brand-charcoal dark:text-gray-200 placeholder:text-brand-gray dark:placeholder-gray-500 focus:border-brand-red focus:ring-brand-red h-12 px-4 text-base font-normal leading-normal"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <!-- Navigation buttons -->
+            <div class="flex flex-col-reverse items-center gap-4 pt-4 sm:flex-row sm:justify-between">
+              <button
+                type="button"
+                class="prev-btn flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg px-6 text-base font-semibold text-brand-gray dark:text-gray-400 transition-colors hover:text-brand-charcoal dark:hover:text-white sm:w-auto"
+              >
+                Back
+              </button>
+
+              <button
+                type="button"
+                class="next-btn flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-brand-red px-8 text-base font-semibold text-white shadow-sm transition-transform hover:scale-105 active:scale-95 sm:w-auto"
+              >
+                Next
+                <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+              </button>
+            </div>
+          </section>
+
+          <!-- STEP 6: Goals & Final Details -->
+          <section class="step hidden" data-step="6">
+            <!-- Heading -->
+            <div class="mb-8 flex flex-wrap justify-between gap-3 border-b border-gray-200 dark:border-gray-700 pb-6">
+              <h1 class="text-3xl sm:text-4xl font-black leading-tight tracking-tight text-brand-charcoal dark:text-white">
+                Goals &amp; Final Details
+              </h1>
+            </div>
+
+            <div class="grid grid-cols-1 gap-x-8 gap-y-8">
+              <!-- Your Goals -->
+              <div class="space-y-6">
+                <h2 class="text-[22px] font-bold leading-tight tracking-[-0.015em] text-brand-charcoal dark:text-white">
+                  Your Goals
+                </h2>
+
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <!-- Primary Goal -->
+                  <div class="flex flex-col gap-2">
+                    <label class="text-base font-medium leading-normal" for="primary_goal">
+                      Primary Goal
+                    </label>
+                    <select
+                      id="primary_goal"
+                      name="primary_goal"
+                      required
+                      class="form-select peer w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
+                    >
+                      <option disabled selected value="">Select your primary goal...</option>
+                      <option value="weight_loss">Weight loss</option>
+                      <option value="maintain_habits">Maintain/improve habits</option>
+                      <option value="gain_weight">Gain weight</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+
+                  <!-- Goal Weight -->
+                  <div class="flex flex-col gap-2">
+                    <label class="text-base font-medium leading-normal" for="goal_weight">
+                      Goal Weight (lbs)
+                    </label>
+                    <input
+                      id="goal_weight"
+                      name="goal_weight"
+                      type="number"
+                      placeholder="e.g. 150"
+                      class="form-input peer w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
+                    />
+                  </div>
+                </div>
+
+                <!-- Desired Timeline -->
+                <div class="flex flex-col gap-2">
+                  <label class="text-base font-medium leading-normal" for="desired_timeline">
+                    Desired Timeline
+                  </label>
+                  <input
+                    id="desired_timeline"
+                    name="desired_timeline"
+                    type="text"
+                    placeholder="e.g. 3 months, By summer"
+                    class="form-input peer w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
+                  />
+                </div>
+              </div>
+
+              <!-- Previous Programs -->
+              <div class="space-y-6 border-t border-gray-200 dark:border-gray-700 pt-8">
+                <h2 class="text-[22px] font-bold leading-tight tracking-[-0.015em] text-brand-charcoal dark:text-white">
+                  Previous Programs
+                </h2>
+
+                <!-- Toggle row -->
+                <div
+                  class="flex flex-1 flex-col items-start justify-between gap-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-brand-off-white dark:bg-background-dark p-5 sm:flex-row sm:items-center"
+                >
+                  <div class="flex flex-col gap-1">
+                    <p class="text-base font-bold leading-tight text-brand-charcoal dark:text-gray-100">
+                      Previous nutrition program?
+                    </p>
+                  </div>
+
+                  <!-- Toggle -->
+                  <label
+                    for="previous-program-toggle"
+                    class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-gray-200 dark:bg-gray-700 p-0.5 has-[:checked]:justify-end has-[:checked]:bg-brand-red"
+                  >
+                    <div
+                      class="h-full w-[27px] rounded-full bg-white transition-transform"
+                      style="box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 4px;"
+                    ></div>
+                    <input
+                      id="previous-program-toggle"
+                      name="has_previous_program"
+                      type="checkbox"
+                      class="invisible absolute"
+                    />
+                  </label>
+                </div>
+
+                <!-- Conditional fields (shown when toggle on; CSS handles display) -->
+                <div
+                  id="previous-program-fields"
+                  class="hidden grid-cols-1 gap-6 sm:grid-cols-2"
+                >
+                  <div class="flex flex-col gap-2 sm:col-span-2">
+                    <label class="text-base font-medium leading-normal" for="program_provider">
+                      By whom?
+                    </label>
+                    <input
+                      id="program_provider"
+                      name="program_provider"
+                      type="text"
+                      placeholder="e.g. Coach's Name / Company"
+                      class="form-input peer w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
+                    />
+                  </div>
+
+                  <div class="flex flex-col gap-2 sm:col-span-2">
+                    <label class="text-base font-medium leading-normal" for="program_consist">
+                      What did it consist of?
+                    </label>
+                    <textarea
+                      id="program_consist"
+                      name="program_consist"
+                      rows="3"
+                      placeholder="e.g., Keto diet, 5x5 lifting"
+                      class="form-textarea peer w-full resize-y rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
+                    ></textarea>
+                  </div>
+
+                  <div class="flex flex-col gap-2">
+                    <label class="text-base font-medium leading-normal" for="program_results">
+                      Results
+                    </label>
+                    <textarea
+                      id="program_results"
+                      name="program_results"
+                      rows="3"
+                      placeholder="What were the outcomes?"
+                      class="form-textarea peer w-full resize-y rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
+                    ></textarea>
+                  </div>
+
+                  <div class="flex flex-col gap-2">
+                    <label class="text-base font-medium leading-normal" for="past_challenges">
+                      Past challenges
+                    </label>
+                    <textarea
+                      id="past_challenges"
+                      name="past_challenges"
+                      rows="3"
+                      placeholder="What did you struggle with?"
+                      class="form-textarea peer w-full resize-y rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Nutrition & Body Composition -->
+              <div class="space-y-6 border-t border-gray-200 dark:border-gray-700 pt-8">
+                <h2 class="text-[22px] font-bold leading-tight tracking-[-0.015em] text-brand-charcoal dark:text-white">
+                  Nutrition &amp; Body Composition
+                </h2>
+
+                <div class="flex flex-col gap-2">
+                  <label class="text-base font-medium leading-normal" for="nutrition_plan_preference">
+                    Preferred nutrition plan
+                  </label>
+                  <select
+                    id="nutrition_plan_preference"
+                    name="nutrition_plan_preference"
+                    required
+                    class="form-select peer w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
+                  >
+                    <option disabled selected value="">Select your preference...</option>
+                    <option value="one_day">One-day repeating</option>
+                    <option value="three_day">Three-day rotation</option>
+                    <option value="seven_day">Seven individual days</option>
+                  </select>
+                </div>
+
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <div class="flex flex-col gap-2">
+                    <label class="text-base font-medium leading-normal" for="height">
+                      Height (in)
+                    </label>
+                    <input
+                      id="height"
+                      name="height"
+                      type="number"
+                      required
+                      placeholder="e.g. 68"
+                      class="form-input peer w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
+                    />
+                  </div>
+
+                  <div class="flex flex-col gap-2">
+                    <label class="text-base font-medium leading-normal" for="weight">
+                      Weight (lbs)
+                    </label>
+                    <input
+                      id="weight"
+                      name="weight"
+                      type="number"
+                      required
+                      placeholder="e.g. 165"
+                      class="form-input peer w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
+                    />
+                  </div>
+                </div>
+
+                <!-- Body fat toggle -->
+                <div
+                  class="flex flex-1 flex-col items-start justify-between gap-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-brand-off-white dark:bg-background-dark p-5 sm:flex-row sm:items-center"
+                >
+                  <div class="flex flex-col gap-1">
+                    <p class="text-base font-bold leading-tight text-brand-charcoal dark:text-gray-100">
+                      Body fat tested?
+                    </p>
+                  </div>
+
+                  <label
+                    for="bodyfat-tested-toggle"
+                    class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-gray-200 dark:bg-gray-700 p-0.5 has-[:checked]:justify-end has-[:checked]:bg-brand-red"
+                  >
+                    <div
+                      class="h-full w-[27px] rounded-full bg-white transition-transform"
+                      style="box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 4px;"
+                    ></div>
+                    <input
+                      id="bodyfat-tested-toggle"
+                      name="has_bodyfat_test"
+                      type="checkbox"
+                      class="invisible absolute"
+                    />
+                  </label>
+                </div>
+
+                <!-- Body fat fields -->
+                <div
+                  id="bodyfat-fields"
+                  class="hidden grid-cols-1 gap-6 sm:grid-cols-3"
+                >
+                  <div class="flex flex-col gap-2 sm:col-span-3 lg:col-span-1">
+                    <label class="text-base font-medium leading-normal" for="bf_method">
+                      Method
+                    </label>
+                    <select
+                      id="bf_method"
+                      name="bf_method"
+                      class="form-select peer w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
+                    >
+                      <option disabled selected value="">Select method...</option>
+                      <option value="calipers">Calipers</option>
+                      <option value="bia">BIA</option>
+                      <option value="hydrostatic">Hydrostatic</option>
+                      <option value="bod_pod">Bod Pod</option>
+                      <option value="bmi">BMI</option>
+                      <option value="waist">Waist Circumference</option>
+                      <option value="none">None</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+
+                  <div class="flex flex-col gap-2 sm:col-span-3 lg:col-span-1">
+                    <label class="text-base font-medium leading-normal" for="bf_percent">
+                      Body fat %
+                    </label>
+                    <input
+                      id="bf_percent"
+                      name="bf_percent"
+                      type="number"
+                      step="0.1"
+                      placeholder="e.g. 22.5"
+                      class="form-input peer w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
+                    />
+                  </div>
+
+                  <div class="flex flex-col gap-2 sm:col-span-3 lg:col-span-1">
+                    <label class="text-base font-medium leading-normal" for="bf_date">
+                      Date of assessment
+                    </label>
+                    <input
+                      id="bf_date"
+                      name="bf_date"
+                      type="date"
+                      class="form-input peer w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Review -->
+              <div class="border-t border-gray-200 dark:border-gray-700 pt-8">
+                <h2 class="text-[22px] font-bold leading-tight tracking-[-0.015em] mb-5 text-brand-charcoal dark:text-white">
+                  Review Your Intake
+                </h2>
+                <div class="space-y-4 rounded-lg bg-brand-off-white dark:bg-background-dark p-6">
+                  <p class="text-sm text-brand-gray dark:text-gray-400">
+                    This is a summary of all the information you've provided. You can jump back to any step to edit before submitting.
+                  </p>
+
+                  <div class="flex flex-col gap-4">
+                    <!-- Step 1 -->
+                    <div class="flex items-center justify-between">
+                      <p class="font-bold text-brand-charcoal dark:text-gray-100">
+                        Step 1: Personal Information
+                      </p>
+                      <button
+                        type="button"
+                        class="jump-step-btn flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium text-brand-red ring-1 ring-inset ring-brand-red/50 transition-colors hover:bg-brand-red/10"
+                        data-step="1"
+                      >
+                        <span class="material-symbols-outlined text-base">edit</span>
+                        <span>Edit</span>
+                      </button>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="flex items-center justify-between">
+                      <p class="font-bold text-brand-charcoal dark:text-gray-100">
+                        Step 2: Lifestyle + Daily Routine
+                      </p>
+                      <button
+                        type="button"
+                        class="jump-step-btn flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium text-brand-red ring-1 ring-inset ring-brand-red/50 transition-colors hover:bg-brand-red/10"
+                        data-step="2"
+                      >
+                        <span class="material-symbols-outlined text-base">edit</span>
+                        <span>Edit</span>
+                      </button>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="flex items-center justify-between">
+                      <p class="font-bold text-brand-charcoal dark:text-gray-100">
+                        Step 3: Your Medical History
+                      </p>
+                      <button
+                        type="button"
+                        class="jump-step-btn flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium text-brand-red ring-1 ring-inset ring-brand-red/50 transition-colors hover:bg-brand-red/10"
+                        data-step="3"
+                      >
+                        <span class="material-symbols-outlined text-base">edit</span>
+                        <span>Edit</span>
+                      </button>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="flex items-center justify-between">
+                      <p class="font-bold text-brand-charcoal dark:text-gray-100">
+                        Step 4: Exercise &amp; Eating Habits
+                      </p>
+                      <button
+                        type="button"
+                        class="jump-step-btn flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium text-brand-red ring-1 ring-inset ring-brand-red/50 transition-colors hover:bg-brand-red/10"
+                        data-step="4"
+                      >
+                        <span class="material-symbols-outlined text-base">edit</span>
+                        <span>Edit</span>
+                      </button>
+                    </div>
+
+                    <!-- Step 5 -->
+                    <div class="flex items-center justify-between">
+                      <p class="font-bold text-brand-charcoal dark:text-gray-100">
+                        Step 5: Allergies &amp; Dietary Preferences
+                      </p>
+                      <button
+                        type="button"
+                        class="jump-step-btn flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium text-brand-red ring-1 ring-inset ring-brand-red/50 transition-colors hover:bg-brand-red/10"
+                        data-step="5"
+                      >
+                        <span class="material-symbols-outlined text-base">edit</span>
+                        <span>Edit</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Navigation: Back + Submit -->
+            <div class="mt-8 flex w-full flex-col-reverse justify-end gap-4 sm:flex-row sm:items-center">
+              <!-- Back to Step 5 -->
+              <button
+                type="button"
+                class="prev-btn w-full rounded-lg px-6 py-3 text-base font-semibold text-brand-gray dark:text-gray-400 transition-colors hover:text-brand-charcoal dark:hover:text-white sm:w-auto"
+              >
+                Back
+              </button>
+
+              <!-- Submit intake -->
+              <button
+                type="submit"
+                class="w-full rounded-lg bg-brand-red px-8 py-4 text-center text-lg font-bold text-white transition-transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-brand-red/40 sm:w-auto"
+              >
+                Submit Intake
+              </button>
+            </div>
+          </section>
+
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const intro = document.getElementById('intro-screen');
+      const form = document.getElementById('intake-form');
+      const steps = Array.from(document.querySelectorAll('.step'));
+      const stepLabel = document.getElementById('step-label');
+      const progressBar = document.getElementById('progress-bar');
+      let currentStepIndex = 0;
+
+      function updateStepUI() {
+        steps.forEach((step, index) => {
+          step.classList.toggle('hidden', index !== currentStepIndex);
+        });
+
+        if (steps.length > 0) {
+          const stepNumber = currentStepIndex + 1;
+          const total = steps.length;
+          stepLabel.textContent = `Step ${stepNumber} of ${total}`;
+          const percent = (stepNumber / total) * 100;
+          progressBar.style.width = `${percent}%`;
+        }
+      }
+
+      // ✅ NEW: validate only fields in the current step
+      function validateCurrentStep() {
+        const currentStepEl = steps[currentStepIndex];
+        if (!currentStepEl) return true;
+
+        const fields = currentStepEl.querySelectorAll('input, select, textarea');
+
+        for (const field of fields) {
+          // Let browser show the native validation message on the first bad field
+          if (!field.checkValidity()) {
+            field.reportValidity();
+            return false;
+          }
+        }
+        return true;
+      }
+
+      const startBtn = document.getElementById('start-intake-btn');
+      if (startBtn) {
+        startBtn.addEventListener('click', () => {
+          intro.classList.add('hidden');
+          form.classList.remove('hidden');
+          currentStepIndex = 0;
+          updateStepUI();
+        });
+      }
+
+      // Next buttons
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('.next-btn')) {
+          // 🔁 use step-level validation instead of form.reportValidity()
+          if (!validateCurrentStep()) return;
+
+          if (currentStepIndex < steps.length - 1) {
+            currentStepIndex++;
+            updateStepUI();
+          } else {
+            // Last step: submit form
+            form.submit();
+          }
+        }
+      });
+
+      // Back buttons
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('.prev-btn')) {
+          if (currentStepIndex > 0) {
+            currentStepIndex--;
+            updateStepUI();
+          } else {
+            // Back from first step: return to intro
+            form.classList.add('hidden');
+            intro.classList.remove('hidden');
+            stepLabel.textContent = 'Welcome';
+            progressBar.style.width = '0%';
+          }
+        }
+      });
+
+      // Jump directly to a specific step from the Review section
+      document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.jump-step-btn');
+        if (!btn) return;
+
+        const targetStep = parseInt(btn.dataset.step, 10);
+        if (Number.isNaN(targetStep)) return;
+
+        // Ensure intro is hidden and form is visible
+        intro.classList.add('hidden');
+        form.classList.remove('hidden');
+
+        // Steps are 1-based in data-step, 0-based in array
+        if (targetStep >= 1 && targetStep <= steps.length) {
+          currentStepIndex = targetStep - 1;
+          updateStepUI();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
