@@ -144,16 +144,35 @@
 <input name="disliked_foods" type="hidden" x-bind:value="dislikedFoods.join(',')"/>
 </div>
 </div>
-<div class="mt-4 flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
-<button class="flex h-12 w-full sm:w-auto items-center justify-center gap-2 whitespace-nowrap rounded-lg px-6 text-base font-semibold text-text-light dark:text-text-dark transition-colors duration-200 hover:bg-black/10 dark:hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" type="button">
-<span class="material-symbols-outlined">arrow_back</span>
-                        Back
-                    </button>
-<button class="flex h-12 w-full sm:w-auto items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-primary px-6 text-base font-semibold text-white transition-opacity duration-200 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-background-dark" type="submit">
-                        Next
-                        <span class="material-symbols-outlined">arrow_forward</span>
-</button>
+<div class="flex flex-col-reverse items-center gap-4 pt-4 sm:flex-row sm:justify-between">
+  <!-- Back: go to step 3 -->
+  <button
+    type="button"
+    onclick="window.location.href='3healthhistory.html';"
+    class="flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg px-6 text-base font-semibold text-brand-gray dark:text-gray-400 transition-colors hover:text-brand-charcoal dark:hover:text-white sm:w-auto"
+  >
+    Back
+  </button>
+
+  <!-- Next: go to Step 5 -->
+  <button
+    type="button"
+    onclick="goToNextStep();"
+    class="flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-primary px-8 text-base font-semibold text-white shadow-sm transition-transform hover:scale-105 active:scale-95 sm:w-auto"
+  >
+    Next
+    <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+  </button>
 </div>
+
+<script>
+  function goToNextStep() {
+    const form = document.querySelector('form');
+    if (form.reportValidity()) {
+      window.location.href = '5allergiesanddiet.html';
+    }
+  }
+</script>
 </form>
 </div>
 </main>
