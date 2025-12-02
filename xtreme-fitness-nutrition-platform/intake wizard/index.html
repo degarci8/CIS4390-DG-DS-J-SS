@@ -1860,13 +1860,17 @@
 
       // Validate only the inputs in the currently visible step
       function validateCurrentStep() {
+        // If you ever call this without steps, fallback to whole-form validation
+        if (!steps.length) {
+          return form ? form.reportValidity() : true;
+        }
+
         const currentStepEl = steps[currentStepIndex];
         if (!currentStepEl) return true;
 
         const fields = currentStepEl.querySelectorAll('input, select, textarea');
         for (const field of fields) {
           if (!field.checkValidity()) {
-            // Trigger browser's native validation UI on the first invalid field
             field.reportValidity();
             return false;
           }
@@ -1890,15 +1894,14 @@
         const nextBtn = e.target.closest('.next-btn');
         if (!nextBtn) return;
 
-        // Validate only this step before moving on
         if (!validateCurrentStep()) return;
 
         if (currentStepIndex < steps.length - 1) {
           currentStepIndex++;
           updateStepUI();
-        } else {
-          // If you ever add a "Next" on the last step, this is where you'd submit
-          if (form && form.reportValidity()) {
+        } else if (form) {
+          // If you ever add a "Next" on the last step, this would submit
+          if (form.reportValidity()) {
             form.requestSubmit ? form.requestSubmit() : form.submit();
           }
         }
@@ -1913,7 +1916,7 @@
           currentStepIndex--;
           updateStepUI();
         } else if (form && intro) {
-          // Back from step 1 → return to intro screen
+          // Back from step 1 → intro
           form.classList.add('hidden');
           intro.classList.remove('hidden');
           if (stepLabel) stepLabel.textContent = 'Welcome';
@@ -1921,7 +1924,7 @@
         }
       });
 
-      // "Edit" buttons in the Step 6 review section (jump to a step)
+      // "Edit" buttons in the Step 6 review section (jump to specific step)
       document.addEventListener('click', (e) => {
         const btn = e.target.closest('.jump-step-btn');
         if (!btn) return;
@@ -1935,7 +1938,7 @@
         }
 
         if (targetStep >= 1 && targetStep <= steps.length) {
-          currentStepIndex = targetStep - 1; // data-step is 1-based
+          currentStepIndex = targetStep - 1;
           updateStepUI();
         }
       });
@@ -1952,11 +1955,9 @@
         function updateState() {
           const isOn = toggle.checked;
 
-          // Show/hide the container
           container.classList.toggle('hidden', !isOn);
           container.style.display = isOn ? 'grid' : 'none';
 
-          // Add/remove required attributes inside
           controlledInputs.forEach((input) => {
             if (isOn) {
               input.setAttribute('required', '');
@@ -1967,31 +1968,25 @@
         }
 
         toggle.addEventListener('change', updateState);
-        // Initialize once on load
         updateState();
       }
 
       setupConditionalFields('previous-program-toggle', 'previous-program-fields');
       setupConditionalFields('bodyfat-tested-toggle', 'bodyfat-fields');
 
-      // === Temporary submit handler: show confirmation text instead of real POST ===
-      const submitMessage = document.getElementById('submit-message');
-
+      // === Temporary submit handler: popup message instead of real backend ===
       if (form) {
         form.addEventListener('submit', (e) => {
           // Prevent actual navigation / backend call for now
           e.preventDefault();
 
-          // Optionally, make sure the last step is valid too
+          // Make sure the current (last) step is valid
           if (!validateCurrentStep()) return;
 
-          if (submitMessage) {
-            submitMessage.textContent =
-              'Thank you for submitting the intake form. Your form is currently under review.';
-            submitMessage.classList.remove('hidden');
-          }
+          // Show popup message
+          alert('Thank you for submitting the intake form. Your form is currently under review.');
 
-          // Disable the submit button so it can't be clicked repeatedly
+          // Disable the submit button to prevent multiple submissions
           const submitBtn = form.querySelector('button[type="submit"]');
           if (submitBtn) {
             submitBtn.disabled = true;
