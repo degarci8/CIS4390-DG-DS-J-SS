@@ -796,7 +796,7 @@
                   id="food_recall"
                   name="food_recall"
                   required
-                  placeholder="Please list everything you ate and drank in the last 24 hours."
+                  placeholder="Please list everything you typically eat and drank in a 24 hour period including water."
                   class="flex w-full min-w-0 flex-1 resize-y overflow-hidden rounded-lg text-brand-charcoal dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-brand-red/50 border border-gray-300 dark:border-gray-600 bg-brand-white dark:bg-background-dark min-h-[120px] placeholder:text-brand-gray dark:placeholder:text-gray-400 p-[15px] text-base font-normal leading-normal"
                 ></textarea>
               </div>
@@ -1153,6 +1153,13 @@
                       />
                     </div>
                   </div>
+                  <p
+                    id="allergies-error"
+                    class="mt-2 text-xs text-brand-error hidden"
+                  >
+                    Please select at least one allergy option (or “None”).
+                  </p>
+
                 </div>
               </section>
 
@@ -1403,6 +1410,13 @@
                       />
                     </div>
                   </div>
+                  <p
+                    id="dietary-error"
+                    class="mt-2 text-xs text-brand-error hidden"
+                  >
+                    Please select at least one dietary preference (or “None”).
+                  </p>
+
                 </div>
               </section>
             </div>
@@ -1859,8 +1873,9 @@
       }
 
       // Validate only the inputs in the currently visible step
+      // PLUS custom group validation for Step 5 (allergies & dietary prefs)
       function validateCurrentStep() {
-        // If you ever call this without steps, fallback to whole-form validation
+        // Fallback: if something weird happens, validate whole form
         if (!steps.length) {
           return form ? form.reportValidity() : true;
         }
@@ -1868,6 +1883,37 @@
         const currentStepEl = steps[currentStepIndex];
         if (!currentStepEl) return true;
 
+        const stepNumber = parseInt(currentStepEl.dataset.step || '', 10);
+
+        // 🔴 Custom validation for Step 5
+        if (stepNumber === 5) {
+          const allergiesChecked =
+            currentStepEl.querySelectorAll('input[name="allergies"]:checked').length > 0;
+          const dietaryChecked =
+            currentStepEl.querySelectorAll('input[name="dietary_preferences"]:checked').length > 0;
+
+          const allergiesError = currentStepEl.querySelector('#allergies-error');
+          const dietaryError = currentStepEl.querySelector('#dietary-error');
+
+          if (allergiesError) {
+            allergiesError.classList.toggle('hidden', allergiesChecked);
+          }
+          if (dietaryError) {
+            dietaryError.classList.toggle('hidden', dietaryChecked);
+          }
+
+          // If either group is empty, stop here
+          if (!allergiesChecked || !dietaryChecked) {
+            // Optionally scroll to the first missing group
+            const firstError = !allergiesChecked ? allergiesError : dietaryError;
+            if (firstError && typeof firstError.scrollIntoView === 'function') {
+              firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return false;
+          }
+        }
+
+        // ✅ Normal per-field validation for this step
         const fields = currentStepEl.querySelectorAll('input, select, textarea');
         for (const field of fields) {
           if (!field.checkValidity()) {
@@ -1875,6 +1921,7 @@
             return false;
           }
         }
+
         return true;
       }
 
