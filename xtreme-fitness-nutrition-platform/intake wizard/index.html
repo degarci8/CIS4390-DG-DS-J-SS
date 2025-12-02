@@ -1843,12 +1843,13 @@
       const progressBar = document.getElementById('progress-bar');
       let currentStepIndex = 0;
 
+      // Show the correct step + update label / progress bar
       function updateStepUI() {
         steps.forEach((step, index) => {
           step.classList.toggle('hidden', index !== currentStepIndex);
         });
 
-        if (steps.length > 0) {
+        if (steps.length > 0 && stepLabel && progressBar) {
           const stepNumber = currentStepIndex + 1;
           const total = steps.length;
           stepLabel.textContent = `Step ${stepNumber} of ${total}`;
@@ -1857,16 +1858,15 @@
         }
       }
 
-      // ✅ NEW: validate only fields in the current step
+      // Validate only the inputs in the currently visible step
       function validateCurrentStep() {
         const currentStepEl = steps[currentStepIndex];
         if (!currentStepEl) return true;
 
         const fields = currentStepEl.querySelectorAll('input, select, textarea');
-
         for (const field of fields) {
-          // Let browser show the native validation message on the first bad field
           if (!field.checkValidity()) {
+            // Trigger browser's native validation UI on the first invalid field
             field.reportValidity();
             return false;
           }
@@ -1874,8 +1874,9 @@
         return true;
       }
 
+      // Start button (on intro screen)
       const startBtn = document.getElementById('start-intake-btn');
-      if (startBtn) {
+      if (startBtn && intro && form) {
         startBtn.addEventListener('click', () => {
           intro.classList.add('hidden');
           form.classList.remove('hidden');
@@ -1884,39 +1885,43 @@
         });
       }
 
-      // Next buttons
+      // "Next" buttons (on steps 1–5)
       document.addEventListener('click', (e) => {
-        if (e.target.closest('.next-btn')) {
-          // 🔁 use step-level validation instead of form.reportValidity()
-          if (!validateCurrentStep()) return;
+        const nextBtn = e.target.closest('.next-btn');
+        if (!nextBtn) return;
 
-          if (currentStepIndex < steps.length - 1) {
-            currentStepIndex++;
-            updateStepUI();
-          } else {
-            // Last step: submit form
-            form.submit();
+        // Validate only this step before moving on
+        if (!validateCurrentStep()) return;
+
+        if (currentStepIndex < steps.length - 1) {
+          currentStepIndex++;
+          updateStepUI();
+        } else {
+          // If you ever add a "Next" on the last step, this is where you'd submit
+          if (form && form.reportValidity()) {
+            form.requestSubmit ? form.requestSubmit() : form.submit();
           }
         }
       });
 
-      // Back buttons
+      // "Back" buttons (on steps 1–6)
       document.addEventListener('click', (e) => {
-        if (e.target.closest('.prev-btn')) {
-          if (currentStepIndex > 0) {
-            currentStepIndex--;
-            updateStepUI();
-          } else {
-            // Back from first step: return to intro
-            form.classList.add('hidden');
-            intro.classList.remove('hidden');
-            stepLabel.textContent = 'Welcome';
-            progressBar.style.width = '0%';
-          }
+        const prevBtn = e.target.closest('.prev-btn');
+        if (!prevBtn) return;
+
+        if (currentStepIndex > 0) {
+          currentStepIndex--;
+          updateStepUI();
+        } else if (form && intro) {
+          // Back from step 1 → return to intro screen
+          form.classList.add('hidden');
+          intro.classList.remove('hidden');
+          if (stepLabel) stepLabel.textContent = 'Welcome';
+          if (progressBar) progressBar.style.width = '0%';
         }
       });
 
-      // Jump directly to a specific step from the Review section
+      // "Edit" buttons in the Step 6 review section (jump to a step)
       document.addEventListener('click', (e) => {
         const btn = e.target.closest('.jump-step-btn');
         if (!btn) return;
@@ -1924,17 +1929,78 @@
         const targetStep = parseInt(btn.dataset.step, 10);
         if (Number.isNaN(targetStep)) return;
 
-        // Ensure intro is hidden and form is visible
-        intro.classList.add('hidden');
-        form.classList.remove('hidden');
+        if (intro && form) {
+          intro.classList.add('hidden');
+          form.classList.remove('hidden');
+        }
 
-        // Steps are 1-based in data-step, 0-based in array
         if (targetStep >= 1 && targetStep <= steps.length) {
-          currentStepIndex = targetStep - 1;
+          currentStepIndex = targetStep - 1; // data-step is 1-based
           updateStepUI();
         }
       });
+
+      // === Toggle-based conditional sections for Step 6 (previous program + body fat) ===
+      function setupConditionalFields(toggleId, containerId) {
+        const toggle = document.getElementById(toggleId);
+        const container = document.getElementById(containerId);
+
+        if (!toggle || !container) return;
+
+        const controlledInputs = container.querySelectorAll('input, textarea, select');
+
+        function updateState() {
+          const isOn = toggle.checked;
+
+          // Show/hide the container
+          container.classList.toggle('hidden', !isOn);
+          container.style.display = isOn ? 'grid' : 'none';
+
+          // Add/remove required attributes inside
+          controlledInputs.forEach((input) => {
+            if (isOn) {
+              input.setAttribute('required', '');
+            } else {
+              input.removeAttribute('required');
+            }
+          });
+        }
+
+        toggle.addEventListener('change', updateState);
+        // Initialize once on load
+        updateState();
+      }
+
+      setupConditionalFields('previous-program-toggle', 'previous-program-fields');
+      setupConditionalFields('bodyfat-tested-toggle', 'bodyfat-fields');
+
+      // === Temporary submit handler: show confirmation text instead of real POST ===
+      const submitMessage = document.getElementById('submit-message');
+
+      if (form) {
+        form.addEventListener('submit', (e) => {
+          // Prevent actual navigation / backend call for now
+          e.preventDefault();
+
+          // Optionally, make sure the last step is valid too
+          if (!validateCurrentStep()) return;
+
+          if (submitMessage) {
+            submitMessage.textContent =
+              'Thank you for submitting the intake form. Your form is currently under review.';
+            submitMessage.classList.remove('hidden');
+          }
+
+          // Disable the submit button so it can't be clicked repeatedly
+          const submitBtn = form.querySelector('button[type="submit"]');
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+          }
+        });
+      }
     });
   </script>
+
 </body>
 </html>
