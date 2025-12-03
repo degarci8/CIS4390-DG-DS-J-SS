@@ -158,7 +158,7 @@
         <!-- Multi-step form (hidden until "Start Intake") -->
         <form
           id="intake-form"
-          action="/api/intake/submit"
+          action="https://djshortt.app.n8n.cloud/webhook-test/4fc73d32-f765-4619-8285-933001be28e3"
           method="POST"
           class="space-y-6 hidden"
         >
@@ -2021,26 +2021,6 @@
       setupConditionalFields('previous-program-toggle', 'previous-program-fields');
       setupConditionalFields('bodyfat-tested-toggle', 'bodyfat-fields');
 
-      // === Temporary submit handler: popup message instead of real backend ===
-      if (form) {
-        form.addEventListener('submit', (e) => {
-          // Prevent actual navigation / backend call for now
-          e.preventDefault();
-
-          // Make sure the current (last) step is valid
-          if (!validateCurrentStep()) return;
-
-          // Show popup message
-          alert('Thank you for submitting the intake form. Your form is currently under review.');
-
-          // Disable the submit button to prevent multiple submissions
-          const submitBtn = form.querySelector('button[type="submit"]');
-          if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
-          }
-        });
-      }
     });
   </script>
 
