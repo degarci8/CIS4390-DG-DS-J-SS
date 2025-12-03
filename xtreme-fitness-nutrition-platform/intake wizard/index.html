@@ -2021,6 +2021,176 @@
       setupConditionalFields('previous-program-toggle', 'previous-program-fields');
       setupConditionalFields('bodyfat-tested-toggle', 'bodyfat-fields');
 
+      <!-- THANK YOU SECTION -->
+<div id="thank-you-screen" class="hidden text-center py-24">
+  <h1 class="text-4xl font-bold text-brand-red mb-4">Thank you!</h1>
+  <p class="text-lg text-brand-gray">Your intake has been successfully submitted.</p>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const intro = document.getElementById('intro-screen');
+  const form = document.getElementById('intake-form');
+  const steps = Array.from(document.querySelectorAll('.step'));
+  const stepLabel = document.getElementById('step-label');
+  const progressBar = document.getElementById('progress-bar');
+  let currentStepIndex = 0;
+
+  function updateStepUI() {
+    steps.forEach((step, index) => {
+      step.classList.toggle('hidden', index !== currentStepIndex);
+    });
+
+    if (steps.length > 0 && stepLabel && progressBar) {
+      const stepNumber = currentStepIndex + 1;
+      const total = steps.length;
+      stepLabel.textContent = `Step ${stepNumber} of ${total}`;
+      const percent = (stepNumber / total) * 100;
+      progressBar.style.width = `${percent}%`;
+    }
+  }
+
+  function validateCurrentStep() {
+    const currentStepEl = steps[currentStepIndex];
+    if (!currentStepEl) return true;
+
+    const stepNumber = parseInt(currentStepEl.dataset.step || '', 10);
+
+    // Custom validation for Step 5 (allergy & diet group validation)
+    if (stepNumber === 5) {
+      const allergiesChecked =
+        currentStepEl.querySelectorAll('input[name="allergies"]:checked').length > 0;
+      const dietaryChecked =
+        currentStepEl.querySelectorAll('input[name="dietary_preferences"]:checked').length > 0;
+
+      const allergiesError = currentStepEl.querySelector('#allergies-error');
+      const dietaryError = currentStepEl.querySelector('#dietary-error');
+
+      if (allergiesError) allergiesError.classList.toggle('hidden', allergiesChecked);
+      if (dietaryError) dietaryError.classList.toggle('hidden', dietaryChecked);
+
+      if (!allergiesChecked || !dietaryChecked) {
+        const firstError = !allergiesChecked ? allergiesError : dietaryError;
+        if (firstError && firstError.scrollIntoView) {
+          firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return false;
+      }
+    }
+
+    const fields = currentStepEl.querySelectorAll('input, select, textarea');
+    for (const field of fields) {
+      if (!field.checkValidity()) {
+        field.reportValidity();
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  // Start intake button
+  const startBtn = document.getElementById('start-intake-btn');
+  if (startBtn) {
+    startBtn.addEventListener('click', () => {
+      intro.classList.add('hidden');
+      form.classList.remove('hidden');
+      currentStepIndex = 0;
+      updateStepUI();
+    });
+  }
+
+  // Next buttons
+  document.addEventListener('click', (e) => {
+    const nextBtn = e.target.closest('.next-btn');
+    if (!nextBtn) return;
+    if (!validateCurrentStep()) return;
+
+    if (currentStepIndex < steps.length - 1) {
+      currentStepIndex++;
+      updateStepUI();
+    }
+  });
+
+  // Previous buttons
+  document.addEventListener('click', (e) => {
+    const prevBtn = e.target.closest('.prev-btn');
+    if (!prevBtn) return;
+
+    if (currentStepIndex > 0) {
+      currentStepIndex--;
+      updateStepUI();
+    } else {
+      form.classList.add('hidden');
+      intro.classList.remove('hidden');
+      stepLabel.textContent = 'Welcome';
+      progressBar.style.width = '0%';
+    }
+  });
+
+  // Jump-step edit buttons
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.jump-step-btn');
+    if (!btn) return;
+
+    const targetStep = parseInt(btn.dataset.step, 10);
+    intro.classList.add('hidden');
+    form.classList.remove('hidden');
+
+    currentStepIndex = targetStep - 1;
+    updateStepUI();
+  });
+
+  // Toggle section handlers
+  function setupConditionalFields(toggleId, containerId) {
+    const toggle = document.getElementById(toggleId);
+    const container = document.getElementById(containerId);
+    if (!toggle || !container) return;
+
+    const controlledInputs = container.querySelectorAll('input, textarea, select');
+
+    function updateState() {
+      const isOn = toggle.checked;
+
+      container.classList.toggle('hidden', !isOn);
+      container.style.display = isOn ? 'grid' : 'none';
+
+      controlledInputs.forEach((input) => {
+        if (isOn) input.required = true;
+        else input.removeAttribute('required');
+      });
+    }
+
+    toggle.addEventListener('change', updateState);
+    updateState();
+  }
+
+  setupConditionalFields('previous-program-toggle', 'previous-program-fields');
+  setupConditionalFields('bodyfat-tested-toggle', 'bodyfat-fields');
+
+  // === THANK YOU SUBMISSION OVERRIDE ===
+  const thankYou = document.getElementById("thank-you-screen");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault(); // stop browser from leaving the page
+
+    const data = new FormData(form);
+
+    // post to n8n webhook
+    await fetch(form.action, {
+      method: "POST",
+      body: data
+    });
+
+    // Hide intake UI
+    document.querySelector("main").classList.add("hidden");
+
+    // Show thank you screen
+    thankYou.classList.remove("hidden");
+  });
+});
+</script>
+
     });
   </script>
 
