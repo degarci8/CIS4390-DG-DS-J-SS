@@ -42,8 +42,22 @@
       }
     </style>
   </head>
-  <!-- Note the 'hidden' class to prevent flashing the login UI if already authenticated -->
-  <body class="font-display hidden">
+  <body class="font-display bg-background-dark">
+    <!-- Fullscreen dark loading overlay while we check auth state -->
+    <div
+      id="auth-loading"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+    >
+      <div class="text-center space-y-3">
+        <div
+          class="h-10 w-10 animate-spin rounded-full border-2 border-zinc-500 border-t-primary mx-auto"
+        ></div>
+        <p class="text-zinc-200 text-sm font-medium">
+          Checking your session...
+        </p>
+      </div>
+    </div>
+
     <div
       class="relative flex h-screen min-h-screen w-full flex-col items-center justify-center bg-background-dark group/design-root overflow-x-hidden p-4 sm:p-6 md:p-8"
     >
@@ -159,6 +173,13 @@
       const togglePasswordButton = document.getElementById("toggle-password");
       const togglePasswordIcon =
         togglePasswordButton?.querySelector(".material-symbols-outlined");
+      const authLoadingOverlay = document.getElementById("auth-loading");
+
+      function hideAuthLoading() {
+        if (authLoadingOverlay) {
+          authLoadingOverlay.classList.add("hidden");
+        }
+      }
 
       function setLoading(isLoading) {
         if (!loginButton) return;
@@ -187,11 +208,7 @@
           const cred = await signInWithEmailAndPassword(auth, email, password);
           const user = cred.user;
 
-          // 🔐 PLACEHOLDER:
-          // Later we can add:
-          //  - Password age check (90-day rotation)
-          //  - MFA handling (TOTP/custom second factor)
-          // For now, just redirect to the coach dashboard.
+          // 🔐 PLACEHOLDER for later security enhancements
           window.location.href = "2coachdashboard.html";
         } catch (error) {
           console.error("Login error:", error);
@@ -207,4 +224,91 @@
           } else if (error.code === "auth/too-many-requests") {
             message =
               "Too many failed attempts. Please wait a bit and try again.";
-          } else if (error.code === "auth/m
+          } else if (error.code === "auth/multi-factor-auth-required") {
+            message =
+              "This account requires multi-factor authentication. We'll add that flow next.";
+          }
+
+          alert(message);
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      // Login button click
+      if (loginButton) {
+        loginButton.addEventListener("click", (e) => {
+          e.preventDefault();
+          handleLogin();
+        });
+      }
+
+      // Login on Enter key in password field
+      if (passwordInput) {
+        passwordInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            handleLogin();
+          }
+        });
+      }
+
+      // Forgot Password flow
+      if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener("click", async (e) => {
+          e.preventDefault();
+          const email = emailInput?.value.trim();
+
+          if (!email) {
+            alert('Please enter your email in the "Email" field first.');
+            return;
+          }
+
+          try {
+            await sendPasswordResetEmail(auth, email);
+            alert("Password reset email sent. Check your inbox.");
+          } catch (error) {
+            console.error("Password reset error:", error);
+            let message = "Could not send password reset email.";
+            if (error.code === "auth/user-not-found") {
+              message = "No account found with that email address.";
+            }
+            alert(message);
+          }
+        });
+      }
+
+      // Password visibility toggle
+      if (togglePasswordButton && passwordInput) {
+        togglePasswordButton.addEventListener("click", () => {
+          const isPassword = passwordInput.type === "password";
+          passwordInput.type = isPassword ? "text" : "password";
+          if (togglePasswordIcon) {
+            togglePasswordIcon.textContent = isPassword
+              ? "visibility_off"
+              : "visibility";
+          }
+        });
+      }
+
+      // Auth state: decide what to show
+      onAuthStateChanged(
+        auth,
+        (user) => {
+          if (user) {
+            // Already logged in -> stay on dark overlay while redirecting
+            window.location.href = "2coachdashboard.html";
+          } else {
+            // Not logged in -> hide overlay so login form is visible
+            hideAuthLoading();
+          }
+        },
+        (error) => {
+          console.error("onAuthStateChanged error:", error);
+          // If there's an error checking auth state, at least show the login UI
+          hideAuthLoading();
+        }
+      );
+    </script>
+  </body>
+</html>
