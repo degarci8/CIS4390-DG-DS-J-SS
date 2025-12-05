@@ -42,7 +42,22 @@
       }
     </style>
   </head>
-  <body class="font-display">
+  <body class="font-display bg-background-dark">
+    <!-- Fullscreen dark loading overlay while we check auth state -->
+    <div
+      id="auth-loading"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+    >
+      <div class="text-center space-y-3">
+        <div
+          class="h-10 w-10 animate-spin rounded-full border-2 border-zinc-500 border-t-primary mx-auto"
+        ></div>
+        <p class="text-zinc-200 text-sm font-medium">
+          Checking your session...
+        </p>
+      </div>
+    </div>
+
     <div
       class="relative flex h-screen min-h-screen w-full flex-col items-center justify-center bg-background-dark group/design-root overflow-x-hidden p-4 sm:p-6 md:p-8"
     >
@@ -137,16 +152,11 @@
         onAuthStateChanged,
       } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 
-      // TODO: Replace with your Firebase config from the Firebase Console
+      // Firebase config
       const firebaseConfig = {
         apiKey: "AIzaSyA_D8lToqMx6-9wVei86AVrhtFsoPNRzUA",
         authDomain: "nutritionplangenerator.firebaseapp.com",
         projectId: "nutritionplangenerator",
-        // Optional but recommended if you have them:
-        // storageBucket: "YOUR_PROJECT_ID.appspot.com",
-        // messagingSenderId: "SENDER_ID",
-        // appId: "APP_ID",
-        // measurementId: "G-MEASUREMENT_ID",
       };
 
       // Initialize Firebase
@@ -163,6 +173,13 @@
       const togglePasswordButton = document.getElementById("toggle-password");
       const togglePasswordIcon =
         togglePasswordButton?.querySelector(".material-symbols-outlined");
+      const authLoadingOverlay = document.getElementById("auth-loading");
+
+      function hideAuthLoading() {
+        if (authLoadingOverlay) {
+          authLoadingOverlay.classList.add("hidden");
+        }
+      }
 
       function setLoading(isLoading) {
         if (!loginButton) return;
@@ -191,13 +208,7 @@
           const cred = await signInWithEmailAndPassword(auth, email, password);
           const user = cred.user;
 
-          // 🔐 PLACEHOLDER:
-          // Later we can add:
-          //  - Password age check (90-day rotation)
-          //  - MFA handling (TOTP/custom second factor)
-          // For now, just redirect to the coach dashboard.
-
-          // TODO: change this path if your dashboard file is named/mapped differently
+          // 🔐 PLACEHOLDER for later security enhancements
           window.location.href = "2coachdashboard.html";
         } catch (error) {
           console.error("Login error:", error);
@@ -214,7 +225,6 @@
             message =
               "Too many failed attempts. Please wait a bit and try again.";
           } else if (error.code === "auth/multi-factor-auth-required") {
-            // This will be useful later if you enable real Firebase MFA
             message =
               "This account requires multi-factor authentication. We'll add that flow next.";
           }
@@ -281,12 +291,24 @@
         });
       }
 
-      // If user is already logged in, skip login screen
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          window.location.href = "2coachdashboard.html";
+      // Auth state: decide what to show
+      onAuthStateChanged(
+        auth,
+        (user) => {
+          if (user) {
+            // Already logged in -> stay on dark overlay while redirecting
+            window.location.href = "2coachdashboard.html";
+          } else {
+            // Not logged in -> hide overlay so login form is visible
+            hideAuthLoading();
+          }
+        },
+        (error) => {
+          console.error("onAuthStateChanged error:", error);
+          // If there's an error checking auth state, at least show the login UI
+          hideAuthLoading();
         }
-      });
+      );
     </script>
   </body>
 </html>
