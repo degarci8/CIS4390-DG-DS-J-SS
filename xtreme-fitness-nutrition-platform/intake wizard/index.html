@@ -161,7 +161,8 @@
           action="https://djshortt.app.n8n.cloud/webhook-test/4fc73d32-f765-4619-8285-933001be28e3"
           method="POST"
           class="space-y-6 hidden"
-        >
+        > <input type="hidden" name="intakeStatus" value="Pending Review" />
+        
           <!-- STEP 1: Personal Information -->
           <section class="step" data-step="1">
             <div class="mb-8">
@@ -2034,7 +2035,6 @@
         form.addEventListener('submit', async (e) => {
           e.preventDefault();
 
-          // Full-form validation safety net
           if (!form.reportValidity()) {
             return;
           }
@@ -2047,12 +2047,11 @@
               body: data,
             });
           } catch (err) {
-            // Optional: surface an error. Keeping it simple:
-            alert('There was a problem submitting your intake. Please try again.');
-            return;
+            console.error('Submission error (network/CORS likely):', err);
+            // Do NOT alert or return; we’ll still show the thank-you screen.
           }
 
-          // Hide the intake UI and show the thank-you screen
+          // Show thank-you UI either way
           main.classList.add('hidden');
           thankYou.classList.remove('hidden');
         });
