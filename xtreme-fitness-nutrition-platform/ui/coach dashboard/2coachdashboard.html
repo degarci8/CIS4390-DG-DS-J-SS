@@ -48,7 +48,7 @@
             <h2 class="text-lg font-bold leading-tight tracking-[-0.015em] text-gray-900 dark:text-white">Xtreme Fitness</h2>
           </div>
           <button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors">
-            <span class="truncate">Logout</span>
+            <span class="logout-btn">Logout</span>
           </button>
         </div>
       </header>
@@ -93,9 +93,11 @@
     </div>
   </div>
 
-  <script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+<script>
     const firebaseConfig = {
-      apiKey: "AIzaSyA_D8lToqMx6-9wVei86AVrhtFsoPNRzUA",
+      apiKey: "AIzaSyA_D8lToqMx6-9wVei86AVrhtFsoPNRzUA"
       authDomain: "nutritionplangenerator.firebaseapp.com",
       projectId: "nutritionplangenerator",
       storageBucket: "nutritionplangenerator.firebasestorage.app",
@@ -105,24 +107,37 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const auth = firebase.auth(); // Initialize Auth
     const tbody = document.querySelector("tbody");
 
-    // --- FUNCTION TO UPDATE FIREBASE ---
-    // This runs when you click the Checkmark button
+    // --- 1. AUTH CHECK (The Guard) ---
+    // If not logged in, kick them back to the login page
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        console.log("Logged in as:", user.email);
+        // Only fetch data if we are logged in
+        startFetchingData(); 
+      } else {
+        console.log("Not logged in. Redirecting...");
+        // CHANGE THIS to the actual name of your login file
+        window.location.href = "login.html"; 
+      }
+    });
+
+    // --- 2. UPDATE STATUS FUNCTION ---
     window.markComplete = function(docId) {
       db.collection("clients").doc(docId).update({
         intakeStatus: "Completed"
       }).then(() => {
         console.log("Client marked as completed!");
-        // No need to refresh; onSnapshot handles the UI update automatically
       }).catch((error) => {
         console.error("Error updating document: ", error);
-        alert("Error updating status. Check console.");
+        alert("Error updating. Do you have permission?");
       });
     }
 
+    // --- 3. CREATE ROW (With Name Fix) ---
     function createRow(client, docId) {
-      // Default to Pending Review if field is missing
       const status = client.intakeStatus || "Pending Review";
       
       const statusStyles = {
@@ -131,9 +146,13 @@
       };
 
       const badgeClasses = statusStyles[status] || "bg-gray-100 text-gray-800";
-      
-      // LOGIC: If status is already completed, hide the checkmark button
       const isCompleted = status === "Completed";
+
+      // --- NAME FIX: Look for firstName + lastName ---
+      const fullName = (client.firstName && client.lastName) 
+                     ? `${client.firstName} ${client.lastName}` 
+                     : (client.name || "Unknown");
+
       const checkButton = isCompleted ? '' : `
         <button onclick="markComplete('${docId}')" 
                 class="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-700 hover:bg-green-200 hover:text-green-800 transition-colors mr-2"
@@ -145,7 +164,7 @@
       return `
         <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
           <td class="h-[72px] px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white table-col-1">
-            ${client.name || "Unknown"}
+            ${fullName}
           </td>
           <td class="h-[72px] px-6 py-4 whitespace-nowrap table-col-2">
             <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold leading-5 ${badgeClasses}">
@@ -153,7 +172,7 @@
             </span>
           </td>
           <td class="h-[72px] px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 table-col-3">
-            ${client.goal || "--"}
+            ${client.primary_goal || client.goal || "--"}
           </td>
           <td class="h-[72px] px-6 py-4 whitespace-nowrap text-right text-sm font-medium table-col-4">
             <div class="flex items-center justify-end">
@@ -168,18 +187,33 @@
       `;
     }
 
-    // --- FETCH DATA ---
-    db.collection("clients").onSnapshot((snapshot) => {
-      let allRows = ""; 
-      snapshot.forEach((doc) => {
-        const client = doc.data();
-        const docId = doc.id; // <--- WE NEED THIS ID TO UPDATE THE DOC LATER
-        allRows += createRow(client, docId);
-      });
-      tbody.innerHTML = allRows;
-    }, (error) => {
-      console.error("Error fetching clients:", error);
-    });
+    // --- 4. FETCH DATA WRAPPER ---
+    function startFetchingData() {
+        db.collection("clients").onSnapshot((snapshot) => {
+          let allRows = ""; 
+          snapshot.forEach((doc) => {
+            const client = doc.data();
+            allRows += createRow(client, doc.id);
+          });
+          tbody.innerHTML = allRows;
+        }, (error) => {
+          console.error("Error fetching clients:", error);
+          if(error.code === 'permission-denied') {
+             tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-red-500">Access Denied. Are you logged in with the correct account?</td></tr>`;
+          }
+        });
+    }
+
+    // --- 5. LOGOUT BUTTON ---
+    // If you have a logout button in your header, give it id="logout-btn"
+    const logoutBtn = document.querySelector('button span.truncate')?.closest('button');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            auth.signOut().then(() => {
+                window.location.href = "login.html";
+            });
+        });
+    }
 </script>
 </body>
 </html>
