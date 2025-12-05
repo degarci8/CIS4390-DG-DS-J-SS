@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Xtreme Fitness - Coach Dashboard</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#ec1313",
+            "background-light": "#f8f6f6",
+            "background-dark": "#1A1A1A",
+          },
+          fontFamily: {
+            "display": ["Lexend", "sans-serif"]
+          },
+          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24
+    }
+  </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-white">
+  <div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+    <div class="layout-container flex h-full grow flex-col">
+      
+      <header class="flex w-full items-center justify-center border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-black/50 backdrop-blur-sm sticky top-0 z-10">
+        <div class="flex h-16 w-full max-w-7xl items-center justify-between px-6">
+          <div class="flex items-center gap-3">
+            <h2 class="text-lg font-bold leading-tight tracking-[-0.015em] text-gray-900 dark:text-white">Xtreme Fitness</h2>
+          </div>
+          <button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors">
+            <span class="logout-btn">Logout</span>
+          </button>
+        </div>
+      </header>
+
+      <main class="flex w-full flex-1 justify-center py-8">
+        <div class="layout-content-container flex w-full max-w-7xl flex-1 flex-col gap-8 px-6">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <p class="text-3xl font-black leading-tight tracking-[-0.033em] text-gray-900 dark:text-white">Client Dashboard</p>
+            <button class="flex min-w-[84px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors" onclick="window.open('https://nutritionplangenerator.web.app/', '_blank')">
+              <span class="material-symbols-outlined text-base" data-icon="add">add</span>
+              <span class="truncate">Client Intake</span>
+            </button>
+          </div>
+
+          <div class="w-full @container">
+            <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-black/30">
+              <table class="min-w-full text-left">
+                <thead class="border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-white/5">
+                  <tr>
+                    <th class="px-6 py-4 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 table-col-1">Client Name</th>
+                    <th class="px-6 py-4 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 table-col-2">Intake Status</th>
+                    <th class="px-6 py-4 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 table-col-3">Goal</th>
+                    <th class="px-6 py-4 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 text-right table-col-4">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+                  </tbody>
+              </table>
+            </div>
+            <style>
+              @container(max-width: 640px) {
+                .table-col-3, .table-col-2 { display: none; }
+              }
+              @container(max-width: 480px) {
+                .table-col-1 { font-size: 0.8rem; padding-left: 1rem; padding-right: 1rem; }
+                .table-col-4 { font-size: 0.8rem; padding-left: 1rem; padding-right: 1rem; }
+              }
+            </style>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyA_D8lToqMx6-9wVei86AVrhtFsoPNRzUA",
+      authDomain: "nutritionplangenerator.firebaseapp.com",
+      projectId: "nutritionplangenerator",
+      storageBucket: "nutritionplangenerator.firebasestorage.app",
+      messagingSenderId: "1063853006421",
+      appId: "1:1063853006421:web:cb006ba01f538a9ea57edc" 
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    const tbody = document.querySelector("tbody");
+
+    // --- 1. AUTH CHECK ---
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        console.log("Logged in as:", user.email);
+        startFetchingData(); 
+      } else {
+        window.location.href = "login.html"; 
+      }
+    });
+
+    // --- 2. LOGOUT LOGIC ---
+    const logoutText = document.querySelector('.logout-btn');
+    if (logoutText) {
+        const logoutBtn = logoutText.closest('button');
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            auth.signOut().then(() => {
+                window.location.href = "login.html";
+            });
+        });
+    }
+
+    // --- 3. STATUS ACTIONS (Mark Complete & Undo) ---
+    
+    // Action A: Mark as Completed
+    window.markComplete = function(docId) {
+      db.collection("clients").doc(docId).update({
+        intakeStatus: "Completed"
+      }).catch((error) => {
+        console.error("Error updating: ", error);
+        alert("Error updating status.");
+      });
+    }
+
+    // Action B: Undo (Revert to Pending)
+    window.undoComplete = function(docId) {
+      if(confirm("Mark this client as Pending Review again?")) {
+          db.collection("clients").doc(docId).update({
+            intakeStatus: "Pending Review"
+          }).catch((error) => {
+            console.error("Error updating: ", error);
+          });
+      }
+    }
+
+    // --- 4. CREATE ROW ---
+    function createRow(client, docId) {
+      // Debugging
+      // console.log("Client:", client);
+
+      const status = client.intakeStatus || "Pending Review";
+      
+      const statusStyles = {
+        "Completed":      "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300",
+        "Pending Review": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300"
+      };
+
+      const badgeClasses = statusStyles[status] || "bg-gray-100 text-gray-800";
+      const isCompleted = status === "Completed";
+
+      // Name Logic
+      const fullName = (client.firstName && client.lastName) 
+                     ? `${client.firstName} ${client.lastName}` 
+                     : (client.name || "Unknown");
+
+      // Goal Logic
+      let displayGoal = "--";
+      if (client.primary_goal) displayGoal = client.primary_goal;
+      else if (client.raw && client.raw.primary_goal) displayGoal = client.raw.primary_goal;
+      else if (client.goal) displayGoal = client.goal;
+      
+      displayGoal = displayGoal.replace(/_/g, ' ');
+      displayGoal = displayGoal.charAt(0).toUpperCase() + displayGoal.slice(1);
+
+      // --- BUTTON LOGIC (Toggle between Check and Undo) ---
+      let actionButton = '';
+
+      if (isCompleted) {
+        // Show UNDO button
+        actionButton = `
+          <button onclick="undoComplete('${docId}')" 
+                  class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition-colors mr-2"
+                  title="Undo / Mark as Pending">
+            <span class="material-symbols-outlined text-lg">undo</span>
+          </button>
+        `;
+      } else {
+        // Show CHECKMARK button
+        actionButton = `
+          <button onclick="markComplete('${docId}')" 
+                  class="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-700 hover:bg-green-200 hover:text-green-800 transition-colors mr-2"
+                  title="Mark as Completed">
+            <span class="material-symbols-outlined text-lg">check</span>
+          </button>
+        `;
+      }
+
+      return `
+        <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+          <td class="h-[72px] px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white table-col-1">
+            ${fullName}
+          </td>
+          <td class="h-[72px] px-6 py-4 whitespace-nowrap table-col-2">
+            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold leading-5 ${badgeClasses}">
+              ${status}
+            </span>
+          </td>
+          <td class="h-[72px] px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 table-col-3">
+             ${displayGoal}
+          </td>
+          <td class="h-[72px] px-6 py-4 whitespace-nowrap text-right text-sm font-medium table-col-4">
+            <div class="flex items-center justify-end">
+              ${actionButton}
+              <button class="text-primary hover:text-primary/80 transition-colors font-bold tracking-wide"
+                onclick="window.open('https://nutritionplangenerator.web.app/', '_blank')">
+                Open Plan Editor
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+
+    // --- 5. FETCH DATA ---
+    function startFetchingData() {
+        db.collection("clients").onSnapshot((snapshot) => {
+          let allRows = ""; 
+          snapshot.forEach((doc) => {
+            const client = doc.data();
+            allRows += createRow(client, doc.id);
+          });
+          tbody.innerHTML = allRows;
+        }, (error) => {
+          console.error("Error fetching clients:", error);
+        });
+    }
+</script>
+</body>
+</html>
