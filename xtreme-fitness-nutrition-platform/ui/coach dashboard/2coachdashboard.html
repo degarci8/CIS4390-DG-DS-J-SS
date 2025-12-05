@@ -63,7 +63,10 @@
       }
     </style>
   </div></div></main></div></div>
-<!-- Firebase & Dashboard Script --> <script>// Firebase configconst firebaseConfig = {
+<!-- Firebase & Dashboard Script -->
+ <script>
+    
+    const firebaseConfig = {
     apiKey: "AIzaSyA_D8lToqMx6-9wVei86AVrhtFsoPNRzUA",
     authDomain: "nutritionplangenerator.firebaseapp.com",
     projectId: "nutritionplangenerator",
@@ -71,7 +74,8 @@
     messagingSenderId: "1063853006421",
     appId: "1:1063853006421:web:cb006ba01f538a9ea57edc"  };
 
-  // Initialize Firebase  firebase.initializeApp(firebaseConfig);
+  // Initialize Firebase  
+    firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
   const tbody = document.querySelector("tbody");
