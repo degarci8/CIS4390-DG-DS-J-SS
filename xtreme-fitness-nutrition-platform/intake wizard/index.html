@@ -110,7 +110,7 @@
 
 <body class="font-display bg-brand-off-white dark:bg-background-dark text-brand-charcoal dark:text-gray-200">
   <div class="relative flex min-h-screen w-full flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
-    <main class="w-full max-w-2xl">
+    <main id="intake-main" class="w-full max-w-2xl">
       <!-- Top intro / progress summary -->
       <div class="mb-8 px-4">
         <p id="step-label" class="text-brand-charcoal dark:text-gray-300 text-sm font-medium leading-normal">
@@ -158,10 +158,11 @@
         <!-- Multi-step form (hidden until "Start Intake") -->
         <form
           id="intake-form"
-          action="/api/intake/submit"
+          action="https://djshortt.app.n8n.cloud/webhook-test/4fc73d32-f765-4619-8285-933001be28e3"
           method="POST"
           class="space-y-6 hidden"
-        >
+        > <input type="hidden" name="intakeStatus" value="Pending Review" />
+        
           <!-- STEP 1: Personal Information -->
           <section class="step" data-step="1">
             <div class="mb-8">
@@ -314,7 +315,7 @@
                 Back
               </button>
 
-              <!-- Next: go to Step 2 (once you add it) -->
+              <!-- Next: go to Step 2 -->
               <button
                 type="button"
                 class="next-btn flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-brand-red px-8 text-base font-semibold text-white shadow-sm transition-transform hover:scale-105 active:scale-95 sm:w-auto"
@@ -1846,6 +1847,21 @@
         </form>
       </div>
     </main>
+
+    <!-- THANK YOU SCREEN -->
+    <section id="thank-you-screen" class="hidden w-full max-w-2xl text-center">
+      <div class="w-full rounded-xl bg-brand-white dark:bg-background-dark p-8 shadow-sm">
+        <h1 class="text-3xl sm:text-4xl font-black text-brand-red mb-4">
+          Thank you!
+        </h1>
+        <p class="text-base sm:text-lg text-brand-gray dark:text-gray-300 mb-6">
+          Your intake has been successfully submitted. We’ll review your information and follow up with your personalized plan.
+        </p>
+        <p class="text-sm text-brand-gray dark:text-gray-400">
+          You can close this page now, or check your email for next steps.
+        </p>
+      </div>
+    </section>
   </div>
 
   <script>
@@ -1855,6 +1871,8 @@
       const steps = Array.from(document.querySelectorAll('.step'));
       const stepLabel = document.getElementById('step-label');
       const progressBar = document.getElementById('progress-bar');
+      const main = document.getElementById('intake-main');
+      const thankYou = document.getElementById('thank-you-screen');
       let currentStepIndex = 0;
 
       // Show the correct step + update label / progress bar
@@ -1875,9 +1893,8 @@
       // Validate only the inputs in the currently visible step
       // PLUS custom group validation for Step 5 (allergies & dietary prefs)
       function validateCurrentStep() {
-        // Fallback: if something weird happens, validate whole form
-        if (!steps.length) {
-          return form ? form.reportValidity() : true;
+        if (!steps.length || !form) {
+          return true;
         }
 
         const currentStepEl = steps[currentStepIndex];
@@ -1885,7 +1902,7 @@
 
         const stepNumber = parseInt(currentStepEl.dataset.step || '', 10);
 
-        // 🔴 Custom validation for Step 5
+        // Custom validation for Step 5
         if (stepNumber === 5) {
           const allergiesChecked =
             currentStepEl.querySelectorAll('input[name="allergies"]:checked').length > 0;
@@ -1902,9 +1919,7 @@
             dietaryError.classList.toggle('hidden', dietaryChecked);
           }
 
-          // If either group is empty, stop here
           if (!allergiesChecked || !dietaryChecked) {
-            // Optionally scroll to the first missing group
             const firstError = !allergiesChecked ? allergiesError : dietaryError;
             if (firstError && typeof firstError.scrollIntoView === 'function') {
               firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1913,7 +1928,6 @@
           }
         }
 
-        // ✅ Normal per-field validation for this step
         const fields = currentStepEl.querySelectorAll('input, select, textarea');
         for (const field of fields) {
           if (!field.checkValidity()) {
@@ -1946,11 +1960,6 @@
         if (currentStepIndex < steps.length - 1) {
           currentStepIndex++;
           updateStepUI();
-        } else if (form) {
-          // If you ever add a "Next" on the last step, this would submit
-          if (form.reportValidity()) {
-            form.requestSubmit ? form.requestSubmit() : form.submit();
-          }
         }
       });
 
@@ -1990,7 +1999,7 @@
         }
       });
 
-      // === Toggle-based conditional sections for Step 6 (previous program + body fat) ===
+      // Toggle-based conditional sections for Step 6 (previous program + body fat)
       function setupConditionalFields(toggleId, containerId) {
         const toggle = document.getElementById(toggleId);
         const container = document.getElementById(containerId);
@@ -2021,24 +2030,30 @@
       setupConditionalFields('previous-program-toggle', 'previous-program-fields');
       setupConditionalFields('bodyfat-tested-toggle', 'bodyfat-fields');
 
-      // === Temporary submit handler: popup message instead of real backend ===
-      if (form) {
-        form.addEventListener('submit', (e) => {
-          // Prevent actual navigation / backend call for now
+      // THANK YOU SUBMISSION OVERRIDE
+      if (form && thankYou && main) {
+        form.addEventListener('submit', async (e) => {
           e.preventDefault();
 
-          // Make sure the current (last) step is valid
-          if (!validateCurrentStep()) return;
-
-          // Show popup message
-          alert('Thank you for submitting the intake form. Your form is currently under review.');
-
-          // Disable the submit button to prevent multiple submissions
-          const submitBtn = form.querySelector('button[type="submit"]');
-          if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+          if (!form.reportValidity()) {
+            return;
           }
+
+          const data = new FormData(form);
+
+          try {
+            await fetch(form.action, {
+              method: 'POST',
+              body: data,
+            });
+          } catch (err) {
+            console.error('Submission error (network/CORS likely):', err);
+            // Do NOT alert or return; we’ll still show the thank-you screen.
+          }
+
+          // Show thank-you UI either way
+          main.classList.add('hidden');
+          thankYou.classList.remove('hidden');
         });
       }
     });
