@@ -115,7 +115,7 @@
         console.log("Logged in as:", user.email);
         startFetchingData(); 
       } else {
-        window.location.href = "1loginpage.html"; 
+        window.location.href = "login.html"; 
       }
     });
 
@@ -126,7 +126,7 @@
         logoutBtn.addEventListener('click', (e) => {
             e.preventDefault();
             auth.signOut().then(() => {
-                window.location.href = "1loginpage.html";
+                window.location.href = "login.html";
             });
         });
     }
