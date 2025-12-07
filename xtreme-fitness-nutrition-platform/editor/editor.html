@@ -254,15 +254,58 @@
             console.log("FOOD_DB Populated with " + Object.keys(FOOD_DB).length + " items.");
         }
 
+        // --- UPDATED: AUTO-FILL LOGIC ---
         function generateDefaultPlan(clientData) {
+            // 1. Get all the food IDs we just loaded from n8n
+            const availableFoods = Object.keys(FOOD_DB);
+            let foodCursor = 0;
+
+            // Helper to pick the next food in the list without repeating immediately
+            const getNextFood = () => {
+                if (availableFoods.length === 0) return null;
+                const id = availableFoods[foodCursor % availableFoods.length];
+                foodCursor++;
+                return { 
+                    foodItemId: id, 
+                    amount: 100, // Default to 100g serving
+                    unit: 'g' 
+                };
+            };
+
+            // 2. Define the structure
+            const planDays = [];
+            const dayLabels = ['Training Day', 'Rest Day', 'Active Recovery']; // 3 Days
+
+            // 3. Loop through days and fill meals
+            dayLabels.forEach(dayLabel => {
+                const meals = [];
+                const mealNames = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
+
+                mealNames.forEach(name => {
+                    const items = [];
+                    
+                    // A. Add a main item
+                    const mainItem = getNextFood();
+                    if (mainItem) items.push(mainItem);
+
+                    // B. Optionally add a second item (Side dish/Drink)
+                    // This adds variety so meals aren't just 1 item
+                    if (availableFoods.length > 10) {
+                        const sideItem = getNextFood();
+                        if (sideItem) items.push(sideItem);
+                    }
+
+                    meals.push({ mealName: name, items: items });
+                });
+
+                planDays.push({ dayName: dayLabel, meals: meals });
+            });
+
+            // 4. Return the fully populated plan
             return {
-                goalCalories: 2000,
+                goalCalories: 2000, // Default goal
                 macroTargets: { protein: 150, carbs: 200, fat: 65, proPct: 30, carbPct: 40, fatPct: 30, totalPctSum: 100 },
-                days: [
-                    { dayName: 'Day 1', meals: [{ mealName: 'Breakfast', items: [] }, { mealName: 'Lunch', items: [] }, { mealName: 'Dinner', items: [] }] },
-                    { dayName: 'Day 2', meals: [{ mealName: 'Breakfast', items: [] }, { mealName: 'Lunch', items: [] }, { mealName: 'Dinner', items: [] }] },
-                    { dayName: 'Day 3', meals: [{ mealName: 'Breakfast', items: [] }, { mealName: 'Lunch', items: [] }, { mealName: 'Dinner', items: [] }] }
-                ]
+                days: planDays
             };
         }
 

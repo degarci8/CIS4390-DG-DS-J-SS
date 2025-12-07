@@ -115,6 +115,7 @@
         console.log("Logged in as:", user.email);
         startFetchingData(); 
       } else {
+        // Redirects to your specific login file name
         window.location.href = "1loginpage.html"; 
       }
     });
@@ -131,9 +132,7 @@
         });
     }
 
-    // --- 3. STATUS ACTIONS (Mark Complete & Undo) ---
-    
-    // Action A: Mark as Completed
+    // --- 3. STATUS ACTIONS ---
     window.markComplete = function(docId) {
       db.collection("clients").doc(docId).update({
         intakeStatus: "Completed"
@@ -143,7 +142,6 @@
       });
     }
 
-    // Action B: Undo (Revert to Pending)
     window.undoComplete = function(docId) {
       if(confirm("Mark this client as Pending Review again?")) {
           db.collection("clients").doc(docId).update({
@@ -156,9 +154,6 @@
 
     // --- 4. CREATE ROW ---
     function createRow(client, docId) {
-      // Debugging
-      // console.log("Client:", client);
-
       const status = client.intakeStatus || "Pending Review";
       
       const statusStyles = {
@@ -183,20 +178,17 @@
       displayGoal = displayGoal.replace(/_/g, ' ');
       displayGoal = displayGoal.charAt(0).toUpperCase() + displayGoal.slice(1);
 
-      // --- BUTTON LOGIC (Toggle between Check and Undo) ---
+      // Button Logic
       let actionButton = '';
-
       if (isCompleted) {
-        // Show UNDO button
         actionButton = `
           <button onclick="undoComplete('${docId}')" 
-                  class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition-colors mr-2"
+                  class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-green-700 transition-colors mr-2"
                   title="Undo / Mark as Pending">
             <span class="material-symbols-outlined text-lg">undo</span>
           </button>
         `;
       } else {
-        // Show CHECKMARK button
         actionButton = `
           <button onclick="markComplete('${docId}')" 
                   class="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-700 hover:bg-green-200 hover:text-green-800 transition-colors mr-2"
@@ -206,6 +198,8 @@
         `;
       }
 
+      // --- THE CRITICAL FIX IS BELOW ---
+      // We use 'editor.html?id=' + docId to pass the specific client to the editor
       return `
         <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
           <td class="h-[72px] px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white table-col-1">
@@ -223,7 +217,7 @@
             <div class="flex items-center justify-end">
               ${actionButton}
               <button class="text-primary hover:text-primary/80 transition-colors font-bold tracking-wide"
-                onclick="window.open('https://nutritionplangenerator.web.app/', '_blank')">
+                onclick="window.open('editor.html?id=${docId}', '_blank')">
                 Open Plan Editor
               </button>
             </div>
