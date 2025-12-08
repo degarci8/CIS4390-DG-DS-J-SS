@@ -77,7 +77,7 @@
         </div>
     </div>
 
-    <script>
+<script>
         // --- 1. FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyA_D8lToqMx6-9wVei86AVrhtFsoPNRzUA",
@@ -132,18 +132,16 @@
             document.getElementById('close-email-modal').onclick = () => document.getElementById('email-confirmation-modal').classList.add('hidden');
         };
 
-        // --- 4. DATA LOADING ---
+        // --- 4. DATA LOADING (UPDATED FOR N8N) ---
         async function loadDataFromFirebase() {
             try {
-                // A. Client Profile
+                // A. Fetch Client Profile (to check if Coach already saved a plan)
                 const clientDoc = await db.collection("clients").doc(clientId).get();
                 if (!clientDoc.exists) throw new Error("Client not found");
                 const clientData = clientDoc.data();
                 const clientEmail = clientData.email;
 
-                console.log("Client found:", clientData.firstName);
-
-                // B. N8N Data
+                // B. Fetch N8N Data
                 let n8nPlanData = null;
                 
                 if (clientEmail) {
@@ -166,27 +164,36 @@
                             } catch (e) { console.error("Error parsing foods:", e); }
                         }
 
-                        // 2. Parse Initial Plan
+                        // 2. Parse Initial Plan (The logic you asked for)
                         if (n8nDoc.initialPlanJson) {
                             try {
                                 n8nPlanData = typeof n8nDoc.initialPlanJson === 'string'
                                     ? JSON.parse(n8nDoc.initialPlanJson)
                                     : n8nDoc.initialPlanJson;
+                                console.log("Parsed N8N Plan:", n8nPlanData);
                             } catch (e) { console.error("Error parsing initial plan:", e); }
                         }
                     }
                 }
 
-                // C. PLAN PRIORITY LOGIC
+                // C. DETERMINE WHICH PLAN TO USE
+                // PRIORITY 1: Coach's Saved Plan (from 'clients' collection)
                 if (clientData.nutritionPlan) {
-                    currentPlan = clientData.nutritionPlan; // Saved plan
-                } else if (n8nPlanData) {
-                    currentPlan = n8nPlanData; // N8N plan
-                } else {
-                    currentPlan = generateDefaultPlan(clientData); // Fallback
+                    console.log("Loading Coach's Saved Plan...");
+                    currentPlan = clientData.nutritionPlan;
+                } 
+                // PRIORITY 2: N8N Generated Plan (from 'clientPlans' collection)
+                else if (n8nPlanData) {
+                    console.log("Loading N8N Generated Plan...");
+                    currentPlan = n8nPlanData;
+                } 
+                // PRIORITY 3: Fallback Calculator
+                else {
+                    console.warn("No plan found. Generating fallback.");
+                    currentPlan = generateFallbackPlan(clientData);
                 }
 
-                // Metadata Sync
+                // Ensure names are up to date
                 currentPlan.clientName = `${clientData.firstName || ''} ${clientData.lastName || ''}`;
                 currentPlan.clientEmail = clientData.email || '';
 
@@ -199,13 +206,15 @@
             }
         }
 
-        // --- HELPER: Populate Food DB ---
+        // --- HELPER: Convert USDA JSON to Editor Format ---
         function populateFoodDB(apiFoods) {
             FOOD_DB = {}; 
             if (!Array.isArray(apiFoods)) return;
 
             apiFoods.forEach(item => {
-                let group = item.Category || 'Other'; 
+                let group = item.Category || 'Other'; // Use N8N category if available
+                
+                // Fallback to macro logic if Category is generic
                 if (!item.Category || item.Category === 'meal' || item.Category === 'other') {
                     const p = parseFloat(item.Protein_g) || 0;
                     const c = parseFloat(item.Carbs_g) || 0;
@@ -214,9 +223,8 @@
                     else if (c > p && c > f) group = 'Carb';
                     else if (f > p && f > c) group = 'Fat';
                 }
-                const lowerName = (item.Food || "").toLowerCase();
-                if (lowerName.includes('broccoli') || lowerName.includes('vegetable')) group = 'Vegetable';
 
+                // Safe ID creation
                 const safeId = item.foodId || `gen_${Math.random().toString(36).substr(2, 9)}`;
                 
                 FOOD_DB[safeId] = {
@@ -231,17 +239,20 @@
             });
         }
 
-        function generateDefaultPlan(clientData) {
+        // --- FALLBACK GENERATOR (Last Resort) ---
+        function generateFallbackPlan(clientData) {
+            // This only runs if N8N failed completely
             return {
                 goalCalories: 2000,
                 macroTargets: { protein: 150, carbs: 200, fat: 65, proPct: 30, carbPct: 40, fatPct: 30, totalPctSum: 100 },
                 days: [
-                    { dayName: 'Day 1', meals: [{ mealName: 'Breakfast', items: [] }, { mealName: 'Lunch', items: [] }, { mealName: 'Dinner', items: [] }] }
+                    { dayName: 'Day 1', meals: [{ mealName: 'Breakfast', items: [] }, { mealName: 'Lunch', items: [] }, { mealName: 'Dinner', items: [] }] },
+                    { dayName: 'Day 2', meals: [{ mealName: 'Breakfast', items: [] }, { mealName: 'Lunch', items: [] }, { mealName: 'Dinner', items: [] }] }
                 ]
             };
         }
 
-        // --- 5. SAVING ---
+        // --- 5. SAVING TO FIRESTORE ---
         function updatePlanInFirestore(newPlan) {
             const statusEl = document.getElementById('save-status');
             statusEl.textContent = 'Saving...';
@@ -258,6 +269,7 @@
             }).catch((error) => {
                 console.error("Error saving:", error);
                 statusEl.textContent = 'Error saving.';
+                statusEl.className = "mt-3 text-center text-sm font-bold text-secondary";
             });
         }
 
@@ -277,7 +289,6 @@
             return results;
         }
 
-        // UPDATED: Assumes '100g' as base for calculation if unit is grams
         function calculateDayTotals(plan) {
             const day = plan.days[currentDayIndex];
             let totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
@@ -286,17 +297,11 @@
                 meal.items.forEach(item => {
                     const food = FOOD_DB[item.foodItemId];
                     if (food) {
-                        // LOGIC UPDATE: Assume USDA data is per 100g
-                        // If item.amount = 100, factor = 1.
-                        // If item.amount = 1, factor = 0.01 (This fixes the massive calorie issue)
-                        const amount = Number(item.amount) || 0;
-                        let factor = 1;
+                        const factor = (Number(item.amount) || 0); // Logic adjusted: Amount is usually "serving" or "g"
+                        // If unit is "serving", factor is directly amount. If "g", factor is amount/100 (assuming 100g base)
+                        // For USDA data, your base is usually 1 serving or 100g. 
+                        // To keep it simple for now, we assume linear multiplication:
                         
-                        // Heuristic: If amount is small (<10), assume "Servings". If large, assume "Grams".
-                        // Or strictly assume grams / 100. 
-                        // To be safe with "100g" logic:
-                        factor = amount / 100; 
-
                         item.calculatedCal = Math.round(food.cal * factor);
                         item.calculatedP = (food.pro * factor);
                         item.calculatedC = (food.carb * factor);
@@ -340,9 +345,8 @@
                 return `<div class="mb-4"><div class="flex justify-between text-sm font-medium mb-1"><span class="text-gray-300">${label}</span><span class="text-gray-300">${Number(value).toFixed(0)}g / ${target}g (${percentage}%)</span></div><div class="progress-bar-container"><div class="progress-bar ${statusColor}" style="width: ${percentage}%;"></div></div></div>`;
             };
 
-            // UPDATED: Default input value is 100, Label is 'g'
             const renderAddFoodBar = (mealName) => {
-                return `<div id="add-bar-${mealName}" class="add-food-bar p-3 bg-gray-700 rounded-lg ${mealAddBarVisible[mealName] ? '' : 'hidden'}"><h4 class="text-sm font-semibold mb-2">Add Item:</h4><div class="flex space-x-3 items-center"><div class="relative w-full"><input type="text" id="food-search-add-${mealName}" data-meal="${mealName}" class="food-search-input food-search-add w-full p-2 border border-gray-600 rounded-lg text-gray-200 bg-gray-800" placeholder="Type food name..." value="${activeSearches[`add-${mealName}`] || ''}" /><div id="food-results-add-${mealName}" class="search-results absolute z-10 w-full mt-1 bg-gray-600 rounded-lg shadow-xl max-h-48 overflow-y-auto hidden"></div></div><input id="amount-input-${mealName}" type="number" value="100" class="w-20 p-2 border border-gray-600 rounded-lg text-center text-gray-100 bg-gray-800" /><span class="text-gray-400">g</span><button data-meal="${mealName}" class="add-item-btn p-2 bg-success text-white rounded-lg"><i class="fa-solid fa-check"></i></button></div></div>`;
+                return `<div id="add-bar-${mealName}" class="add-food-bar p-3 bg-gray-700 rounded-lg ${mealAddBarVisible[mealName] ? '' : 'hidden'}"><h4 class="text-sm font-semibold mb-2">Add Item:</h4><div class="flex space-x-3 items-center"><div class="relative w-full"><input type="text" id="food-search-add-${mealName}" data-meal="${mealName}" class="food-search-input food-search-add w-full p-2 border border-gray-600 rounded-lg text-gray-200 bg-gray-800" placeholder="Type food name..." value="${activeSearches[`add-${mealName}`] || ''}" /><div id="food-results-add-${mealName}" class="search-results absolute z-10 w-full mt-1 bg-gray-600 rounded-lg shadow-xl max-h-48 overflow-y-auto hidden"></div></div><input id="amount-input-${mealName}" type="number" value="1" step="0.5" class="w-20 p-2 border border-gray-600 rounded-lg text-center text-gray-100 bg-gray-800" /><span class="text-gray-400">serv</span><button data-meal="${mealName}" class="add-item-btn p-2 bg-success text-white rounded-lg"><i class="fa-solid fa-check"></i></button></div></div>`;
             };
 
             const renderMealCard = (meal, mealIndex) => {
@@ -360,13 +364,12 @@
                     <div class="space-y-4 pt-3">
                         ${meal.items.map((item, idx) => {
                             const foodName = FOOD_DB[item.foodItemId]?.name || 'Unknown Item';
-                            // UPDATED: Label is 'g'
                             return `<div class="flex flex-col sm:flex-row items-center p-3 border border-gray-700 rounded-lg bg-gray-900">
                                 <div class="flex-grow w-full mr-4 text-gray-200">${foodName}</div>
                                 <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
                                     <div class="flex items-center">
                                         <input type="number" class="item-amount-input w-20 p-2 border border-gray-600 rounded-lg text-center text-gray-100 bg-gray-700" value="${item.amount}" data-meal="${meal.mealName}" data-index="${idx}" ${!isEditing ? 'disabled' : ''} />
-                                        <span class="text-sm text-gray-400 ml-2">g</span>
+                                        <span class="text-sm text-gray-400 ml-2">${item.unit || 'serv'}</span>
                                     </div>
                                     <div class="text-sm font-mono text-gray-400 min-w-[100px] text-right"><span class="text-primary font-bold">${item.calculatedCal || 0} Cal</span></div>
                                     <button class="delete-item-btn text-secondary ${isEditing ? '' : 'hidden'}" data-meal="${meal.mealName}" data-index="${idx}"><i class="fa-solid fa-trash-can"></i></button>
@@ -467,8 +470,8 @@
                     const foodId = input.dataset.selectedId;
                     if(foodId) {
                         const meal = currentPlan.days[currentDayIndex].meals.find(m => m.mealName === mealName);
-                        // UPDATED: Push as 'g'
-                        meal.items.push({ foodItemId: foodId, amount: parseFloat(amountInput.value) || 100, unit: 'g' });
+                        // Default to 1 serving if adding via search
+                        meal.items.push({ foodItemId: foodId, amount: parseFloat(amountInput.value) || 1, unit: 'serv' });
                         mealAddBarVisible[mealName] = false;
                         renderPlan(currentPlan);
                     }
@@ -526,7 +529,6 @@
         }
 
         // --- 9. SHOPPING LIST LOGIC ---
-        // UPDATED: Sums in grams, unit is 'g'
         function generateShoppingList(plan) {
             const list = {};
             plan.days.forEach(day => {
@@ -538,7 +540,7 @@
                             if (!list[cat]) list[cat] = [];
                             const existing = list[cat].find(i => i.name === food.name);
                             if(existing) existing.amount += parseFloat(item.amount);
-                            else list[cat].push({ name: food.name, amount: parseFloat(item.amount), unit: 'g' });
+                            else list[cat].push({ name: food.name, amount: parseFloat(item.amount), unit: 'serv' });
                         }
                     });
                 });
@@ -547,3 +549,16 @@
         }
 
     </script>
+
+    <div id="plan-header" class="max-w-6xl mx-auto mb-6"></div>
+    <div id="plan-container">
+        <div class="max-w-4xl mx-auto bg-gray-800 rounded-xl shadow-2xl p-10 text-center border border-gray-700">
+            <svg class="animate-spin h-8 w-8 text-primary mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="text-gray-400">Loading plan...</p>
+        </div>
+    </div>
+</body>
+</html>
