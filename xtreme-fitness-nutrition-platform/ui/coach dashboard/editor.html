@@ -77,7 +77,7 @@
         </div>
     </div>
 
-    <script>
+<script>
         // --- 1. FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyA_D8lToqMx6-9wVei86AVrhtFsoPNRzUA",
@@ -106,13 +106,10 @@
         const CAL_PER_CARB = 4;
         const CAL_PER_FAT = 9;
 
-        // --- 3. DYNAMIC FOOD DATABASE ---
-        // This starts empty and gets populated by the n8n data
         let FOOD_DB = {}; 
 
-        // --- 4. INITIALIZATION & AUTH ---
+        // --- 3. INITIALIZATION & AUTH ---
         window.onload = function() {
-            // Check for Client ID from URL (e.g., editor.html?id=xyz)
             const urlParams = new URLSearchParams(window.location.search);
             clientId = urlParams.get('id');
 
@@ -122,7 +119,6 @@
                 return;
             }
 
-            // Check Auth State
             auth.onAuthStateChanged((user) => {
                 if (user) {
                     console.log("Authorized. Loading data for client:", clientId);
@@ -132,25 +128,21 @@
                 }
             });
 
-            // Modal Listeners
             document.getElementById('close-shopping-list').onclick = () => document.getElementById('shopping-list-modal').classList.add('hidden');
             document.getElementById('close-email-modal').onclick = () => document.getElementById('email-confirmation-modal').classList.add('hidden');
         };
 
-        // --- 5. DATA LOADING (Connecting to Real Database) ---
+        // --- 4. DATA LOADING (UPDATED FOR N8N) ---
         async function loadDataFromFirebase() {
             try {
-                // A. Fetch Client Profile (from 'clients' collection)
+                // A. Fetch Client Profile (to check if Coach already saved a plan)
                 const clientDoc = await db.collection("clients").doc(clientId).get();
                 if (!clientDoc.exists) throw new Error("Client not found");
                 const clientData = clientDoc.data();
                 const clientEmail = clientData.email;
 
-                console.log("Client found:", clientData.firstName);
-
-                // B. Fetch Recommended Foods (from 'clientPlans' collection)
-                // We query where clientKey matches the email to find the n8n output
-                let n8nFound = false;
+                // B. Fetch N8N Data
+                let n8nPlanData = null;
                 
                 if (clientEmail) {
                     const planQuery = await db.collection("clientPlans")
@@ -159,45 +151,49 @@
                                               .get();
 
                     if (!planQuery.empty) {
-                        const n8nData = planQuery.docs[0].data();
-                        console.log("Found n8n Plan Data:", n8nData);
-                        n8nFound = true;
-                        
-                        // PARSE THE JSON STRING from n8n
-                        if (n8nData.recommendedFoodsJson) {
-                            // n8n sometimes wraps strings doubly, so we try parse carefully
-                            let rawJson = n8nData.recommendedFoodsJson;
-                            if (typeof rawJson === 'string') {
-                                try {
-                                    const parsedFoods = JSON.parse(rawJson);
-                                    populateFoodDB(parsedFoods);
-                                } catch (e) {
-                                    console.error("JSON Parse Error on foods:", e);
-                                }
-                            }
+                        const n8nDoc = planQuery.docs[0].data();
+                        console.log("Found N8N Document:", n8nDoc);
+
+                        // 1. Parse Food DB
+                        if (n8nDoc.recommendedFoodsJson) {
+                            try {
+                                const parsedFoods = typeof n8nDoc.recommendedFoodsJson === 'string' 
+                                    ? JSON.parse(n8nDoc.recommendedFoodsJson) 
+                                    : n8nDoc.recommendedFoodsJson;
+                                populateFoodDB(parsedFoods);
+                            } catch (e) { console.error("Error parsing foods:", e); }
+                        }
+
+                        // 2. Parse Initial Plan (The logic you asked for)
+                        if (n8nDoc.initialPlanJson) {
+                            try {
+                                n8nPlanData = typeof n8nDoc.initialPlanJson === 'string'
+                                    ? JSON.parse(n8nDoc.initialPlanJson)
+                                    : n8nDoc.initialPlanJson;
+                                console.log("Parsed N8N Plan:", n8nPlanData);
+                            } catch (e) { console.error("Error parsing initial plan:", e); }
                         }
                     }
                 }
 
-                if (!n8nFound) {
-                    console.warn("No n8n generated plan found for this email. Using fallback data.");
-                    // Fallback to basic items if n8n hasn't run yet
-                    FOOD_DB = {
-                        'fallback_chicken': { name: 'Chicken (Fallback)', cal: 165, pro: 31, carb: 0, fat: 3.6, group: 'Protein' },
-                        'fallback_rice': { name: 'Rice (Fallback)', cal: 130, pro: 2, carb: 28, fat: 0.3, group: 'Carb' }
-                    };
-                }
-
-                // C. Initialize or Load the Editor Plan
-                // If we already saved a plan in 'clients' (nutritionPlan field), use that. 
-                // Otherwise create default.
+                // C. DETERMINE WHICH PLAN TO USE
+                // PRIORITY 1: Coach's Saved Plan (from 'clients' collection)
                 if (clientData.nutritionPlan) {
+                    console.log("Loading Coach's Saved Plan...");
                     currentPlan = clientData.nutritionPlan;
-                } else {
-                    currentPlan = generateDefaultPlan(clientData);
+                } 
+                // PRIORITY 2: N8N Generated Plan (from 'clientPlans' collection)
+                else if (n8nPlanData) {
+                    console.log("Loading N8N Generated Plan...");
+                    currentPlan = n8nPlanData;
+                } 
+                // PRIORITY 3: Fallback Calculator
+                else {
+                    console.warn("No plan found. Generating fallback.");
+                    currentPlan = generateFallbackPlan(clientData);
                 }
 
-                // Ensure names are up to date in the plan object
+                // Ensure names are up to date
                 currentPlan.clientName = `${clientData.firstName || ''} ${clientData.lastName || ''}`;
                 currentPlan.clientEmail = clientData.email || '';
 
@@ -206,39 +202,29 @@
 
             } catch (error) {
                 console.error("Error loading data:", error);
-                document.getElementById('plan-container').innerHTML = `<p class='text-center text-red-500 mt-10'>Error loading data: ${error.message}<br>Check console for details.</p>`;
+                document.getElementById('plan-container').innerHTML = `<p class='text-center text-red-500 mt-10'>Error loading data: ${error.message}</p>`;
             }
         }
 
         // --- HELPER: Convert USDA JSON to Editor Format ---
         function populateFoodDB(apiFoods) {
-            FOOD_DB = {}; // Reset
-            
-            if (!Array.isArray(apiFoods)) {
-                console.error("API Foods is not an array:", apiFoods);
-                return;
-            }
+            FOOD_DB = {}; 
+            if (!Array.isArray(apiFoods)) return;
 
             apiFoods.forEach(item => {
-                // Determine Group based on dominant macro (Auto-Categorization)
-                let group = 'Other';
-                const p = parseFloat(item.Protein_g) || 0;
-                const c = parseFloat(item.Carbs_g) || 0;
-                const f = parseFloat(item.Fat_g) || 0;
-
-                // Simple logic to guess category
-                if (p > c && p > f) group = 'Protein';
-                else if (c > p && c > f) group = 'Carb';
-                else if (f > p && f > c) group = 'Fat';
+                let group = item.Category || 'Other'; // Use N8N category if available
                 
-                // Override for common veggies
-                const lowerName = (item.Food || "").toLowerCase();
-                if (lowerName.includes('broccoli') || lowerName.includes('spinach') || lowerName.includes('salad') || lowerName.includes('vegetable')) {
-                    group = 'Vegetable';
+                // Fallback to macro logic if Category is generic
+                if (!item.Category || item.Category === 'meal' || item.Category === 'other') {
+                    const p = parseFloat(item.Protein_g) || 0;
+                    const c = parseFloat(item.Carbs_g) || 0;
+                    const f = parseFloat(item.Fat_g) || 0;
+                    if (p > c && p > f) group = 'Protein';
+                    else if (c > p && c > f) group = 'Carb';
+                    else if (f > p && f > c) group = 'Fat';
                 }
 
-                // Map to our internal format
-                // Use a safe ID (replace spaces)
+                // Safe ID creation
                 const safeId = item.foodId || `gen_${Math.random().toString(36).substr(2, 9)}`;
                 
                 FOOD_DB[safeId] = {
@@ -251,71 +237,27 @@
                     brand: item.Brand 
                 };
             });
-            console.log("FOOD_DB Populated with " + Object.keys(FOOD_DB).length + " items.");
         }
 
-        // --- UPDATED: AUTO-FILL LOGIC ---
-        function generateDefaultPlan(clientData) {
-            // 1. Get all the food IDs we just loaded from n8n
-            const availableFoods = Object.keys(FOOD_DB);
-            let foodCursor = 0;
-
-            // Helper to pick the next food in the list without repeating immediately
-            const getNextFood = () => {
-                if (availableFoods.length === 0) return null;
-                const id = availableFoods[foodCursor % availableFoods.length];
-                foodCursor++;
-                return { 
-                    foodItemId: id, 
-                    amount: 100, // Default to 100g serving
-                    unit: 'g' 
-                };
-            };
-
-            // 2. Define the structure
-            const planDays = [];
-            const dayLabels = ['Training Day', 'Rest Day', 'Active Recovery']; // 3 Days
-
-            // 3. Loop through days and fill meals
-            dayLabels.forEach(dayLabel => {
-                const meals = [];
-                const mealNames = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
-
-                mealNames.forEach(name => {
-                    const items = [];
-                    
-                    // A. Add a main item
-                    const mainItem = getNextFood();
-                    if (mainItem) items.push(mainItem);
-
-                    // B. Optionally add a second item (Side dish/Drink)
-                    // This adds variety so meals aren't just 1 item
-                    if (availableFoods.length > 10) {
-                        const sideItem = getNextFood();
-                        if (sideItem) items.push(sideItem);
-                    }
-
-                    meals.push({ mealName: name, items: items });
-                });
-
-                planDays.push({ dayName: dayLabel, meals: meals });
-            });
-
-            // 4. Return the fully populated plan
+        // --- FALLBACK GENERATOR (Last Resort) ---
+        function generateFallbackPlan(clientData) {
+            // This only runs if N8N failed completely
             return {
-                goalCalories: 2000, // Default goal
+                goalCalories: 2000,
                 macroTargets: { protein: 150, carbs: 200, fat: 65, proPct: 30, carbPct: 40, fatPct: 30, totalPctSum: 100 },
-                days: planDays
+                days: [
+                    { dayName: 'Day 1', meals: [{ mealName: 'Breakfast', items: [] }, { mealName: 'Lunch', items: [] }, { mealName: 'Dinner', items: [] }] },
+                    { dayName: 'Day 2', meals: [{ mealName: 'Breakfast', items: [] }, { mealName: 'Lunch', items: [] }, { mealName: 'Dinner', items: [] }] }
+                ]
             };
         }
 
-        // --- 6. SAVING TO FIRESTORE ---
+        // --- 5. SAVING TO FIRESTORE ---
         function updatePlanInFirestore(newPlan) {
             const statusEl = document.getElementById('save-status');
             statusEl.textContent = 'Saving...';
             statusEl.className = "mt-3 text-center text-sm font-bold text-gray-400";
             
-            // Save to the CLIENT document
             db.collection("clients").doc(clientId).update({
                 nutritionPlan: newPlan,
                 intakeStatus: "Completed", 
@@ -331,7 +273,7 @@
             });
         }
 
-        // --- 7. LOGIC HELPERS ---
+        // --- 6. LOGIC HELPERS ---
         function getMealKey(mealName, itemIndex) { return `${mealName}-${itemIndex}`; }
         
         function filterFoodItems(query) {
@@ -355,11 +297,16 @@
                 meal.items.forEach(item => {
                     const food = FOOD_DB[item.foodItemId];
                     if (food) {
-                        const factor = (Number(item.amount) || 0) / 100;
+                        const factor = (Number(item.amount) || 0); // Logic adjusted: Amount is usually "serving" or "g"
+                        // If unit is "serving", factor is directly amount. If "g", factor is amount/100 (assuming 100g base)
+                        // For USDA data, your base is usually 1 serving or 100g. 
+                        // To keep it simple for now, we assume linear multiplication:
+                        
                         item.calculatedCal = Math.round(food.cal * factor);
                         item.calculatedP = (food.pro * factor);
                         item.calculatedC = (food.carb * factor);
                         item.calculatedF = (food.fat * factor);
+                        
                         meal.mealCal += item.calculatedCal; meal.mealP += item.calculatedP; meal.mealC += item.calculatedC; meal.mealF += item.calculatedF;
                     }
                 });
@@ -386,14 +333,12 @@
             return newPlan;
         }
 
-        // --- 8. UI RENDERING ---
+        // --- 7. UI RENDERING ---
         function renderPlan(plan) {
             const day = plan.days[currentDayIndex];
             const totals = calculateDayTotals(plan);
             const targets = plan.macroTargets;
-            const totalPctSum = targets.totalPctSum || (targets.proPct + targets.carbPct + targets.fatPct);
-            const isOver100 = totalPctSum > 100;
-
+            
             const renderMacroBar = (value, target, label, color) => {
                 const percentage = target > 0 ? Math.min(100, (Number(value) / target) * 100).toFixed(0) : 0;
                 const statusColor = Number(value) > target ? 'bg-secondary' : color; 
@@ -401,7 +346,7 @@
             };
 
             const renderAddFoodBar = (mealName) => {
-                return `<div id="add-bar-${mealName}" class="add-food-bar p-3 bg-gray-700 rounded-lg ${mealAddBarVisible[mealName] ? '' : 'hidden'}"><h4 class="text-sm font-semibold mb-2">Add Item:</h4><div class="flex space-x-3 items-center"><div class="relative w-full"><input type="text" id="food-search-add-${mealName}" data-meal="${mealName}" class="food-search-input food-search-add w-full p-2 border border-gray-600 rounded-lg text-gray-200 bg-gray-800" placeholder="Type food name..." value="${activeSearches[`add-${mealName}`] || ''}" /><div id="food-results-add-${mealName}" class="search-results absolute z-10 w-full mt-1 bg-gray-600 rounded-lg shadow-xl max-h-48 overflow-y-auto hidden"></div></div><input id="amount-input-${mealName}" type="number" value="100" class="w-20 p-2 border border-gray-600 rounded-lg text-center text-gray-100 bg-gray-800" /><span class="text-gray-400">g</span><button data-meal="${mealName}" class="add-item-btn p-2 bg-success text-white rounded-lg"><i class="fa-solid fa-check"></i></button></div></div>`;
+                return `<div id="add-bar-${mealName}" class="add-food-bar p-3 bg-gray-700 rounded-lg ${mealAddBarVisible[mealName] ? '' : 'hidden'}"><h4 class="text-sm font-semibold mb-2">Add Item:</h4><div class="flex space-x-3 items-center"><div class="relative w-full"><input type="text" id="food-search-add-${mealName}" data-meal="${mealName}" class="food-search-input food-search-add w-full p-2 border border-gray-600 rounded-lg text-gray-200 bg-gray-800" placeholder="Type food name..." value="${activeSearches[`add-${mealName}`] || ''}" /><div id="food-results-add-${mealName}" class="search-results absolute z-10 w-full mt-1 bg-gray-600 rounded-lg shadow-xl max-h-48 overflow-y-auto hidden"></div></div><input id="amount-input-${mealName}" type="number" value="1" step="0.5" class="w-20 p-2 border border-gray-600 rounded-lg text-center text-gray-100 bg-gray-800" /><span class="text-gray-400">serv</span><button data-meal="${mealName}" class="add-item-btn p-2 bg-success text-white rounded-lg"><i class="fa-solid fa-check"></i></button></div></div>`;
             };
 
             const renderMealCard = (meal, mealIndex) => {
@@ -424,7 +369,7 @@
                                 <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
                                     <div class="flex items-center">
                                         <input type="number" class="item-amount-input w-20 p-2 border border-gray-600 rounded-lg text-center text-gray-100 bg-gray-700" value="${item.amount}" data-meal="${meal.mealName}" data-index="${idx}" ${!isEditing ? 'disabled' : ''} />
-                                        <span class="text-sm text-gray-400 ml-2">g</span>
+                                        <span class="text-sm text-gray-400 ml-2">${item.unit || 'serv'}</span>
                                     </div>
                                     <div class="text-sm font-mono text-gray-400 min-w-[100px] text-right"><span class="text-primary font-bold">${item.calculatedCal || 0} Cal</span></div>
                                     <button class="delete-item-btn text-secondary ${isEditing ? '' : 'hidden'}" data-meal="${meal.mealName}" data-index="${idx}"><i class="fa-solid fa-trash-can"></i></button>
@@ -486,7 +431,7 @@
             document.getElementById('plan-container').innerHTML = html;
         }
 
-        // --- 9. EVENT DELEGATION ---
+        // --- 8. EVENT DELEGATION ---
         function attachDelegatedSearchHandler() {
             const container = document.getElementById('plan-container');
             
@@ -525,7 +470,8 @@
                     const foodId = input.dataset.selectedId;
                     if(foodId) {
                         const meal = currentPlan.days[currentDayIndex].meals.find(m => m.mealName === mealName);
-                        meal.items.push({ foodItemId: foodId, amount: parseInt(amountInput.value) || 100, unit: 'g' });
+                        // Default to 1 serving if adding via search
+                        meal.items.push({ foodItemId: foodId, amount: parseFloat(amountInput.value) || 1, unit: 'serv' });
                         mealAddBarVisible[mealName] = false;
                         renderPlan(currentPlan);
                     }
@@ -582,7 +528,7 @@
             };
         }
 
-        // --- 10. SHOPPING LIST LOGIC ---
+        // --- 9. SHOPPING LIST LOGIC ---
         function generateShoppingList(plan) {
             const list = {};
             plan.days.forEach(day => {
@@ -594,7 +540,7 @@
                             if (!list[cat]) list[cat] = [];
                             const existing = list[cat].find(i => i.name === food.name);
                             if(existing) existing.amount += parseFloat(item.amount);
-                            else list[cat].push({ name: food.name, amount: parseFloat(item.amount), unit: 'g' });
+                            else list[cat].push({ name: food.name, amount: parseFloat(item.amount), unit: 'serv' });
                         }
                     });
                 });
