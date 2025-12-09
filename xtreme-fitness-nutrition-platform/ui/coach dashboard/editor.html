@@ -135,7 +135,7 @@
         // --- 4. DATA LOADING (UPDATED FOR N8N) ---
         async function loadDataFromFirebase() {
             try {
-                // A. Fetch Client Profile (to check if Coach already saved a plan)
+                // A. Fetch Client Profile
                 const clientDoc = await db.collection("clients").doc(clientId).get();
                 if (!clientDoc.exists) throw new Error("Client not found");
                 const clientData = clientDoc.data();
@@ -152,8 +152,7 @@
 
                     if (!planQuery.empty) {
                         const n8nDoc = planQuery.docs[0].data();
-                        console.log("Found N8N Document:", n8nDoc);
-
+                        
                         // 1. Parse Food DB
                         if (n8nDoc.recommendedFoodsJson) {
                             try {
@@ -164,32 +163,66 @@
                             } catch (e) { console.error("Error parsing foods:", e); }
                         }
 
-                        // 2. Parse Initial Plan (The logic you asked for)
+                      // 2. Parse Initial Plan (updated to handle AI structure)
                         if (n8nDoc.initialPlanJson) {
                             try {
-                                n8nPlanData = typeof n8nDoc.initialPlanJson === 'string'
+                                // Step A: Parse the outer string from Firebase
+                                let rawData = typeof n8nDoc.initialPlanJson === 'string'
                                     ? JSON.parse(n8nDoc.initialPlanJson)
                                     : n8nDoc.initialPlanJson;
-                                console.log("Parsed N8N Plan:", n8nPlanData);
-                            } catch (e) { console.error("Error parsing initial plan:", e); }
+
+                                // Step B: Check if it's buried in the AI "output" structure
+                                if (rawData.output && Array.isArray(rawData.output)) {
+                                    console.log("Found AI Wrapper, digging for data...");
+                                    
+                                    // Extract the text string from the AI response
+                                    let aiText = rawData.output[0]?.content?.[0]?.text;
+                                    
+                                    if (aiText) {
+                                        // Step C: Remove Markdown formatting (```json ... ```)
+                                        const cleanJson = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
+                                        
+                                        // Step D: Parse the clean JSON
+                                        const parsedAI = JSON.parse(cleanJson);
+                                        
+                                        // Step E: The AI wrapped the plan in a "plan" key (based on your log)
+                                        if (parsedAI.plan) {
+                                            n8nPlanData = parsedAI.plan;
+                                        } else {
+                                            n8nPlanData = parsedAI;
+                                        }
+                                    }
+                                } else {
+                                    // It wasn't nested, use as is
+                                    n8nPlanData = rawData;
+                                }
+                                
+                                console.log("Final Extracted Plan:", n8nPlanData);
+
+                            } catch (e) { 
+                                console.error("Error parsing initial plan path:", e); 
+                            }
                         }
                     }
                 }
 
-                // C. DETERMINE WHICH PLAN TO USE
-                // PRIORITY 1: Coach's Saved Plan (from 'clients' collection)
-                if (clientData.nutritionPlan) {
+                // C. DETERMINE WHICH PLAN TO USE (WITH VALIDATION)
+                
+                // PRIORITY 1: Coach's Saved Plan
+                // VALIDATION CHECK: Does it have 'days'?
+                if (clientData.nutritionPlan && Array.isArray(clientData.nutritionPlan.days)) {
                     console.log("Loading Coach's Saved Plan...");
                     currentPlan = clientData.nutritionPlan;
                 } 
-                // PRIORITY 2: N8N Generated Plan (from 'clientPlans' collection)
-                else if (n8nPlanData) {
+                // PRIORITY 2: N8N Generated Plan
+                // VALIDATION CHECK: Does it have 'days'?
+                else if (n8nPlanData && Array.isArray(n8nPlanData.days)) {
                     console.log("Loading N8N Generated Plan...");
                     currentPlan = n8nPlanData;
                 } 
                 // PRIORITY 3: Fallback Calculator
                 else {
-                    console.warn("No plan found. Generating fallback.");
+                    console.warn("No valid plan found (missing 'days' array). Generating fallback.");
                     currentPlan = generateFallbackPlan(clientData);
                 }
 
