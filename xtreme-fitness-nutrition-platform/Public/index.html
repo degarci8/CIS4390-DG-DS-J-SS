@@ -158,7 +158,7 @@
         <!-- Multi-step form (hidden until "Start Intake") -->
         <form
           id="intake-form"
-          action="https://djshortt.app.n8n.cloud/webhook-test/4fc73d32-f765-4619-8285-933001be28e3"
+          action="https://djshortt.app.n8n.cloud/webhook/4fc73d32-f765-4619-8285-933001be28e3"
           method="POST"
           class="space-y-6 hidden"
         > <input type="hidden" name="intakeStatus" value="Pending Review" />
@@ -1865,199 +1865,161 @@
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const intro = document.getElementById('intro-screen');
-      const form = document.getElementById('intake-form');
-      const steps = Array.from(document.querySelectorAll('.step'));
-      const stepLabel = document.getElementById('step-label');
-      const progressBar = document.getElementById('progress-bar');
-      const main = document.getElementById('intake-main');
-      const thankYou = document.getElementById('thank-you-screen');
-      let currentStepIndex = 0;
+  document.addEventListener('DOMContentLoaded', () => {
+    const intro = document.getElementById('intro-screen');
+    const form = document.getElementById('intake-form');
+    const steps = Array.from(document.querySelectorAll('.step'));
+    const stepLabel = document.getElementById('step-label');
+    const progressBar = document.getElementById('progress-bar');
+    const main = document.getElementById('intake-main');
+    const thankYou = document.getElementById('thank-you-screen');
+    let currentStepIndex = 0;
 
-      // Show the correct step + update label / progress bar
-      function updateStepUI() {
-        steps.forEach((step, index) => {
-          step.classList.toggle('hidden', index !== currentStepIndex);
-        });
+    // --- YOUR NEW PRODUCTION URL GOES HERE ---
+    // Make sure this DOES NOT have "-test" in it!
+    const N8N_WEBHOOK_URL = "https://djshortt.app.n8n.cloud/webhook/4fc73d32-f765-4619-8285-933001be28e3"; 
 
-        if (steps.length > 0 && stepLabel && progressBar) {
-          const stepNumber = currentStepIndex + 1;
-          const total = steps.length;
-          stepLabel.textContent = `Step ${stepNumber} of ${total}`;
-          const percent = (stepNumber / total) * 100;
-          progressBar.style.width = `${percent}%`;
-        }
+    // Helper: Update UI
+    function updateStepUI() {
+      steps.forEach((step, index) => {
+        step.classList.toggle('hidden', index !== currentStepIndex);
+      });
+      if (steps.length > 0 && stepLabel && progressBar) {
+        const stepNumber = currentStepIndex + 1;
+        stepLabel.textContent = `Step ${stepNumber} of ${steps.length}`;
+        progressBar.style.width = `${(stepNumber / steps.length) * 100}%`;
+      }
+    }
+
+    // Helper: Validation
+    function validateCurrentStep() {
+      if (!steps.length || !form) return true;
+      const currentStepEl = steps[currentStepIndex];
+      const stepNumber = parseInt(currentStepEl.dataset.step || '', 10);
+
+      // Step 5 Special Validation (Checkbox Groups)
+      if (stepNumber === 5) {
+        const allergiesChecked = currentStepEl.querySelectorAll('input[name="allergies"]:checked').length > 0;
+        const dietaryChecked = currentStepEl.querySelectorAll('input[name="dietary_preferences"]:checked').length > 0;
+        
+        document.getElementById('allergies-error')?.classList.toggle('hidden', allergiesChecked);
+        document.getElementById('dietary-error')?.classList.toggle('hidden', dietaryChecked);
+
+        if (!allergiesChecked || !dietaryChecked) return false;
       }
 
-      // Validate only the inputs in the currently visible step
-      // PLUS custom group validation for Step 5 (allergies & dietary prefs)
-      function validateCurrentStep() {
-        if (!steps.length || !form) {
-          return true;
+      // Standard HTML5 Validation
+      const fields = currentStepEl.querySelectorAll('input, select, textarea');
+      for (const field of fields) {
+        if (!field.checkValidity()) {
+          field.reportValidity();
+          return false;
         }
-
-        const currentStepEl = steps[currentStepIndex];
-        if (!currentStepEl) return true;
-
-        const stepNumber = parseInt(currentStepEl.dataset.step || '', 10);
-
-        // Custom validation for Step 5
-        if (stepNumber === 5) {
-          const allergiesChecked =
-            currentStepEl.querySelectorAll('input[name="allergies"]:checked').length > 0;
-          const dietaryChecked =
-            currentStepEl.querySelectorAll('input[name="dietary_preferences"]:checked').length > 0;
-
-          const allergiesError = currentStepEl.querySelector('#allergies-error');
-          const dietaryError = currentStepEl.querySelector('#dietary-error');
-
-          if (allergiesError) {
-            allergiesError.classList.toggle('hidden', allergiesChecked);
-          }
-          if (dietaryError) {
-            dietaryError.classList.toggle('hidden', dietaryChecked);
-          }
-
-          if (!allergiesChecked || !dietaryChecked) {
-            const firstError = !allergiesChecked ? allergiesError : dietaryError;
-            if (firstError && typeof firstError.scrollIntoView === 'function') {
-              firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-            return false;
-          }
-        }
-
-        const fields = currentStepEl.querySelectorAll('input, select, textarea');
-        for (const field of fields) {
-          if (!field.checkValidity()) {
-            field.reportValidity();
-            return false;
-          }
-        }
-
-        return true;
       }
+      return true;
+    }
 
-      // Start button (on intro screen)
-      const startBtn = document.getElementById('start-intake-btn');
-      if (startBtn && intro && form) {
-        startBtn.addEventListener('click', () => {
-          intro.classList.add('hidden');
-          form.classList.remove('hidden');
-          currentStepIndex = 0;
-          updateStepUI();
-        });
-      }
+    // Navigation Event Listeners
+    document.getElementById('start-intake-btn')?.addEventListener('click', () => {
+      intro.classList.add('hidden');
+      form.classList.remove('hidden');
+      updateStepUI();
+    });
 
-      // "Next" buttons (on steps 1–5)
-      document.addEventListener('click', (e) => {
-        const nextBtn = e.target.closest('.next-btn');
-        if (!nextBtn) return;
-
-        if (!validateCurrentStep()) return;
-
-        if (currentStepIndex < steps.length - 1) {
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.next-btn')) {
+        if (validateCurrentStep() && currentStepIndex < steps.length - 1) {
           currentStepIndex++;
           updateStepUI();
         }
-      });
-
-      // "Back" buttons (on steps 1–6)
-      document.addEventListener('click', (e) => {
-        const prevBtn = e.target.closest('.prev-btn');
-        if (!prevBtn) return;
-
+      }
+      if (e.target.closest('.prev-btn')) {
         if (currentStepIndex > 0) {
           currentStepIndex--;
           updateStepUI();
-        } else if (form && intro) {
-          // Back from step 1 → intro
+        } else {
           form.classList.add('hidden');
           intro.classList.remove('hidden');
-          if (stepLabel) stepLabel.textContent = 'Welcome';
-          if (progressBar) progressBar.style.width = '0%';
         }
-      });
-
-      // "Edit" buttons in the Step 6 review section (jump to specific step)
-      document.addEventListener('click', (e) => {
-        const btn = e.target.closest('.jump-step-btn');
-        if (!btn) return;
-
-        const targetStep = parseInt(btn.dataset.step, 10);
-        if (Number.isNaN(targetStep)) return;
-
-        if (intro && form) {
-          intro.classList.add('hidden');
-          form.classList.remove('hidden');
-        }
-
-        if (targetStep >= 1 && targetStep <= steps.length) {
-          currentStepIndex = targetStep - 1;
-          updateStepUI();
-        }
-      });
-
-      // Toggle-based conditional sections for Step 6 (previous program + body fat)
-      function setupConditionalFields(toggleId, containerId) {
-        const toggle = document.getElementById(toggleId);
-        const container = document.getElementById(containerId);
-
-        if (!toggle || !container) return;
-
-        const controlledInputs = container.querySelectorAll('input, textarea, select');
-
-        function updateState() {
-          const isOn = toggle.checked;
-
-          container.classList.toggle('hidden', !isOn);
-          container.style.display = isOn ? 'grid' : 'none';
-
-          controlledInputs.forEach((input) => {
-            if (isOn) {
-              input.setAttribute('required', '');
-            } else {
-              input.removeAttribute('required');
-            }
-          });
-        }
-
-        toggle.addEventListener('change', updateState);
-        updateState();
       }
-
-      setupConditionalFields('previous-program-toggle', 'previous-program-fields');
-      setupConditionalFields('bodyfat-tested-toggle', 'bodyfat-fields');
-
-      // THANK YOU SUBMISSION OVERRIDE
-      if (form && thankYou && main) {
-        form.addEventListener('submit', async (e) => {
-          e.preventDefault();
-
-          if (!form.reportValidity()) {
-            return;
-          }
-
-          const data = new FormData(form);
-
-          try {
-            await fetch(form.action, {
-              method: 'POST',
-              body: data,
-            });
-          } catch (err) {
-            console.error('Submission error (network/CORS likely):', err);
-            // Do NOT alert or return; we’ll still show the thank-you screen.
-          }
-
-          // Show thank-you UI either way
-          main.classList.add('hidden');
-          thankYou.classList.remove('hidden');
-        });
+      // Review Screen "Edit" Buttons
+      const jumpBtn = e.target.closest('.jump-step-btn');
+      if (jumpBtn) {
+        currentStepIndex = parseInt(jumpBtn.dataset.step, 10) - 1;
+        updateStepUI();
       }
     });
-  </script>
+
+    // Toggle Logic (Previous Program / Bodyfat)
+    function setupConditionalFields(toggleId, containerId) {
+      const toggle = document.getElementById(toggleId);
+      const container = document.getElementById(containerId);
+      if (!toggle || !container) return;
+      
+      const inputs = container.querySelectorAll('input, textarea, select');
+      const update = () => {
+        const isOn = toggle.checked;
+        container.classList.toggle('hidden', !isOn);
+        container.style.display = isOn ? 'grid' : 'none';
+        inputs.forEach(input => isOn ? input.setAttribute('required', '') : input.removeAttribute('required'));
+      };
+      toggle.addEventListener('change', update);
+      update();
+    }
+    setupConditionalFields('previous-program-toggle', 'previous-program-fields');
+    setupConditionalFields('bodyfat-tested-toggle', 'bodyfat-fields');
+
+
+    // --- THE FIX: ROBUST SUBMISSION HANDLER ---
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!validateCurrentStep()) return;
+
+      // 1. Convert FormData to Clean JSON
+      const formData = new FormData(form);
+      const data = {};
+      
+      // Handle checkboxes (arrays) and standard fields
+      const arrayFields = ['medical_conditions', 'allergies', 'dietary_preferences'];
+      
+      for (const [key, value] of formData.entries()) {
+        if (arrayFields.includes(key)) {
+          if (!data[key]) data[key] = [];
+          data[key].push(value);
+        } else {
+          data[key] = value;
+        }
+      }
+
+      // Convert arrays to strings for easier reading in n8n/Sheets (optional)
+      // e.g., ["Milk", "Eggs"] becomes "Milk, Eggs"
+      arrayFields.forEach(field => {
+        if(data[field] && Array.isArray(data[field])) {
+           data[field] = data[field].join(', ');
+        }
+      });
+
+      console.log("Sending data to:", N8N_WEBHOOK_URL);
+      console.log("Payload:", data);
+
+      // 2. Send JSON to n8n
+      try {
+        await fetch(N8N_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        console.log("Success!");
+      } catch (err) {
+        console.error("Submission error (check CORS in n8n settings):", err);
+      }
+
+      // 3. Show Thank You (Regardless of n8n response to avoid getting stuck)
+      main.classList.add('hidden');
+      thankYou.classList.remove('hidden');
+    });
+  });
+</script>
 
 </body>
 </html>
