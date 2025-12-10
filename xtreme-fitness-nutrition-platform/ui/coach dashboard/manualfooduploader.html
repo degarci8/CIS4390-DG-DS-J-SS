@@ -1,556 +1,315 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload Nutrition Info - Xtreme</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'primary': '#DC2626', // Xtreme Red (Used for main CTA/Active Tab/Focus)
-                        'secondary': '#DC2626', // Red for errors/alerts and CANCEL
-                        'success': '#10B981', // Green (for COMMIT actions)
-                        'warning': '#F59E0B', // Yellow/Orange (for Barcode Scan)
-                        'bg-body': '#1a1a1a', // Deep Black
-                        'bg-surface': '#262626' // Darker Surface Grey
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                }
-            }
-        }
-    </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #1a1a1a; /* Apply deep black background */
-        }
-        
-        /* Custom Styling for Webkit Browsers (Chrome/Safari) */
-        /* 1. Scrollbar Styling (Black with Red Focus) */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #1a1a1a; /* Black Track */
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #374151; /* Dark Grey Thumb */
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #DC2626; /* Xtreme Red Hover */
-        }
-
-        /* 2. Number Input Spinner Arrows (Red Arrows) */
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { 
-          -webkit-appearance: none;
-          margin: 0;
-          opacity: 1; 
-          width: 14px; 
-        }
-        
-        .input-style {
-            background-color: #1a1a1a; /* Match body bg for deep black input contrast */
-            border: 1px solid #4B5563;
-            color: #E5E7EB;
-            padding: 10px 12px;
-            border-radius: 8px;
-            width: 100%;
-            transition: border-color 0.2s;
-        }
-        .input-style:focus {
-            outline: none;
-            border-color: #DC2626; /* Xtreme Red Focus */
-            box-shadow: 0 0 0 1px #DC2626; 
-        }
-        .label-style {
-            color: #FFFFFF; /* Changed to WHITE */
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 6px;
-            display: block;
-            text-transform: uppercase; 
-            letter-spacing: 0.05em;
-            white-space: nowrap; /* Prevent wrapping in most cases */
-        }
-        /* Specific fix for wrapped labels to ensure inputs align */
-        .macro-label-fix {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .macro-label-fix span {
-            font-size: 14px;
-            font-weight: 600;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upload Nutrition Info - Xtreme</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#DC2626",
+            secondary: "#DC2626",
+            success: "#10B981",
+            bgBody: "#1a1a1a",
+            bgSurface: "#262626",
+          },
+          fontFamily: {
+            sans: ["Inter", "sans-serif"],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap");
+    body {
+      font-family: "Inter", sans-serif;
+      background-color: #1a1a1a;
+    }
+    .input-style {
+      background-color: #1a1a1a;
+      border: 1px solid #4b5563;
+      color: #e5e7eb;
+      padding: 10px 12px;
+      border-radius: 8px;
+      width: 100%;
+      transition: border-color 0.2s;
+    }
+    .input-style:focus {
+      outline: none;
+      border-color: #dc2626;
+      box-shadow: 0 0 0 1px #dc2626;
+    }
+    .label-style {
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: block;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+  </style>
 </head>
-<body class="bg-brand-black min-h-screen p-6 sm:p-10 text-white">
+<body class="min-h-screen p-6 sm:p-10 text-white">
 
-    <div class="max-w-4xl mx-auto bg-bg-surface p-8 rounded-xl shadow-2xl border-2 border-gray-700">
-        
-        <div class="flex justify-between items-center border-b border-gray-700 pb-4 mb-6">
-            <h1 class="text-3xl font-bold text-white"><i class="fa-solid fa-cloud-arrow-up mr-2 text-primary"></i> Upload Nutrition Info</h1>
-            <div class="flex space-x-3">
-                
-                <!-- Cancel Button (Red/Secondary) -->
-                <button id="cancel-form-btn" class="bg-secondary hover:bg-red-700 text-white font-bold py-2 px-3 rounded-lg transition duration-150">
-                    <i class="fa-solid fa-xmark mr-1"></i> Cancel
-                </button>
-                
-                <!-- Scan Barcode Button (Dark Grey/Green Text) -->
-                <button id="barcode-btn" class="bg-gray-700 hover:bg-gray-600 text-success font-bold py-2 px-3 rounded-lg transition duration-150 border border-success">
-                    <i class="fa-solid fa-barcode mr-1"></i> Scan Barcode
-                </button>
-                
-                <!-- Upload Item Button (Green/Success) -->
-                <button id="upload-btn" class="bg-success hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-150 shadow-lg shadow-green-900/50">
-                    <i class="fa-solid fa-upload mr-1"></i> Upload Item
-                </button>
-            </div>
-        </div>
-
-        <!-- Tab Navigation -->
-        <div class="flex space-x-2 mb-8 bg-brand-black p-1 rounded-lg inline-flex">
-            <button id="tab-general" data-tab="general" class="tab-btn py-2 px-6 rounded-md font-bold transition duration-150 bg-primary text-white">
-                General & Macros
-            </button>
-            <button id="tab-nutrients" data-tab="nutrients" class="tab-btn py-2 px-6 rounded-md font-bold transition duration-150 text-gray-400 hover:text-white">
-                Micronutrients
-            </button>
-        </div>
-
-        <!-- Form Content -->
-        <div id="form-content">
-
-            <!-- Tab 1: General & Macros -->
-            <div id="tab-general-content" class="tab-content space-y-8">
-                
-                <!-- Section 1 -->
-                <div>
-                    <h2 class="text-xl font-bold text-white mb-4 border-l-4 border-primary pl-3">FOOD IDENTITY</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="food-name" class="label-style">Food Name</label>
-                            <input type="text" id="food-name" class="input-style" placeholder="e.g. Xtreme Protein Bar" required>
-                        </div>
-                        <div>
-                            <label for="food-category" class="label-style">Category</label>
-                            <select id="food-category" class="input-style" required>
-                                <option value="Proteins (Healthy)">Proteins (Healthy)</option>
-                                <option value="Starchy Carbohydrates (Healthy)">Starchy Carbohydrates (Healthy)</option>
-                                <option value="Fibrous Carbohydrates (Healthy)">Fibrous Carbohydrates (Healthy)</option>
-                                <option value="Protein Snack Foods (Healthy)">Protein Snack Foods (Healthy)</option>
-                                <option value="Carb. Snack Foods (Healthy)">Carb. Snack Foods (Healthy)</option>
-                                <option value="Performance Carbohydrates">Performance Carbohydrates</option>
-                                <option value="Baby Foods">Baby Foods</option>
-                                <option value="Bars">Bars</option>
-                                <option value="Beans/Lentils">Beans/Lentils</option>
-                                <option value="Beverages">Beverages</option>
-                                <option value="Breads and Baked Goods">Breads and Baked Goods</option>
-                                <option value="Cereals">Cereals</option>
-                                <option value="Dairy">Dairy</option>
-                                <option value="Desserts">Desserts</option>
-                                <option value="Dressings">Dressings</option>
-                                <option value="Fats/Oils">Fats/Oils</option>
-                                <option value="Fast Food">Fast Food</option>
-                                <option value="Finfish and Shellfish">Finfish and Shellfish</option>
-                                <option value="Fruits/Fruit Juices">Fruits/Fruit Juices</option>
-                                <option value="Jams/Spreads/Sauces/Syrups">Jams/Spreads/Sauces/Syrups</option>
-                                <option value="Misc. Meats">Misc. Meats</option>
-                                <option value="Miscellaneous">Miscellaneous</option>
-                                <option value="Meals/Entrees/Side dishes">Meals/Entrees/Side dishes</option>
-                                <option value="Noodles/Pasta">Noodles/Pasta</option>
-                                <option value="Nuts/Seeds">Nuts/Seeds</option>
-                                <option value="Rice/Grains/Flour">Rice/Grains/Flour</option>
-                                <option value="Pork Products">Pork Products</option>
-                                <option value="Poultry">Poultry</option>
-                                <option value="Red Meats - Standard">Red Meats - Standard</option>
-                                <option value="Sausages/Lunch Meats">Sausages/Lunch Meats</option>
-                                <option value="Seasonings">Seasonings</option>
-                                <option value="Snacks/Treats">Snacks/Treats</option>
-                                <option value="Soups/Gravies">Soups/Gravies</option>
-                                <option value="Supplements/Vitamins">Supplements/Vitamins</option>
-                                <option value="Toppings">Toppings</option>
-                                <option value="Vegetables">Vegetables</option>
-                                <option value="Recipes">Recipes</option>
-                                <option value="Recipes (Custom)">Recipes (Custom)</option>
-                                <option value="Ethnic Foods">Ethnic Foods</option>
-                                <option value="Restaurant Foods">Restaurant Foods</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="db-id" class="label-style">Database ID (Read Only)</label>
-                            <input type="text" id="db-id" class="input-style bg-gray-800 text-gray-500 cursor-not-allowed" value="generated-on-upload" readonly>
-                        </div>
-                        <div>
-                            <label for="meal-category" class="label-style">Meal Category</label>
-                            <select id="meal-category" class="input-style">
-                                <option value="Any">Any</option>
-                                <option value="Breakfast">Breakfast</option>
-                                <option value="Snack">Snack</option>
-                                <option value="Lunch">Lunch</option>
-                                <option value="Dinner">Dinner</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Section 2 -->
-                <div>
-                    <h2 class="text-xl font-bold text-white mb-4 border-l-4 border-primary pl-3">SERVING & MACROS</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div class="md:col-span-2">
-                            <label for="serving-size" class="label-style">Serving Size (e.g., 100)</label>
-                            <input type="number" id="serving-size" class="input-style" value="100" min="0" required>
-                        </div>
-                        <div class="md:col-span-2">
-                            <label for="measure-unit" class="label-style">Unit</label>
-                            <select id="measure-unit" class="input-style" required>
-                                <option value="g">grams (g)</option>
-                                <option value="oz">ounces (oz)</option>
-                                <option value="cup">cups</option>
-                                <option value="tblsp">tablespoons</option>
-                                <option value="tsp">teaspoons</option>
-                            </select>
-                        </div>
-                        
-                        <!-- Core Macros -->
-                        <div>
-                            <!-- Changed to text-success (Green) and bold -->
-                            <label for="calories" class="label-style text-success">CALORIES (CAL)</label>
-                            <input type="number" id="calories" class="input-style border-primary text-white font-bold" value="0" min="0">
-                        </div>
-                        <div>
-                            <label for="protein" class="label-style text-red-400">PROTEIN (G)</label>
-                            <input type="number" id="protein" class="input-style" value="0" min="0">
-                        </div>
-                        <div>
-                            <label for="total-carbs" class="macro-label-fix label-style"><span class="text-blue-400">TOTAL CARB (G)</span></label>
-                            <input type="number" id="total-carbs" class="input-style" value="0" min="0">
-                        </div>
-                        <div>
-                            <label for="total-fat" class="label-style text-yellow-400">TOTAL FAT (G)</label>
-                            <input type="number" id="total-fat" class="input-style" value="0" min="0">
-                        </div>
-                    </div>
-                    
-                    <!-- Secondary Macros (mt-6 provides spacing fix) -->
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
-                        <div>
-                            <label for="saturated-fat" class="label-style">Sat. Fat (g)</label>
-                            <input type="number" id="saturated-fat" class="input-style" value="0" min="0">
-                        </div>
-                        <div>
-                            <label for="mono-fat" class="label-style">Mono. Fat (g)</label>
-                            <input type="number" id="mono-fat" class="input-style" value="0" min="0">
-                        </div>
-                        <div>
-                            <label for="poly-fat" class="label-style">Poly. Fat (g)</label>
-                            <input type="number" id="poly-fat" class="input-style" value="0" min="0">
-                        </div>
-                        <div>
-                            <label for="cholesterol" class="label-style">Cholesterol (mg)</label>
-                            <input type="number" id="cholesterol" class="input-style" value="0" min="0">
-                        </div>
-                        <div>
-                            <label for="sodium" class="label-style">Sodium (mg)</label>
-                            <input type="number" id="sodium" class="input-style" value="0" min="0">
-                        </div>
-                        <div>
-                            <label for="dietary-fiber" class="label-style">Fiber (g)</label>
-                            <input type="number" id="dietary-fiber" class="input-style" value="0" min="0">
-                        </div>
-                        <div>
-                            <label for="sugars" class="label-style">Sugars (g)</label>
-                            <input type="number" id="sugars" class="input-style" value="0" min="0">
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-            
-            <!-- Tab 2: Micronutrients -->
-            <div id="tab-nutrients-content" class="tab-content hidden space-y-6">
-
-                <h2 class="text-xl font-bold text-gray-200 border-l-4 border-primary pl-3">Vitamins and Minerals</h2>
-                
-                <!-- Value/Percentage Toggle -->
-                <div class="flex justify-between items-center bg-gray-800 p-4 rounded-lg border border-gray-700 mb-6">
-                    <p class="text-gray-300 font-semibold uppercase text-sm tracking-wide">Input Method:</p>
-                    <div class="flex space-x-4">
-                        <label class="flex items-center space-x-2 cursor-pointer">
-                            <input type="radio" name="nutrient-method" value="value" checked id="method-value" class="form-radio text-primary focus:ring-primary">
-                            <span class="text-white">Value (mg/mcg/IU)</span>
-                        </label>
-                        <label class="flex items-center space-x-2 cursor-pointer">
-                            <input type="radio" name="nutrient-method" value="percentage" id="method-percentage" class="form-radio text-primary focus:ring-primary">
-                            <span class="text-white">Percentage (%)</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div id="nutrient-inputs" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Inputs injected by JS -->
-                </div>
-            </div>
-
-        </div>
-        
-        <div id="error-message" class="mt-6 text-center text-secondary font-bold hidden bg-red-900/20 p-3 rounded-lg border border-secondary/50"></div>
-
+  <div class="max-w-3xl mx-auto bg-bgSurface p-8 rounded-xl shadow-2xl border-2 border-gray-700">
+    <div class="flex justify-between items-center border-b border-gray-700 pb-4 mb-6">
+      <h1 class="text-2xl sm:text-3xl font-bold text-white">
+        <i class="fa-solid fa-cloud-arrow-up mr-2 text-primary"></i>
+        Upload Nutrition Info
+      </h1>
+      <button id="cancel-btn"
+              class="bg-secondary hover:bg-red-700 text-white font-bold py-2 px-3 rounded-lg transition duration-150">
+        <i class="fa-solid fa-xmark mr-1"></i> Cancel
+      </button>
     </div>
 
-<script>
-    const NUTRIENT_FIELDS = [
-        { id: 'vitA', label: 'Vitamin A', unit: 'I.U.' },
-        { id: 'thiamin', label: 'Thiamin (B1)', unit: 'mg' },
-        { id: 'riboflavin', label: 'Riboflavin (B2)', unit: 'mg' },
-        { id: 'niacin', label: 'Niacin (B3)', unit: 'mg' },
-        { id: 'b6', label: 'Vitamin B6', unit: 'mg' },
-        { id: 'b12', label: 'Vitamin B12', unit: 'mcg' },
-        { id: 'vitC', label: 'Vitamin C', unit: 'mg' },
-        { id: 'vitD', label: 'Vitamin D', unit: 'I.U.' },
-        { id: 'vitE', label: 'Vitamin E', unit: 'I.U.' },
-        { id: 'calcium', label: 'Calcium', unit: 'mg' },
-        { id: 'iron', label: 'Iron', unit: 'mg' },
-        { id: 'magnesium', label: 'Magnesium', unit: 'mg' },
-        { id: 'potassium', label: 'Potassium', unit: 'mg' },
-        { id: 'zinc', label: 'Zinc', unit: 'mg' },
-        { id: 'phosphorus', label: 'Phosphorus', unit: 'mg' },
-        { id: 'folate', label: 'Folate', unit: 'mcg' },
-        { id: 'folicAcid', label: 'Folic Acid', unit: 'mcg' },
-    ];
-    
-    let currentNutrientMethod = 'value'; // Tracks the radio button state
+    <!-- FORM (no real <form> submit, just JS) -->
+    <div class="space-y-8" id="form-wrapper">
+      <!-- Food Identity -->
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4 border-l-4 border-primary pl-3">
+          FOOD IDENTITY
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="food-name" class="label-style">Food Name</label>
+            <input type="text" id="food-name" class="input-style"
+                   placeholder="e.g. Xtreme Protein Bar" required />
+          </div>
+          <div>
+            <label for="food-category" class="label-style">Category</label>
+            <select id="food-category" class="input-style">
+              <option value="Proteins (Healthy)">Proteins (Healthy)</option>
+              <option value="Starchy Carbohydrates (Healthy)">Starchy Carbohydrates (Healthy)</option>
+              <option value="Fibrous Carbohydrates (Healthy)">Fibrous Carbohydrates (Healthy)</option>
+              <option value="Protein Snack Foods (Healthy)">Protein Snack Foods (Healthy)</option>
+              <option value="Carb. Snack Foods (Healthy)">Carb. Snack Foods (Healthy)</option>
+              <option value="Snacks/Treats">Snacks/Treats</option>
+              <option value="Vegetables">Vegetables</option>
+              <option value="Fruits/Fruit Juices">Fruits/Fruit Juices</option>
+              <option value="Dairy">Dairy</option>
+              <option value="Fast Food">Fast Food</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label for="db-id" class="label-style">Database ID (Read Only)</label>
+            <input type="text" id="db-id"
+                   class="input-style bg-gray-800 text-gray-500 cursor-not-allowed"
+                   value="generated-on-upload" readonly />
+          </div>
+          <div>
+            <label for="meal-category" class="label-style">Meal Category</label>
+            <select id="meal-category" class="input-style">
+              <option value="Any">Any</option>
+              <option value="Breakfast">Breakfast</option>
+              <option value="Snack">Snack</option>
+              <option value="Lunch">Lunch</option>
+              <option value="Dinner">Dinner</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
-    function switchTab(tabId) {
-        document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.add('hidden');
-        });
-        document.getElementById(`tab-${tabId}-content`).classList.remove('hidden');
+      <!-- Serving & Macros -->
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4 border-l-4 border-primary pl-3">
+          SERVING & MACROS
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div class="md:col-span-2">
+            <label for="serving-size" class="label-style">Serving Size</label>
+            <input type="number" id="serving-size" class="input-style" value="100" min="1" />
+          </div>
+          <div class="md:col-span-2">
+            <label for="measure-unit" class="label-style">Unit</label>
+            <select id="measure-unit" class="input-style">
+              <option value="g">grams (g)</option>
+              <option value="oz">ounces (oz)</option>
+              <option value="cup">cups</option>
+              <option value="tblsp">tablespoons</option>
+              <option value="tsp">teaspoons</option>
+            </select>
+          </div>
 
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.remove('bg-primary', 'text-white');
-            btn.classList.add('bg-gray-700', 'text-gray-300', 'hover:bg-gray-600');
-        });
-        const activeBtn = document.getElementById(`tab-${tabId}`);
-        activeBtn.classList.add('bg-primary', 'text-white');
-        activeBtn.classList.remove('bg-gray-700', 'text-gray-300', 'hover:bg-gray-600');
+          <div>
+            <label for="calories" class="label-style">CALORIES (kcal)</label>
+            <input type="number" id="calories" class="input-style" value="0" min="0" />
+          </div>
+          <div>
+            <label for="protein" class="label-style">PROTEIN (g)</label>
+            <input type="number" id="protein" class="input-style" value="0" min="0" />
+          </div>
+          <div>
+            <label for="carbs" class="label-style">CARBS (g)</label>
+            <input type="number" id="carbs" class="input-style" value="0" min="0" />
+          </div>
+          <div>
+            <label for="fat" class="label-style">FAT (g)</label>
+            <input type="number" id="fat" class="input-style" value="0" min="0" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
+          <div>
+            <label for="fiber" class="label-style">FIBER (g)</label>
+            <input type="number" id="fiber" class="input-style" value="0" min="0" />
+          </div>
+          <div>
+            <label for="sugar" class="label-style">SUGAR (g)</label>
+            <input type="number" id="sugar" class="input-style" value="0" min="0" />
+          </div>
+          <div>
+            <label for="sodium" class="label-style">SODIUM (mg)</label>
+            <input type="number" id="sodium" class="input-style" value="0" min="0" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="flex justify-end">
+        <button id="upload-btn"
+                type="button"
+                class="bg-success hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition duration-150 shadow-lg shadow-green-900/50">
+          <i class="fa-solid fa-upload mr-1"></i> Upload Item
+        </button>
+      </div>
+
+      <!-- Messages -->
+      <div id="error-message"
+           class="mt-4 text-center text-secondary font-bold hidden bg-red-900/20 p-3 rounded-lg border border-secondary/50">
+      </div>
+      <div id="success-message"
+           class="mt-4 text-center text-success font-bold hidden bg-green-900/20 p-3 rounded-lg border border-green-500/50">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const N8N_WEBHOOK_URL = "https://djshortt.app.n8n.cloud/webhook-test/food-form";
+    // If you want to test with the test URL instead, you can change to:
+    // const N8N_WEBHOOK_URL = "https://djshortt.app.n8n.cloud/webhook-test/food-form";
+
+    function getVal(id) {
+      const el = document.getElementById(id);
+      return el ? el.value : "";
     }
 
-    function renderNutrientInputs() {
-        const container = document.getElementById('nutrient-inputs');
-        let html = '';
-        const unitLabel = currentNutrientMethod === 'value' ? 'Value (mg/mcg/IU)' : 'Percentage (%)';
-        const inputType = currentNutrientMethod === 'value' ? 'value' : 'percent';
-
-        NUTRIENT_FIELDS.forEach(field => {
-            // Determine the specific unit to display based on the field's unit property
-            const displayUnit = currentNutrientMethod === 'value' ? field.unit : '%';
-
-            html += `
-                <div>
-                    <label for="${field.id}" class="label-style">${field.label} <span class="text-gray-500 text-xs font-normal">(${displayUnit})</span></label>
-                    <input type="number" id="${field.id}" data-type="${inputType}" class="input-style nutrient-input" value="0" min="0">
-                </div>
-            `;
-        });
-        container.innerHTML = html;
+    function setVal(id, value) {
+      const el = document.getElementById(id);
+      if (el) el.value = value;
     }
-    
+
     function collectFormData() {
-        const data = {};
-        const getVal = id => document.getElementById(id)?.value;
-        
-        // Helper function for safe element value retrieval
-        function setValue(id, value) {
-            const el = document.getElementById(id);
-            if (el) {
-                el.value = value;
-                return true;
-            }
-            return false;
-        }
+      const foodName = getVal("food-name").trim();
+      const servingSize = Number(getVal("serving-size")) || 0;
 
-        // General & Macros
-        data.foodName = getVal('food-name');
-        data.foodCategory = getVal('food-category');
-        data.mealCategory = getVal('meal-category');
-        data.servingSize = Number(getVal('serving-size')) || 0;
-        data.measureUnit = getVal('measure-unit');
+      if (!foodName || servingSize <= 0) {
+        return null;
+      }
 
-        // Generate a unique ID
-        if (data.foodName) {
-            data.foodId = data.foodName.toLowerCase().replace(/[^a-z0-9]+/g, '_') + '_' + Date.now().toString().slice(-4);
-            setValue('db-id', data.foodId); 
-        }
+      const data = {
+        // Top-level fields that n8n Code node expects
+        foodName,
+        foodCategory: getVal("food-category"),
+        mealCategory: getVal("meal-category"),
+        servingSize,
+        measureUnit: getVal("measure-unit"),
+        unit: getVal("measure-unit"),
 
-        data.nutrition = {
-            calories: Number(getVal('calories')) || 0,
-            proteinG: Number(getVal('protein')) || 0,
-            totalCarbG: Number(getVal('total-carbs')) || 0,
-            totalFatG: Number(getVal('total-fat')) || 0,
-            saturatedFatG: Number(getVal('saturated-fat')) || 0,
-            monoFatG: Number(getVal('mono-fat')) || 0,
-            polyFatG: Number(getVal('poly-fat')) || 0,
-            cholesterolMG: Number(getVal('cholesterol')) || 0,
-            sodiumMG: Number(getVal('sodium')) || 0,
-            dietaryFiberG: Number(getVal('dietary-fiber')) || 0,
-            sugarsG: Number(getVal('sugars')) || 0,
-        };
+        calories: Number(getVal("calories")) || 0,
+        protein: Number(getVal("protein")) || 0,
+        carbs: Number(getVal("carbs")) || 0,
+        fat: Number(getVal("fat")) || 0,
+        fiber: Number(getVal("fiber")) || 0,
+        sugar: Number(getVal("sugar")) || 0,
+        sodium: Number(getVal("sodium")) || 0,
+      };
 
-        // Micronutrients
-        data.micronutrients = {};
-        NUTRIENT_FIELDS.forEach(field => {
-            const input = document.getElementById(field.id);
-            if (input) {
-                const key = field.id + (input.dataset.type === 'percent' ? 'Pct' : 'Val');
-                data.micronutrients[key] = Number(input.value) || 0;
-            }
-        });
-        
-        // Validation check (Minimal)
-        if (!data.foodName || data.servingSize <= 0) {
-            return null;
-        }
+      // Generate a readable ID and show it
+      const foodId =
+        foodName.toLowerCase().replace(/[^a-z0-9]+/g, "_") +
+        "_" +
+        Date.now().toString().slice(-4);
+      data.foodId = foodId;
+      setVal("db-id", foodId);
 
-        return data;
-    }
-    
-    function setValue(id, value) {
-        const el = document.getElementById(id);
-        if (el) {
-            el.value = value;
-            return true;
-        }
-        return false;
-    }
-    
-    function handleBarcodeScan() {
-        const mockBarcodeData = {
-            foodName: "Premium Whey Isolate",
-            foodCategory: "Proteins (Healthy)",
-            servingSize: 30,
-            measureUnit: "g",
-            calories: 120,
-            protein: 25,
-            totalCarbs: 3,
-            totalFat: 1,
-            saturatedFat: 0.5,
-            sodium: 100,
-    micros: { // Nested micros object to match the output structure
-        vitC: 10,
-        calcium: 15,
-    }
-};
-        
-        const scannerWindow = window.open('barcode_scanner.html', 'BarcodeScanner', 'width=550,height=550');
-        
-        const checkScan = setInterval(() => {
-            if (scannerWindow && scannerWindow.closed) {
-                clearInterval(checkScan);
-                applyScanResult(mockBarcodeData);
-            }
-        }, 500);
-    }
-    
-    window.receiveBarcodeScan = function(data) {
-        applyScanResult(data);
-    };
+      // Optional nested object (in case you want to use in Firestore)
+      data.nutrition = {
+        calories: data.calories,
+        proteinG: data.protein,
+        totalCarbG: data.carbs,
+        totalFatG: data.fat,
+        dietaryFiberG: data.fiber,
+        sugarsG: data.sugar,
+        sodiumMG: data.sodium,
+      };
 
-    function applyScanResult(data) {
-        // Auto-populate the General/Macro tab
-        setValue('food-name', data.foodName);
-        setValue('food-category', data.foodCategory);
-        setValue('serving-size', data.servingSize);
-        setValue('measure-unit', data.measureUnit);
-        setValue('calories', data.calories);
-        setValue('protein', data.protein);
-        setValue('total-carbs', data.totalCarbs);
-        setValue('total-fat', data.totalFat);
-        setValue('saturated-fat', data.saturatedFat);
-        setValue('sodium', data.sodium);
-        setValue('dietary-fiber', data.dietaryFiber); // Add fiber
-        setValue('sugars', data.sugars); // Add sugars
-
-        // Switch to the Nutrient tab and apply the micro data
-        switchTab('nutrients');
-        const methodValueEl = document.getElementById('method-value');
-        if (methodValueEl) methodValueEl.checked = true;
-        currentNutrientMethod = 'value';
-        renderNutrientInputs(); // Rerender to ensure the inputs exist
-
-        if (data.micros) {
-            for (const key in data.micros) {
-                 setValue(key, data.micros[key]);
-            }
-        }
-
-        alert(`SCAN COMPLETE: '${data.foodName}' loaded.`);
+      return data;
     }
 
+    document.getElementById("upload-btn").addEventListener("click", async () => {
+      const errorEl = document.getElementById("error-message");
+      const successEl = document.getElementById("success-message");
+      errorEl.classList.add("hidden");
+      successEl.classList.add("hidden");
 
-    document.addEventListener('DOMContentLoaded', () => {
-        renderNutrientInputs();
+      const data = collectFormData();
+      if (!data) {
+        errorEl.textContent =
+          "Food Name and a Serving Size greater than 0 are required.";
+        errorEl.classList.remove("hidden");
+        return;
+      }
 
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                switchTab(btn.dataset.tab);
-            });
-        });
-        
-        document.querySelectorAll('input[name="nutrient-method"]').forEach(radio => {
-            radio.addEventListener('change', (e) => {
-                currentNutrientMethod = e.target.value;
-                renderNutrientInputs(); 
-            });
+      try {
+        console.log("Sending to n8n:", data);
+
+        const res = await fetch(N8N_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
         });
 
-        document.getElementById('barcode-btn').addEventListener('click', handleBarcodeScan);
-        
-        document.getElementById('upload-btn').addEventListener('click', () => {
-            const formData = collectFormData();
-            const errorEl = document.getElementById('error-message');
+        // This will help you see EXACTLY what happened
+        console.log("n8n status:", res.status, res.statusText);
 
-            if (formData === null) {
-                errorEl.textContent = "ERROR: Food Name and Serving Size are required.";
-                errorEl.classList.remove('hidden');
-                return;
-            }
-            
-            errorEl.classList.add('hidden');
-            
-            console.log("Payload Ready:", formData);
-            alert("UPLOAD COMPLETE. Item queued for database ingestion.");
-            
-            const outputEl = document.getElementById('form-content');
-            outputEl.innerHTML = `<div class="text-center py-10">
-                                    <i class="fa-solid fa-check-circle text-success text-6xl mb-4"></i>
-                                    <h2 class="text-white text-3xl font-bold mb-2">UPLOAD SUCCESSFUL</h2>
-                                    <p class="text-gray-400 mb-6">"${formData.foodName}" has been added to the master list.</p>
-                                    <div class="bg-black p-4 rounded-lg text-left border border-gray-700 overflow-auto max-h-64">
-                                      <pre class="text-xs text-green-400 font-mono">${JSON.stringify(formData, null, 2)}</pre>
-                                    </div>
-                                    <button onclick="location.reload()" class="mt-6 bg-primary text-white py-2 px-6 rounded-lg font-bold hover:bg-red-700">Add Another Item</button>
-                                  </div>`;
-        });
-        
-        // Cancel Button Logic
-        document.getElementById('cancel-form-btn').addEventListener('click', () => {
-            window.close(); // Closes the current window/tab
-        });
+        let resBodyText = "";
+        try {
+          resBodyText = await res.text();
+          console.log("n8n raw response:", resBodyText);
+        } catch (e) {
+          console.log("Could not read response body", e);
+        }
+
+        if (!res.ok) {
+          throw new Error(
+            "n8n returned HTTP " + res.status + " " + res.statusText
+          );
+        }
+
+        successEl.textContent =
+          "Success! The item was sent to the server. Check n8n execution logs.";
+        successEl.classList.remove("hidden");
+      } catch (err) {
+        console.error("Error sending to n8n:", err);
+        errorEl.textContent =
+          "Error sending to n8n: " + (err.message || "Unknown error");
+        errorEl.classList.remove("hidden");
+      }
     });
-</script>
+
+    document.getElementById("cancel-btn").addEventListener("click", () => {
+      // Close popup, or you can redirect somewhere else
+      window.close();
+    });
+  </script>
 </body>
 </html>
