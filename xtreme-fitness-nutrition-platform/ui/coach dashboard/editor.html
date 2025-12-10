@@ -1,22 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Real-Time Nutrition Editor</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        'primary': '#1D4ED8',
+                        'primary': '#ec1313',
+                        'background-dark': '#1A1A1A',
+                        'surface-dark': '#262626',
                         'secondary': '#DC2626',
                         'success': '#10B981',
                         'warning': '#F59E0B',
@@ -24,50 +31,67 @@
                         'protein': '#EF4444',
                     },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['Lexend', 'sans-serif'],
+                        display: ['Lexend', 'sans-serif'],
                     },
                 }
             }
         }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .progress-bar-container { height: 8px; background-color: #374151; border-radius: 9999px; overflow: hidden; }
+        body { 
+            font-family: 'Lexend', sans-serif; 
+            background-color: #1A1A1A; 
+        }
+        .progress-bar-container { height: 8px; background-color: #333333; border-radius: 9999px; overflow: hidden; }
         .progress-bar { height: 100%; transition: width 0.3s ease; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #4B5563; border-radius: 10px; }
-        .custom-scrollbar { scrollbar-width: thin; scrollbar-color: #4B5563 #1F2937; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #404040; border-radius: 10px; }
+        .custom-scrollbar { scrollbar-width: thin; scrollbar-color: #404040 #1A1A1A; }
+        
         .input-as-text { border: none; background: none; padding: 0; color: inherit; font-size: inherit; font-weight: inherit; outline: none; text-align: center; width: 100%; }
-        .input-as-text:focus { border-bottom: 1px solid #1D4ED8; background-color: #1F2937; }
-        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.75); z-index: 50; display: flex; justify-content: center; align-items: center; }
+        .input-as-text:focus { border-bottom: 2px solid #ec1313; background-color: #262626; }
+        
+        /* New Style for Swap Inputs */
+        .food-swap-input { background: transparent; border-bottom: 1px dashed #666; width: 100%; color: #fff; }
+        .food-swap-input:focus { outline: none; border-bottom: 1px solid #ec1313; }
+
+        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); z-index: 50; display: flex; justify-content: center; align-items: center; }
     </style>
 </head>
-<body class="bg-gray-900 min-h-screen p-4 sm:p-8 text-white">
+
+<body class="bg-background-dark min-h-screen p-4 sm:p-8 text-white">
+
+    <nav class="max-w-6xl mx-auto mb-6 flex items-center justify-between">
+        <a href="https://nutritionplangenerator.web.app/dashboard.html" class="flex items-center text-gray-400 hover:text-primary transition font-semibold">
+            <i class="fa-solid fa-arrow-left mr-2"></i> Back to Dashboard
+        </a>
+        <div class="text-sm text-gray-500">Editor v2.1</div>
+    </nav>
 
     <div id="shopping-list-modal" class="modal-backdrop hidden">
-        <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-gray-700">
+        <div class="bg-surface-dark p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-gray-700">
             <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-6">
                 <h2 class="text-3xl font-bold text-success">🛒 Weekly Shopping List</h2>
-                <button id="close-shopping-list" class="text-gray-400 hover:text-white transition"><i class="fa-solid fa-xmark fa-2x"></i></button>
+                <button id="close-shopping-list" class="text-gray-400 hover:text-primary transition"><i class="fa-solid fa-xmark fa-2x"></i></button>
             </div>
             <div id="shopping-list-content"></div>
         </div>
     </div>
     
     <div id="email-confirmation-modal" class="modal-backdrop hidden">
-        <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-gray-700">
+        <div class="bg-surface-dark p-8 rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-gray-700">
             <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-6">
                 <h2 class="text-3xl font-bold text-primary">📧 Final Plan Review</h2>
-                <button id="close-email-modal" class="text-gray-400 hover:text-white transition"><i class="fa-solid fa-xmark fa-2x"></i></button>
+                <button id="close-email-modal" class="text-gray-400 hover:text-primary transition"><i class="fa-solid fa-xmark fa-2x"></i></button>
             </div>
             <div id="email-payload-content">
-                <p class="text-gray-300 mb-2">Ready to deliver. This action will launch your email client with the plan summary.</p>
-                <div class="p-3 bg-gray-900 rounded-lg text-sm mb-4">
+                <p class="text-gray-300 mb-2">Ready to deliver. This action will launch your email client with the plan text.</p>
+                <div class="p-3 bg-background-dark rounded-lg text-sm mb-4">
                     <p class="text-gray-400">Recipient: <strong class="text-white" id="recipient-email"></strong></p>
                 </div>
                 <h3 class="text-xl font-bold text-gray-200 mb-2">Email Preview:</h3>
-                <div class="bg-gray-900 p-4 rounded-lg text-sm font-mono text-gray-200 whitespace-pre-wrap max-h-60 overflow-y-auto">
+                <div class="bg-black/30 p-4 rounded-lg text-sm font-mono text-gray-200 whitespace-pre-wrap max-h-60 overflow-y-auto border border-gray-700">
                     <pre id="payload-display"></pre>
                 </div>
                 <a id="mail-to-link" href="#" class="block w-full text-center py-3 mt-6 bg-success text-white font-bold rounded-lg shadow-lg hover:bg-green-600 transition duration-150">
@@ -77,7 +101,17 @@
         </div>
     </div>
 
-<script>
+    <div id="plan-container">
+        <div class="max-w-4xl mx-auto bg-surface-dark rounded-xl shadow-2xl p-10 text-center border border-gray-700">
+            <svg class="animate-spin h-8 w-8 text-primary mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="text-gray-400">Loading plan...</p>
+        </div>
+    </div>
+
+    <script>
         // --- 1. FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyA_D8lToqMx6-9wVei86AVrhtFsoPNRzUA",
@@ -121,7 +155,6 @@
 
             auth.onAuthStateChanged((user) => {
                 if (user) {
-                    console.log("Authorized. Loading data for client:", clientId);
                     loadDataFromFirebase();
                 } else {
                     window.location.href = "login.html";
@@ -132,16 +165,14 @@
             document.getElementById('close-email-modal').onclick = () => document.getElementById('email-confirmation-modal').classList.add('hidden');
         };
 
-        // --- 4. DATA LOADING (UPDATED FOR N8N) ---
+        // --- 4. DATA LOADING ---
         async function loadDataFromFirebase() {
             try {
-                // A. Fetch Client Profile
                 const clientDoc = await db.collection("clients").doc(clientId).get();
                 if (!clientDoc.exists) throw new Error("Client not found");
                 const clientData = clientDoc.data();
                 const clientEmail = clientData.email;
 
-                // B. Fetch N8N Data
                 let n8nPlanData = null;
                 
                 if (clientEmail) {
@@ -153,7 +184,7 @@
                     if (!planQuery.empty) {
                         const n8nDoc = planQuery.docs[0].data();
                         
-                        // 1. Parse Food DB
+                        // Parse Food DB
                         if (n8nDoc.recommendedFoodsJson) {
                             try {
                                 const parsedFoods = typeof n8nDoc.recommendedFoodsJson === 'string' 
@@ -163,70 +194,36 @@
                             } catch (e) { console.error("Error parsing foods:", e); }
                         }
 
-                      // 2. Parse Initial Plan (updated to handle AI structure)
+                        // Parse Initial Plan
                         if (n8nDoc.initialPlanJson) {
                             try {
-                                // Step A: Parse the outer string from Firebase
                                 let rawData = typeof n8nDoc.initialPlanJson === 'string'
                                     ? JSON.parse(n8nDoc.initialPlanJson)
                                     : n8nDoc.initialPlanJson;
 
-                                // Step B: Check if it's buried in the AI "output" structure
                                 if (rawData.output && Array.isArray(rawData.output)) {
-                                    console.log("Found AI Wrapper, digging for data...");
-                                    
-                                    // Extract the text string from the AI response
                                     let aiText = rawData.output[0]?.content?.[0]?.text;
-                                    
                                     if (aiText) {
-                                        // Step C: Remove Markdown formatting (```json ... ```)
                                         const cleanJson = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
-                                        
-                                        // Step D: Parse the clean JSON
                                         const parsedAI = JSON.parse(cleanJson);
-                                        
-                                        // Step E: The AI wrapped the plan in a "plan" key (based on your log)
-                                        if (parsedAI.plan) {
-                                            n8nPlanData = parsedAI.plan;
-                                        } else {
-                                            n8nPlanData = parsedAI;
-                                        }
+                                        n8nPlanData = parsedAI.plan || parsedAI;
                                     }
                                 } else {
-                                    // It wasn't nested, use as is
                                     n8nPlanData = rawData;
                                 }
-                                
-                                console.log("Final Extracted Plan:", n8nPlanData);
-
-                            } catch (e) { 
-                                console.error("Error parsing initial plan path:", e); 
-                            }
+                            } catch (e) { console.error("Error parsing plan:", e); }
                         }
                     }
                 }
 
-                // C. DETERMINE WHICH PLAN TO USE (WITH VALIDATION)
-                
-                // PRIORITY 1: Coach's Saved Plan
-                // VALIDATION CHECK: Does it have 'days'?
                 if (clientData.nutritionPlan && Array.isArray(clientData.nutritionPlan.days)) {
-                    console.log("Loading Coach's Saved Plan...");
                     currentPlan = clientData.nutritionPlan;
-                } 
-                // PRIORITY 2: N8N Generated Plan
-                // VALIDATION CHECK: Does it have 'days'?
-                else if (n8nPlanData && Array.isArray(n8nPlanData.days)) {
-                    console.log("Loading N8N Generated Plan...");
+                } else if (n8nPlanData && Array.isArray(n8nPlanData.days)) {
                     currentPlan = n8nPlanData;
-                } 
-                // PRIORITY 3: Fallback Calculator
-                else {
-                    console.warn("No valid plan found (missing 'days' array). Generating fallback.");
+                } else {
                     currentPlan = generateFallbackPlan(clientData);
                 }
 
-                // Ensure names are up to date
                 currentPlan.clientName = `${clientData.firstName || ''} ${clientData.lastName || ''}`;
                 currentPlan.clientEmail = clientData.email || '';
 
@@ -239,15 +236,12 @@
             }
         }
 
-        // --- HELPER: Convert USDA JSON to Editor Format ---
         function populateFoodDB(apiFoods) {
             FOOD_DB = {}; 
             if (!Array.isArray(apiFoods)) return;
 
             apiFoods.forEach(item => {
-                let group = item.Category || 'Other'; // Use N8N category if available
-                
-                // Fallback to macro logic if Category is generic
+                let group = item.Category || 'Other';
                 if (!item.Category || item.Category === 'meal' || item.Category === 'other') {
                     const p = parseFloat(item.Protein_g) || 0;
                     const c = parseFloat(item.Carbs_g) || 0;
@@ -256,10 +250,7 @@
                     else if (c > p && c > f) group = 'Carb';
                     else if (f > p && f > c) group = 'Fat';
                 }
-
-                // Safe ID creation
                 const safeId = item.foodId || `gen_${Math.random().toString(36).substr(2, 9)}`;
-                
                 FOOD_DB[safeId] = {
                     name: item.Food,
                     cal: item.Calories,
@@ -272,9 +263,7 @@
             });
         }
 
-        // --- FALLBACK GENERATOR (Last Resort) ---
         function generateFallbackPlan(clientData) {
-            // This only runs if N8N failed completely
             return {
                 goalCalories: 2000,
                 macroTargets: { protein: 150, carbs: 200, fat: 65, proPct: 30, carbPct: 40, fatPct: 30, totalPctSum: 100 },
@@ -285,7 +274,6 @@
             };
         }
 
-        // --- 5. SAVING TO FIRESTORE ---
         function updatePlanInFirestore(newPlan) {
             const statusEl = document.getElementById('save-status');
             statusEl.textContent = 'Saving...';
@@ -307,8 +295,6 @@
         }
 
         // --- 6. LOGIC HELPERS ---
-        function getMealKey(mealName, itemIndex) { return `${mealName}-${itemIndex}`; }
-        
         function filterFoodItems(query) {
             const lowerQuery = query.toLowerCase().trim();
             if (lowerQuery.length < 2) return [];
@@ -330,11 +316,7 @@
                 meal.items.forEach(item => {
                     const food = FOOD_DB[item.foodItemId];
                     if (food) {
-                        const factor = (Number(item.amount) || 0); // Logic adjusted: Amount is usually "serving" or "g"
-                        // If unit is "serving", factor is directly amount. If "g", factor is amount/100 (assuming 100g base)
-                        // For USDA data, your base is usually 1 serving or 100g. 
-                        // To keep it simple for now, we assume linear multiplication:
-                        
+                        const factor = (Number(item.amount) || 0);
                         item.calculatedCal = Math.round(food.cal * factor);
                         item.calculatedP = (food.pro * factor);
                         item.calculatedC = (food.carb * factor);
@@ -366,6 +348,30 @@
             return newPlan;
         }
 
+        // --- REQUEST #4: READABLE EMAIL FORMAT ---
+        function generateReadableEmail(plan) {
+            let text = `NUTRITION PLAN: ${plan.clientName}\n`;
+            text += `--------------------------------\n`;
+            text += `GOALS: ${plan.goalCalories} Cal | P: ${plan.macroTargets.protein}g | C: ${plan.macroTargets.carbs}g | F: ${plan.macroTargets.fat}g\n\n`;
+
+            plan.days.forEach(day => {
+                text += `=== ${day.dayName.toUpperCase()} ===\n`;
+                day.meals.forEach(meal => {
+                    if (meal.items.length > 0) {
+                        text += `  ${meal.mealName}:\n`;
+                        meal.items.forEach(item => {
+                            const foodName = FOOD_DB[item.foodItemId]?.name || "Unknown Item";
+                            text += `    - ${item.amount} ${item.unit || 'serv'} ${foodName}\n`;
+                        });
+                        text += `\n`;
+                    }
+                });
+                text += `--------------------------------\n`;
+            });
+            
+            return text;
+        }
+
         // --- 7. UI RENDERING ---
         function renderPlan(plan) {
             const day = plan.days[currentDayIndex];
@@ -378,13 +384,26 @@
                 return `<div class="mb-4"><div class="flex justify-between text-sm font-medium mb-1"><span class="text-gray-300">${label}</span><span class="text-gray-300">${Number(value).toFixed(0)}g / ${target}g (${percentage}%)</span></div><div class="progress-bar-container"><div class="progress-bar ${statusColor}" style="width: ${percentage}%;"></div></div></div>`;
             };
 
+            // REQUEST #1: Added Cancel Button
             const renderAddFoodBar = (mealName) => {
-                return `<div id="add-bar-${mealName}" class="add-food-bar p-3 bg-gray-700 rounded-lg ${mealAddBarVisible[mealName] ? '' : 'hidden'}"><h4 class="text-sm font-semibold mb-2">Add Item:</h4><div class="flex space-x-3 items-center"><div class="relative w-full"><input type="text" id="food-search-add-${mealName}" data-meal="${mealName}" class="food-search-input food-search-add w-full p-2 border border-gray-600 rounded-lg text-gray-200 bg-gray-800" placeholder="Type food name..." value="${activeSearches[`add-${mealName}`] || ''}" /><div id="food-results-add-${mealName}" class="search-results absolute z-10 w-full mt-1 bg-gray-600 rounded-lg shadow-xl max-h-48 overflow-y-auto hidden"></div></div><input id="amount-input-${mealName}" type="number" value="1" step="0.5" class="w-20 p-2 border border-gray-600 rounded-lg text-center text-gray-100 bg-gray-800" /><span class="text-gray-400">serv</span><button data-meal="${mealName}" class="add-item-btn p-2 bg-success text-white rounded-lg"><i class="fa-solid fa-check"></i></button></div></div>`;
+                return `<div id="add-bar-${mealName}" class="add-food-bar p-3 bg-gray-700 rounded-lg ${mealAddBarVisible[mealName] ? '' : 'hidden'}">
+                    <h4 class="text-sm font-semibold mb-2">Add Item:</h4>
+                    <div class="flex space-x-3 items-center">
+                        <div class="relative w-full">
+                            <input type="text" id="food-search-add-${mealName}" data-meal="${mealName}" class="food-search-input food-search-add w-full p-2 border border-gray-600 rounded-lg text-gray-200 bg-gray-800" placeholder="Type food name..." value="${activeSearches[`add-${mealName}`] || ''}" />
+                            <div id="food-results-add-${mealName}" class="search-results absolute z-10 w-full mt-1 bg-surface-dark rounded-lg shadow-xl max-h-48 overflow-y-auto hidden border border-gray-600"></div>
+                        </div>
+                        <input id="amount-input-${mealName}" type="number" value="1" step="0.5" class="w-20 p-2 border border-gray-600 rounded-lg text-center text-gray-100 bg-gray-800" />
+                        <span class="text-gray-400">serv</span>
+                        <button data-meal="${mealName}" class="add-item-btn p-2 bg-success text-white rounded-lg"><i class="fa-solid fa-check"></i></button>
+                        <button data-meal="${mealName}" class="cancel-add-btn p-2 bg-secondary text-white rounded-lg"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                </div>`;
             };
 
             const renderMealCard = (meal, mealIndex) => {
                 const isEditing = mealEditingState[meal.mealName] || false;
-                return `<div class="bg-gray-800 p-4 rounded-xl shadow-lg mb-6 border border-gray-700">
+                return `<div class="bg-surface-dark p-4 rounded-xl shadow-lg mb-6 border border-gray-700">
                     <div class="flex justify-between items-center mb-3 border-b border-gray-700 pb-2">
                         <h3 class="text-xl font-bold text-secondary">${meal.mealName}</h3>
                         <div class="flex space-x-3">
@@ -397,11 +416,31 @@
                     <div class="space-y-4 pt-3">
                         ${meal.items.map((item, idx) => {
                             const foodName = FOOD_DB[item.foodItemId]?.name || 'Unknown Item';
-                            return `<div class="flex flex-col sm:flex-row items-center p-3 border border-gray-700 rounded-lg bg-gray-900">
-                                <div class="flex-grow w-full mr-4 text-gray-200">${foodName}</div>
+                            
+                            // REQUEST #3: Interactive Search in Edit Mode
+                            let itemDisplayHTML = "";
+                            if (!isEditing) {
+                                itemDisplayHTML = `<div class="flex-grow w-full mr-4 text-gray-200">${foodName}</div>`;
+                            } else {
+                                itemDisplayHTML = `
+                                    <div class="flex-grow w-full mr-4 relative">
+                                        <input type="text" 
+                                            class="food-search-input food-swap-input text-gray-200" 
+                                            value="${foodName}" 
+                                            data-meal="${meal.mealName}"
+                                            data-index="${idx}"
+                                            id="food-edit-${meal.mealName}-${idx}"
+                                        />
+                                        <div id="food-results-edit-${meal.mealName}-${idx}" class="search-results absolute z-50 w-full mt-1 bg-gray-700 rounded-lg shadow-xl max-h-48 overflow-y-auto hidden border border-gray-500"></div>
+                                    </div>
+                                `;
+                            }
+
+                            return `<div class="flex flex-col sm:flex-row items-center p-3 border border-gray-700 rounded-lg bg-background-dark">
+                                ${itemDisplayHTML}
                                 <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
                                     <div class="flex items-center">
-                                        <input type="number" class="item-amount-input w-20 p-2 border border-gray-600 rounded-lg text-center text-gray-100 bg-gray-700" value="${item.amount}" data-meal="${meal.mealName}" data-index="${idx}" ${!isEditing ? 'disabled' : ''} />
+                                        <input type="number" class="item-amount-input w-20 p-2 border border-gray-600 rounded-lg text-center text-gray-100 bg-gray-800" value="${item.amount}" data-meal="${meal.mealName}" data-index="${idx}" ${!isEditing ? 'disabled' : ''} />
                                         <span class="text-sm text-gray-400 ml-2">${item.unit || 'serv'}</span>
                                     </div>
                                     <div class="text-sm font-mono text-gray-400 min-w-[100px] text-right"><span class="text-primary font-bold">${item.calculatedCal || 0} Cal</span></div>
@@ -419,12 +458,12 @@
 
             const html = `
                 <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-1 bg-gray-800 p-6 rounded-xl shadow-2xl h-fit sticky top-4 border border-gray-700">
+                    <div class="lg:col-span-1 bg-surface-dark p-6 rounded-xl shadow-2xl h-fit sticky top-4 border border-gray-700">
                         <h1 class="text-2xl font-bold text-primary mb-6">Goals</h1>
-                        <div class="mb-6 p-4 bg-gray-900 rounded-lg border border-gray-700">
+                        <div class="mb-6 p-4 bg-background-dark rounded-lg border border-gray-700">
                             <div class="flex justify-between items-center mb-4">
                                 <p class="text-gray-400 text-sm">TARGET CALORIES</p>
-                                <input type="number" id="goal-calorie-input" value="${plan.goalCalories}" class="input-as-text text-4xl font-extrabold text-white text-right w-24" style="border-bottom: ${isGoalEditing ? '1px solid #1D4ED8' : 'none'};" ${!isGoalEditing ? 'disabled' : ''} />
+                                <input type="number" id="goal-calorie-input" value="${plan.goalCalories}" class="input-as-text text-4xl font-extrabold text-white text-right w-24" style="border-bottom: ${isGoalEditing ? '1px solid #ec1313' : 'none'};" ${!isGoalEditing ? 'disabled' : ''} />
                             </div>
                             <div class="grid grid-cols-3 gap-4 text-center">
                                 <div><p class="text-2xl font-bold text-protein">${targets.protein}g</p><p class="text-xs text-gray-500">Protein</p></div>
@@ -472,6 +511,7 @@
                 const target = e.target.closest('button, .search-result-item');
                 if(!target) return;
 
+                // Existing Handlers...
                 if (target.classList.contains('day-nav-btn')) {
                     currentDayIndex = parseInt(target.dataset.dayIndex, 10);
                     renderPlan(currentPlan);
@@ -484,6 +524,13 @@
                     mealAddBarVisible[target.dataset.meal] = !mealAddBarVisible[target.dataset.meal];
                     renderPlan(currentPlan);
                 }
+                
+                // REQUEST #1 Handler: Cancel Add
+                if (target.classList.contains('cancel-add-btn')) {
+                    mealAddBarVisible[target.dataset.meal] = false;
+                    renderPlan(currentPlan);
+                }
+
                 if (target.classList.contains('save-meal-edit-btn')) {
                     mealEditingState[target.dataset.meal] = false;
                     renderPlan(currentPlan);
@@ -496,6 +543,8 @@
                     meal.items.splice(target.dataset.index, 1);
                     renderPlan(currentPlan);
                 }
+                
+                // Adding Item Logic
                 if (target.classList.contains('add-item-btn')) {
                     const mealName = target.dataset.meal;
                     const input = document.getElementById(`food-search-add-${mealName}`);
@@ -503,19 +552,37 @@
                     const foodId = input.dataset.selectedId;
                     if(foodId) {
                         const meal = currentPlan.days[currentDayIndex].meals.find(m => m.mealName === mealName);
-                        // Default to 1 serving if adding via search
                         meal.items.push({ foodItemId: foodId, amount: parseFloat(amountInput.value) || 1, unit: 'serv' });
                         mealAddBarVisible[mealName] = false;
                         renderPlan(currentPlan);
                     }
                 }
+
+                // REQUEST #3 Handler: Selecting a Result
                 if (target.classList.contains('search-result-item')) {
-                    const inputId = `food-search-add-${target.dataset.meal}`;
-                    const input = document.getElementById(inputId);
-                    input.value = FOOD_DB[target.dataset.foodId].name;
-                    input.dataset.selectedId = target.dataset.foodId;
-                    document.getElementById(`food-results-add-${target.dataset.meal}`).classList.add('hidden');
+                    const mealName = target.dataset.meal;
+                    
+                    // Case A: Adding a new item
+                    if(target.dataset.type === 'add') {
+                        const inputId = `food-search-add-${mealName}`;
+                        const input = document.getElementById(inputId);
+                        input.value = FOOD_DB[target.dataset.foodId].name;
+                        input.dataset.selectedId = target.dataset.foodId;
+                        document.getElementById(`food-results-add-${mealName}`).classList.add('hidden');
+                    }
+                    // Case B: Swapping/Editing an existing item
+                    else if(target.dataset.type === 'edit') {
+                        const idx = target.dataset.index;
+                        const meal = currentPlan.days[currentDayIndex].meals.find(m => m.mealName === mealName);
+                        
+                        // Update the data immediately
+                        meal.items[idx].foodItemId = target.dataset.foodId;
+                        
+                        // Re-render to show updated stats and name
+                        renderPlan(currentPlan);
+                    }
                 }
+
                 if(target.id === 'toggle-goal-edit-btn') {
                     if(isGoalEditing) {
                         const newCal = document.getElementById('goal-calorie-input').value;
@@ -532,12 +599,19 @@
                     modal.innerHTML = Object.keys(list).map(cat => `<h3 class='text-xl text-primary font-bold mt-4'>${cat}</h3><ul>${list[cat].map(i => `<li>${i.amount} ${i.unit} ${i.name}</li>`).join('')}</ul>`).join('');
                     document.getElementById('shopping-list-modal').classList.remove('hidden');
                 }
+                
+                // REQUEST #4 Handler: Readable Email
                 if(target.id === 'email-plan-btn') {
                     document.getElementById('recipient-email').textContent = currentPlan.clientEmail;
-                    document.getElementById('payload-display').textContent = JSON.stringify(currentPlan, null, 2);
+                    
+                    // Use readable generator
+                    const readableText = generateReadableEmail(currentPlan);
+                    document.getElementById('payload-display').textContent = readableText;
+                    
                     const subject = encodeURIComponent(`Nutrition Plan for ${currentPlan.clientName}`);
-                    const body = encodeURIComponent("Please find your plan attached.");
+                    const body = encodeURIComponent("Please find your plan attached.\n\n" + readableText);
                     document.getElementById('mail-to-link').href = `mailto:${currentPlan.clientEmail}?subject=${subject}&body=${body}`;
+                    
                     document.getElementById('email-confirmation-modal').classList.remove('hidden');
                 }
             };
@@ -546,14 +620,40 @@
                 if (e.target.classList.contains('food-search-input')) {
                     const query = e.target.value;
                     const results = filterFoodItems(query);
-                    const resContainer = document.getElementById(`food-results-add-${e.target.dataset.meal}`);
+                    
+                    const mealName = e.target.dataset.meal;
+                    
+                    // Determine where to show results based on input ID
+                    let resContainer;
+                    let type;
+                    let idxAttribute = '';
+
+                    if(e.target.id.includes('add')) {
+                        resContainer = document.getElementById(`food-results-add-${mealName}`);
+                        type = 'add';
+                    } else {
+                        // Edit Mode
+                        const idx = e.target.dataset.index;
+                        resContainer = document.getElementById(`food-results-edit-${mealName}-${idx}`);
+                        type = 'edit';
+                        idxAttribute = `data-index="${idx}"`;
+                    }
+
                     if(results.length > 0) {
-                        resContainer.innerHTML = results.map(f => `<div class="p-2 hover:bg-gray-600 cursor-pointer search-result-item" data-food-id="${f.id}" data-meal="${e.target.dataset.meal}">${f.name}</div>`).join('');
+                        resContainer.innerHTML = results.map(f => `
+                            <div class="p-2 hover:bg-gray-600 cursor-pointer search-result-item" 
+                                 data-food-id="${f.id}" 
+                                 data-meal="${mealName}"
+                                 data-type="${type}"
+                                 ${idxAttribute}>
+                                 ${f.name}
+                            </div>`).join('');
                         resContainer.classList.remove('hidden');
                     } else {
                         resContainer.classList.add('hidden');
                     }
                 }
+                
                 if (e.target.classList.contains('item-amount-input')) {
                     const meal = currentPlan.days[currentDayIndex].meals.find(m => m.mealName === e.target.dataset.meal);
                     meal.items[e.target.dataset.index].amount = e.target.value;
@@ -580,18 +680,6 @@
             });
             return list;
         }
-
     </script>
-
-    <div id="plan-header" class="max-w-6xl mx-auto mb-6"></div>
-    <div id="plan-container">
-        <div class="max-w-4xl mx-auto bg-gray-800 rounded-xl shadow-2xl p-10 text-center border border-gray-700">
-            <svg class="animate-spin h-8 w-8 text-primary mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p class="text-gray-400">Loading plan...</p>
-        </div>
-    </div>
 </body>
 </html>
