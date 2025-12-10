@@ -6,7 +6,7 @@
     <title>Upload Nutrition Info - Xtreme</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script>        
+    <script>
         tailwind.config = {
             theme: {
                 extend: {
@@ -163,12 +163,6 @@
     </div>
 
 <script>
-    // Define the path to your dashboard HTML file
-    const DASHBOARD_URL = 'https://nutritionplangenerator.web.app/dashboard.html'; 
-
-    // n8n webhook URL
-    const N8N_WEBHOOK_URL = 'https://djshortt.app.n8n.cloud/webhook-test/food-form';
-
     const NUTRIENT_FIELDS = [
         { id: 'vitA', label: 'Vitamin A', unit: 'I.U.' },
         { id: 'thiamin', label: 'Thiamin (B1)', unit: 'mg' },
@@ -325,6 +319,7 @@
     function renderNutrientInputs() {
         const container = document.getElementById('nutrient-inputs');
         let html = '';
+        const unitLabel = currentNutrientMethod === 'value' ? 'Value (mg/mcg/IU)' : 'Percentage (%)';
         const inputType = currentNutrientMethod === 'value' ? 'value' : 'percent';
 
         NUTRIENT_FIELDS.forEach(field => {
@@ -347,8 +342,21 @@
     function collectFormData() {
         const data = {};
         const getVal = id => document.getElementById(id)?.value;
+<<<<<<< HEAD
       const foodName = getVal("food-name").trim();
       const servingSize = Number(getVal("serving-size")) || 0;
+=======
+        
+        // Helper function for safe element value retrieval
+        function setValue(id, value) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.value = value;
+                return true;
+            }
+            return false;
+        }
+>>>>>>> parent of c38886c (#38)
 
       if (!foodName || servingSize <= 0) {
         return null;
@@ -382,8 +390,7 @@
 
         return data;
     }
-
-    // Global helper so applyScanResult() + others can use it
+    
     function setValue(id, value) {
         const el = document.getElementById(id);
         if (el) {
@@ -405,11 +412,11 @@
             totalFat: 1,
             saturatedFat: 0.5,
             sodium: 100,
-            micros: { // Nested micros object to match the output structure
-                vitC: 10,
-                calcium: 15,
-            }
-        };
+    micros: { // Nested micros object to match the output structure
+        vitC: 10,
+        calcium: 15,
+    }
+};
         
         const scannerWindow = window.open('barcode_scanner.html', 'BarcodeScanner', 'width=550,height=550');
         
@@ -463,7 +470,7 @@
 
         document.getElementById('barcode-btn').addEventListener('click', handleBarcodeScan);
         
-        document.getElementById('upload-btn').addEventListener('click', async () => {
+        document.getElementById('upload-btn').addEventListener('click', () => {
             const formData = collectFormData();
             const errorEl = document.getElementById('error-message');
 
@@ -474,52 +481,26 @@
             }
             
             errorEl.classList.add('hidden');
-
-            try {
-                // Send to n8n webhook
-                const response = await fetch(N8N_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Webhook error: ${response.status} ${response.statusText}`);
-                }
-
-                console.log("Payload sent to n8n:", formData);
-
-                // --- Success View Rendering (from colleague's version) ---
-                const formContent = document.getElementById('form-content');
                 const tabNav = document.getElementById('tab-navigation-container');
-                
-                // Hide tabs and content container
-                if (tabNav) tabNav.classList.add('hidden');
-                formContent.innerHTML = `<div class="text-center py-10">
-                                            <i class="fa-solid fa-check-circle text-success text-6xl mb-4"></i>
-                                            <h2 class="text-white text-3xl font-bold mb-6">UPLOAD SUCCESSFUL</h2>
-                                            
-                                            <button onclick="location.reload()" class="w-64 py-3 bg-primary text-white font-bold rounded-lg hover:bg-red-700 transition duration-150 shadow-md">
-                                                Add Another Item
-                                            </button>
-                                            
-                                            <button onclick="window.location.href = DASHBOARD_URL;" class="w-64 py-3 mt-4 bg-gray-700 text-white font-bold rounded-lg hover:bg-gray-600 transition duration-150 border border-gray-600 shadow-md">
-                                                Back to Dashboard
-                                            </button>
-
-                                        </div>`;
-            } catch (err) {
-                console.error(err);
-                errorEl.textContent = "ERROR: Failed to send data to the ingestion workflow. Please try again.";
-                errorEl.classList.remove('hidden');
-            }
+            
+            console.log("Payload Ready:", formData);
+            alert("UPLOAD COMPLETE. Item queued for database ingestion.");
+            
+            const outputEl = document.getElementById('form-content');
+            outputEl.innerHTML = `<div class="text-center py-10">
+                                    <i class="fa-solid fa-check-circle text-success text-6xl mb-4"></i>
+                                    <h2 class="text-white text-3xl font-bold mb-2">UPLOAD SUCCESSFUL</h2>
+                                    <p class="text-gray-400 mb-6">"${formData.foodName}" has been added to the master list.</p>
+                                    <div class="bg-black p-4 rounded-lg text-left border border-gray-700 overflow-auto max-h-64">
+                                      <pre class="text-xs text-green-400 font-mono">${JSON.stringify(formData, null, 2)}</pre>
+                                    </div>
+                                    <button onclick="location.reload()" class="mt-6 bg-primary text-white py-2 px-6 rounded-lg font-bold hover:bg-red-700">Add Another Item</button>
+                                  </div>`;
         });
         
         // Cancel Button Logic
         document.getElementById('cancel-form-btn').addEventListener('click', () => {
-            window.location.href = DASHBOARD_URL; // Redirect to dashboard
+            window.close(); // Closes the current window/tab
         });
         // This will help you see EXACTLY what happened
         console.log("n8n status:", res.status, res.statusText);
