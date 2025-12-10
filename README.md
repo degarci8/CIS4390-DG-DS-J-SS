@@ -99,4 +99,16 @@ Deploy the `/editor` folder to Firebase Hosting using your Firebase CLI.
 
 Details on Firestore rules, access control, and PII/PHI handling are documented in: SECURITY.md
 
+---
+
+## Contribution Table
+
+| Team Member | Story Points | Contribution % |
+| :--- | :---: | :---: |
+| DJ Shortt | X | X |
+| Jacob Blanco | X | X |
+| Derek Garcia | X | X |
+| Sarah Steadham | X | X |
+| **Total** | **X** | **100%** |
+
 
