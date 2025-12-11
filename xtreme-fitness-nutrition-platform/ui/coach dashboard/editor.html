@@ -4,27 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Real-Time Nutrition Editor</title>
-    
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
     <script>
+        // Tailwind configuration must be defined after loading the script
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        'primary': '#DC2626', // Xtreme Red
-                        'secondary': '#DC2626',
-                        'success': '#10B981',
-                        'warning': '#F59E0B',
-                        'info': '#3B82F6',
-                        'protein': '#EF4444',
-                        'bg-body': '#1a1a1a', 
-                        'bg-surface': '#262626'
+                        'primary': '#DC2626', // Xtreme Red (Primary Brand Color)
+                        'secondary': '#DC2626', // Red for errors/alerts and CANCEL
+                        'success': '#10B981', // Green
+                        'warning': '#F59E0B', // Yellow for fat
+                        'info': '#3B82F6', // Blue for carbs
+                        'protein': '#EF4444', // Red for protein
+                        'bg-body': '#1a1a1a', // Deep Black
+                        'bg-surface': '#262626' // Surface Grey
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
@@ -35,291 +30,350 @@
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #1a1a1a; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #1a1a1a;
+        }
         
-        /* Scrollbars */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #1a1a1a; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #DC2626; }
+        /* Custom Styling for Webkit Browsers (Chrome/Safari) */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a; 
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151; 
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #DC2626; /* Red Hover */
+        }
 
-        /* Hide Number Spinners */
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        
-        /* Inputs */
-        .input-as-text { border: none; background: none; padding: 0; color: inherit; font-size: inherit; font-weight: inherit; outline: none; text-align: center; width: 100%; transition: border-bottom 0.1s; }
-        .input-as-text:focus { border-bottom: 2px solid #DC2626; background-color: #1a1a1a; }
-        
-        .input-std { background-color: #1a1a1a; border: 1px solid #4B5563; color: #E5E7EB; border-radius: 0.5rem; transition: border-color 0.2s; }
-        .input-std:focus { outline: none; border-color: #DC2626; }
-        .input-std:disabled { border: none; background-color: transparent; }
+        /* Number Input Spinner Arrows – global default */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: initial; /* keep default everywhere else */
+  opacity: 1; 
+  width: 20px; 
+  height: 100%;
+}
 
-        /* Macro Percent Inputs */
-        .macro-pct-inline-input { text-align: center !important; background: transparent; border: none; width: 3.5rem; }
+/* === SPECIAL CASE: TARGET MACROS – HIDE SPINNERS SO TEXT CAN TRULY CENTER === */
+.target-macro-input::-webkit-inner-spin-button,
+.target-macro-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;  /* remove arrows just for these inputs */
+  margin: 0;
+}
 
-        /* Modal */
-        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); z-index: 50; display: flex; justify-content: center; align-items: center; }
+/* Firefox: remove spinner for target macros too */
+.target-macro-input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Style input to look like text by default for Goals */
+.input-as-text {
+    border: none;
+    background: none;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    outline: none;
+    text-align: center;
+    width: 100%;
+    transition: border-bottom 0.1s;
+}
+.input-as-text:focus {
+     border-bottom: 2px solid #DC2626;
+     background-color: #1a1a1a;
+}
+
+/* OVERRIDE for macro % inputs – this MUST come after .input-as-text */
+.macro-pct-inline-input.input-as-text {
+    display: block;
+    margin: 0 auto;     /* centers the input box in the card */
+    width: 3.5rem;      /* fixed width instead of 100% */
+    text-align: center; /* center the digits inside the box */
+}
+
+/* Optional: hide spinners just for these % inputs so centering is clean */
+.macro-pct-inline-input::-webkit-inner-spin-button,
+.macro-pct-inline-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.macro-pct-inline-input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+
+/* Macro Inputs Centering Override – GRAMS */
+.target-macro-input {
+    display: block;
+    margin: 0 auto;              /* center the box inside the card */
+    width: 3.5rem;               /* fixed visual width */
+
+    text-align: center !important; /* center digits inside the box */
+
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-sizing: content-box;
+}
+
+/* Macro Inputs Centering Override – PERCENTAGES */
+.macro-pct-inline-input {
+    display: block;
+    margin: 0 auto;              /* center the percentage box */
+    width: 3.5rem;               /* same visual width as grams */
+
+    text-align: center !important; /* center digits inside the box */
+
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-sizing: content-box;
+}
+
+/* Hide spinner arrows ONLY for macro target inputs (so centering is clean) */
+.target-macro-input::-webkit-inner-spin-button,
+.target-macro-input::-webkit-outer-spin-button,
+.macro-pct-inline-input::-webkit-inner-spin-button,
+.macro-pct-inline-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox: remove spinner look for percentage inputs too */
+.macro-pct-inline-input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+
+
+
+/* Macro card itself gets more space */
+.macro-box {
+    min-width: 5rem;
+}
+
+
+
+        /* Standard Input Styling */
+        .input-std {
+            background-color: #1a1a1a;
+            border: 1px solid #4B5563;
+            color: #E5E7EB;
+            border-radius: 0.5rem;
+            transition: border-color 0.2s;
+        }
+        .input-std:focus {
+            outline: none;
+            border-color: #DC2626;
+        }
+
+        /* When not editing a meal: hide input borders/background so they look like plain text */
+.input-std:disabled {
+    border: none;
+    background-color: transparent;
+    box-shadow: none;
+}
+
+/* Optional: make disabled select look seamless too */
+.item-unit-select:disabled {
+    border: none;
+    background-color: transparent;
+    padding-right: 0;
+}
+
+/* Hide the dropdown arrow when the select is disabled */
+.item-unit-select:disabled {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    background-image: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    color: #E5E7EB; /* keep the text visible */
+    padding-right: 0 !important;
+    cursor: default;
+}
+
+
+        /* Modal Backdrop */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         .progress-bar-container { height: 8px; background-color: #374151; border-radius: 9999px; overflow: hidden; margin-bottom: 12px; }
         .progress-bar { height: 100%; transition: width 0.3s ease; }
     </style>
 </head>
 <body class="bg-bg-body min-h-screen p-4 sm:p-8 text-white">
 
-    <nav class="max-w-7xl mx-auto mb-6 flex items-center justify-between">
-        <a href="dashboard.html" class="flex items-center text-gray-400 hover:text-primary transition font-semibold">
-            <i class="fa-solid fa-arrow-left mr-2"></i> Back to Dashboard
-        </a>
-    </nav>
-
+    <!-- Shopping List Modal (Hidden by Default) -->
     <div id="shopping-list-modal" class="modal-backdrop hidden">
         <div class="bg-bg-surface p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border-2 border-gray-700">
             <div class="flex justify-between items-center border-b border-gray-600 pb-4 mb-6">
                 <h2 id="shopping-list-title" class="text-3xl font-black text-success tracking-wide">SHOPPING LIST</h2>
-                <button id="close-shopping-list" class="text-gray-400 hover:text-white transition"><i class="fa-solid fa-xmark fa-2x"></i></button>
+                <button id="close-shopping-list" class="text-gray-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark fa-2x"></i>
+                </button>
             </div>
-            <div id="shopping-list-content"></div>
+            <div id="shopping-list-content">
+                <!-- Content will be injected here -->
+            </div>
         </div>
     </div>
     
+    <!-- Email Confirmation/Payload Modal (Hidden by Default) -->
     <div id="email-confirmation-modal" class="modal-backdrop hidden">
         <div class="bg-bg-surface p-8 rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border-2 border-gray-700">
             <div class="flex justify-between items-center border-b border-gray-600 pb-4 mb-6">
                 <h2 class="text-3xl font-black text-primary tracking-wide">FINAL PLAN REVIEW</h2>
-                <button id="close-email-modal" class="text-gray-400 hover:text-white transition"><i class="fa-solid fa-xmark fa-2x"></i></button>
+                <button id="close-email-modal" class="text-gray-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark fa-2x"></i>
+                </button>
             </div>
             <div id="email-payload-content">
-                <p class="text-gray-300 mb-4">Review the plan summary before delivery.</p>
+                <p class="text-gray-300 mb-4">The system has finalized the plan. Review the summary below before sending the delivery email.</p>
                 <div class="p-4 bg-bg-body rounded-lg text-sm mb-6 border border-gray-700">
                     <p class="text-gray-400">Recipient: <strong class="text-white" id="recipient-email"></strong></p>
                     <p class="text-gray-400">Plan: <strong class="text-white" id="plan-days-summary"></strong></p>
                 </div>
+
                 <h3 class="text-xl font-bold text-gray-200 mb-3 uppercase">Email Preview</h3>
                 <div class="bg-bg-body p-4 rounded-lg text-sm font-mono text-gray-200 max-h-60 overflow-y-auto border border-gray-700">
+                    <!-- Updated to render structured HTML content -->
                     <div id="payload-display"></div>
                 </div>
+                
                 <a id="mail-to-link" href="#" class="block w-full text-center py-3 mt-8 bg-success text-white font-black rounded-lg shadow-lg hover:bg-green-600 transition duration-150">
-                    <i class="fa-solid fa-paper-plane mr-2"></i> Confirm & Open Email
+                    <i class="fa-solid fa-paper-plane mr-2"></i> Confirm & Open Email (Delivery)
                 </a>
             </div>
         </div>
     </div>
 
-    <script>
-        // --- 1. FIREBASE CONFIG ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyA_D8lToqMx6-9wVei86AVrhtFsoPNRzUA",
-            authDomain: "nutritionplangenerator.firebaseapp.com",
-            projectId: "nutritionplangenerator",
-            storageBucket: "nutritionplangenerator.firebasestorage.app",
-            messagingSenderId: "1063853006421",
-            appId: "1:1063853006421:web:cb006ba01f538a9ea57edc" 
+
+    <!-- Firebase SDK Imports (MUST be in the head for module support) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // Macro calorie values
+        const CAL_PER_PRO = 4;
+        const CAL_PER_CARB = 4;
+        const CAL_PER_FAT = 9;
+
+        // Global variables provided by the environment (using mock values for development testing)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'nutrition-xtreme-poc';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { projectId: 'mock-project-id' };
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let db;
+        let auth;
+        let userId = 'mock-coach-user-id'; // Mock user ID for your dad
+        const PLAN_ID = 'client-alice-smith-plan'; // Mock client ID
+        let isGoalEditing = false; // State to track if the goal area is editable
+        
+        // NEW: State to track the currently viewed day (0-indexed)
+        let currentDayIndex = 0; 
+        
+        // NEW: Object to track which specific meal is being edited (e.g., { 'Breakfast': true })
+        let mealEditingState = {}; 
+        let mealAddBarVisible = {}; // State to track which meal's add bar is open
+        
+        // NEW: Object to temporarily hold the search query for the current item being edited
+        let activeSearches = {}; 
+        const MAX_SEARCH_RESULTS = 8; // Limit results for clean UI
+
+        // --- Core Data Structures (Mock Data - Simulating FoodItems Collection) ---
+        // This is PER 100 GRAMS for consistent calculation
+        const FOOD_DB = {
+            'chicken': { name: 'Chicken Breast (Cooked)', cal: 165, pro: 31, carb: 0, fat: 3.6, group: 'Protein' }, 
+            'turkey': { name: 'Turkey Breast (Cooked)', cal: 135, pro: 30, carb: 0, fat: 1.5, group: 'Protein' }, 
+            'beef': { name: 'Ground Beef (85/15)', cal: 250, pro: 26, carb: 0, fat: 15, group: 'Protein' }, 
+            'broccoli': { name: 'Broccoli, Steamed', cal: 34, pro: 2.8, carb: 6.6, fat: 0.4, group: 'Vegetable' }, 
+            'rice': { name: 'Brown Rice, Cooked', cal: 123, pro: 2.7, carb: 25.6, fat: 0.9, group: 'Carb' }, 
+            'oats': { name: 'Rolled Oats (Dry)', cal: 389, pro: 16.9, carb: 66.3, fat: 6.9, group: 'Carb' },
+            'whey': { name: 'Whey Protein Powder', cal: 374, pro: 80, carb: 6, fat: 4, group: 'Protein' }, 
+            'almonds': { name: 'Almonds', cal: 579, pro: 21, carb: 22, fat: 50, group: 'Fat' },
+            'apple': { name: 'Apple', cal: 52, pro: 0.3, carb: 13.8, fat: 0.2, group: 'Carb' }, 
+            'avocado': { name: 'Avocado', cal: 160, pro: 2, carb: 9, fat: 15, group: 'Fat' },
         };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
-
-        // --- 2. GLOBAL STATE ---
-        let currentPlan = null;
-        let clientId = null;
-        let currentDayIndex = 0;
-        let isGoalEditing = false;
-        let mealEditingState = {};
-        let mealAddBarVisible = {};
-        let activeSearches = {};
-        const MAX_SEARCH_RESULTS = 8;
-        let FOOD_DB = {}; 
-        const UNIT_MULTIPLIERS = { g: 1, oz: 28.35, lb: 453.59 };
-
-        // --- 3. INITIALIZATION & AUTH ---
-        window.onload = function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            clientId = urlParams.get('id');
-
-            if (!clientId) {
-                alert("No Client ID found. Redirecting to dashboard.");
-                window.location.href = "dashboard.html";
-                return;
-            }
-
-            auth.onAuthStateChanged((user) => {
-                if (user) {
-                    loadDataFromFirebase();
-                } else {
-                    window.location.href = "login.html";
-                }
-            });
-
-            document.getElementById('close-shopping-list').onclick = () => document.getElementById('shopping-list-modal').classList.add('hidden');
-            document.getElementById('close-email-modal').onclick = () => document.getElementById('email-confirmation-modal').classList.add('hidden');
+        const FOOD_GROUPS = {
+            'Protein': ['chicken', 'turkey', 'whey', 'beef'],
+            'Carb': ['rice', 'oats', 'apple'],
+            'Fat': ['almonds', 'avocado'],
+            'Vegetable': ['broccoli'],
         };
-
-        // --- 4. DATA LOADING (ROBUST) ---
-        async function loadDataFromFirebase() {
-            try {
-                const clientDoc = await db.collection("clients").doc(clientId).get();
-                if (!clientDoc.exists) throw new Error("Client not found");
-                const clientData = clientDoc.data();
-                const clientEmail = clientData.email;
-
-                let n8nPlanData = null;
-                let calculatedMacros = null;
-
-                if (clientEmail) {
-                    const planQuery = await db.collection("clientPlans").where("clientKey", "==", clientEmail).limit(1).get();
-
-                    if (!planQuery.empty) {
-                        const n8nDoc = planQuery.docs[0].data();
-                        
-                        // Parse Food DB (Double-Parse Safety)
-                        if (n8nDoc.recommendedFoodsJson) {
-                            let raw = n8nDoc.recommendedFoodsJson;
-                            if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch(e){} }
-                            if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch(e){} }
-                            populateFoodDB(raw);
-                        }
-
-                        // Parse Initial Plan (Double-Parse Safety)
-                        if (n8nDoc.initialPlanJson) {
-                            let rawPlan = n8nDoc.initialPlanJson;
-                            if (typeof rawPlan === 'string') { try { rawPlan = JSON.parse(rawPlan); } catch(e){} }
-                            if (typeof rawPlan === 'string') { try { rawPlan = JSON.parse(rawPlan); } catch(e){} }
-                            n8nPlanData = rawPlan;
-                        }
-                        
-                        // Parse Calculated Macros
-                        if (n8nDoc.clientPreviewJson) {
-                            let rawPreview = n8nDoc.clientPreviewJson;
-                            if (typeof rawPreview === 'string') { try { rawPreview = JSON.parse(rawPreview); } catch(e){} }
-                            if (typeof rawPreview === 'string') { try { rawPreview = JSON.parse(rawPreview); } catch(e){} }
-                            if (rawPreview && rawPreview.MacroTargets) {
-                                calculatedMacros = rawPreview.MacroTargets;
-                            }
-                        }
-                    }
+        
+        // This simulates the initial Plan document in Firestore with 3 unique days
+        const mockPlan = {
+            planId: PLAN_ID,
+            clientName: 'Alice Smith (Test Client)',
+            clientEmail: 'alice.smith@example.com', // NEW: Client email for delivery
+            goalCalories: 2400,
+            macroTargets: { protein: 180, carbs: 250, fat: 75, proPct: 30, carbPct: 42, fatPct: 28, totalPctSum: 100 }, 
+            days: [
+                // DAY 1
+                {
+                    dayName: 'Plan 1 (Monday)',
+                    meals: [
+                        { mealName: 'Breakfast', items: [{ foodItemId: 'oats', amount: 80, unit: 'g' }, { foodItemId: 'whey', amount: 30, unit: 'g' }]},
+                        { mealName: 'Snack', items: [{ foodItemId: 'apple', amount: 150, unit: 'g' }]},
+                        { mealName: 'Lunch', items: [{ foodItemId: 'chicken', amount: 180, unit: 'g' }, { foodItemId: 'rice', amount: 150, unit: 'g' }]},
+                        { mealName: 'Snack', items: [{ foodItemId: 'almonds', amount: 25, unit: 'g' }]},
+                        { mealName: 'Dinner', items: [{ foodItemId: 'turkey', amount: 150, unit: 'g' }, { foodItemId: 'broccoli', amount: 150, unit: 'g' }]}
+                    ]
+                },
+                // DAY 2
+                {
+                    dayName: 'Plan 2 (Tuesday)',
+                    meals: [
+                        { mealName: 'Breakfast', items: [{ foodItemId: 'rice', amount: 100, unit: 'g' }, { foodItemId: 'beef', amount: 80, unit: 'g' }]},
+                        { mealName: 'Snack', items: [{ foodItemId: 'avocado', amount: 50, unit: 'g' }]},
+                        { mealName: 'Lunch', items: [{ foodItemId: 'turkey', amount: 200, unit: 'g' }, { foodItemId: 'rice', amount: 100, unit: 'g' }]},
+                        { mealName: 'Snack', items: [{ foodItemId: 'whey', amount: 20, unit: 'g' }]},
+                        { mealName: 'Dinner', items: [{ foodItemId: 'chicken', amount: 150, unit: 'g' }, { foodItemId: 'broccoli', amount: 200, unit: 'g' }]}
+                    ]
+                },
+                // DAY 3
+                {
+                    dayName: 'Plan 3 (Wednesday)',
+                    meals: [
+                        { mealName: 'Breakfast', items: [{ foodItemId: 'oats', amount: 100, unit: 'g' }]},
+                        { mealName: 'Snack', items: [{ foodItemId: 'almonds', amount: 30, unit: 'g' }]},
+                        { mealName: 'Lunch', items: [{ foodItemId: 'beef', amount: 100, unit: 'g' }, { foodItemId: 'broccoli', amount: 100, unit: 'g' }]},
+                        { mealName: 'Snack', items: [{ foodItemId: 'apple', amount: 100, unit: 'g' }]},
+                        { mealName: 'Dinner', items: [{ foodItemId: 'turkey', amount: 200, unit: 'g' }, { foodItemId: 'rice', amount: 50, unit: 'g' }]}
+                    ]
                 }
-
-                // Determine Plan Priority
-                const isValid = (p) => p && typeof p === 'object' && Array.isArray(p.days);
-
-                if (clientData.nutritionPlan && isValid(clientData.nutritionPlan)) {
-                    currentPlan = clientData.nutritionPlan;
-                } else if (n8nPlanData && isValid(n8nPlanData)) {
-                    currentPlan = n8nPlanData;
-                    // Sanitize Units: Convert Serving to Grams if needed
-                    currentPlan.days.forEach(day => {
-                        day.meals.forEach(meal => {
-                            meal.items.forEach(item => {
-                                if (!item.unit || item.unit === 'serving' || item.unit === 'serv') {
-                                    item.unit = 'g';
-                                    if (item.amount < 10) item.amount = (item.amount || 1) * 100;
-                                }
-                            });
-                        });
-                    });
-                } else {
-                    currentPlan = generateFallbackPlan(clientData);
-                }
-                
-                // Force Update Macros from N8N calculation
-                if (calculatedMacros) {
-                    currentPlan.goalCalories = calculatedMacros.DailyCalories || currentPlan.goalCalories;
-                    currentPlan.macroTargets.protein = calculatedMacros.DailyProtein_g || currentPlan.macroTargets.protein;
-                    currentPlan.macroTargets.carbs = calculatedMacros.DailyCarbs_g || currentPlan.macroTargets.carbs;
-                    currentPlan.macroTargets.fat = calculatedMacros.DailyFat_g || currentPlan.macroTargets.fat;
-                    
-                    // Recalculate % for UI display
-                    const cal = currentPlan.goalCalories;
-                    if(cal > 0) {
-                        currentPlan.macroTargets.proPct = Math.round(((currentPlan.macroTargets.protein * 4) / cal) * 100);
-                        currentPlan.macroTargets.carbPct = Math.round(((currentPlan.macroTargets.carbs * 4) / cal) * 100);
-                        currentPlan.macroTargets.fatPct = Math.round(((currentPlan.macroTargets.fat * 9) / cal) * 100);
-                    }
-                }
-
-                currentPlan.clientName = `${clientData.firstName || ''} ${clientData.lastName || ''}`;
-                currentPlan.clientEmail = clientData.email || '';
-
-                renderPlan(currentPlan);
-                attachDelegatedSearchHandler();
-
-            } catch (error) {
-                console.error("Error loading:", error);
-                document.getElementById('plan-container').innerHTML = `<p class='text-center text-red-500 mt-10'>Error loading data.</p>`;
-            }
+            ]
+        };
+        
+        function getMealKey(mealName, itemIndex) {
+            return `${mealName}-${itemIndex}`;
         }
-
-        // --- HELPER: Populate Food DB with Safe IDs ---
-        function populateFoodDB(apiFoods) {
-            FOOD_DB = {}; 
-            if (!Array.isArray(apiFoods)) return;
-            apiFoods.forEach(item => {
-                let group = item.Category || 'Other';
-                if (!item.Category || item.Category === 'meal' || item.Category === 'other') {
-                    const p = parseFloat(item.Protein_g) || 0;
-                    const c = parseFloat(item.Carbs_g) || 0;
-                    const f = parseFloat(item.Fat_g) || 0;
-                    if (p > c && p > f) group = 'Protein';
-                    else if (c > p && c > f) group = 'Carb';
-                    else if (f > p && f > c) group = 'Fat';
-                }
-                const safeId = item.foodId || `gen_${Math.random().toString(36).substr(2, 9)}`;
-                FOOD_DB[safeId] = {
-                    name: item.Food,
-                    cal: item.Calories,
-                    pro: item.Protein_g,
-                    carb: item.Carbs_g,
-                    fat: item.Fat_g,
-                    group: group,
-                    brand: item.Brand 
-                };
-            });
-        }
-
-        function generateFallbackPlan(clientData) {
-            let pref = String(clientData.nutrition_plan_preference || clientData.PlanPreference || '3').toLowerCase();
-            let dayLabels = ['Training Day', 'Rest Day', 'Active Recovery'];
-            if (pref.includes('1') || pref.includes('one')) dayLabels = ['Daily Plan'];
-            else if (pref.includes('7') || pref.includes('seven')) dayLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
-            const planDays = dayLabels.map(label => ({
-                dayName: label,
-                meals: [
-                    { mealName: 'Breakfast', items: [] },
-                    { mealName: 'Lunch', items: [] },
-                    { mealName: 'Dinner', items: [] },
-                    { mealName: 'Snack', items: [] }
-                ]
-            }));
-
-            return {
-                goalCalories: 2000,
-                macroTargets: { protein: 150, carbs: 200, fat: 65, proPct: 30, carbPct: 40, fatPct: 30, totalPctSum: 100 },
-                days: planDays
-            };
-        }
-
-        function updatePlanInFirestore(newPlan) {
-            const statusEl = document.getElementById('save-status');
-            statusEl.textContent = 'SAVING...';
-            db.collection("clients").doc(clientId).update({
-                nutritionPlan: newPlan,
-                intakeStatus: "Completed", 
-                planLastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => {
-                statusEl.textContent = 'ALL CHANGES SAVED';
-                statusEl.className = "mt-3 text-center text-xs font-bold text-success uppercase tracking-widest";
-                setTimeout(() => { statusEl.textContent = ''; }, 3000);
-            }).catch((error) => {
-                statusEl.textContent = 'ERROR SAVING';
-                statusEl.className = "mt-3 text-center text-xs font-bold text-secondary uppercase tracking-widest";
-            });
-        }
-
+        
         function filterFoodItems(query) {
             const lowerQuery = query.toLowerCase().trim();
             if (lowerQuery.length < 2) return [];
+
             const results = [];
             for (const id in FOOD_DB) {
                 if (FOOD_DB[id].name.toLowerCase().includes(lowerQuery)) {
@@ -330,283 +384,1182 @@
             return results;
         }
 
-        function calculateDayTotals(plan, dayIndexOverride = null) {
-            const dayIndex = (dayIndexOverride !== null ? dayIndexOverride : currentDayIndex);
-            const day = plan.days[dayIndex];
-            if (!day) return { calories: 0, protein: '0.0', carbs: '0.0', fat: '0.0' };
+const UNIT_MULTIPLIERS = {
+    g: 1,
+    oz: 28.35,
+    lb: 453.59,
+};
 
-            let totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
+function generateShoppingList(plan) {
+    const list = {}; // { foodId: totalAmountInGrams }
 
-            day.meals.forEach(meal => {
-                meal.mealCal = 0; meal.mealP = 0; meal.mealC = 0; meal.mealF = 0;
-                meal.items.forEach(item => {
-                    const food = FOOD_DB[item.foodItemId];
-                    if (food) {
-                        const amount = Number(item.amount) || 0;
-                        const unitKey = (item.unit || 'g').toLowerCase();
-                        const grams = amount * (UNIT_MULTIPLIERS[unitKey] || 1);
-                        const factor = grams / 100;
+    // 1) Walk the whole week: days → meals → items
+    plan.days.forEach(day => {
+        day.meals.forEach(meal => {
+            meal.items.forEach(item => {
+                const foodId = item.foodItemId;
+                const food = FOOD_DB[foodId];
+                if (!food) return; // skip unknown food
 
-                        item.calculatedCal = Math.round(food.cal * factor);
-                        item.calculatedP   = Number(food.pro  * factor) || 0;
-                        item.calculatedC   = Number(food.carb * factor) || 0;
-                        item.calculatedF   = Number(food.fat  * factor) || 0;
+                const rawAmount = Number(item.amount) || 0;
+                const unitKey = (item.unit || 'g').toLowerCase();
 
-                        meal.mealCal += item.calculatedCal;
-                        meal.mealP   += item.calculatedP;
-                        meal.mealC   += item.calculatedC;
-                        meal.mealF   += item.calculatedF;
-                    }
-                });
-                totalCal += meal.mealCal; totalP += meal.mealP; totalC += meal.mealC; totalF += meal.mealF;
+                // convert to grams
+                const multiplier = UNIT_MULTIPLIERS[unitKey] || 1;
+                const grams = unitKey === 'g' ? rawAmount : rawAmount * multiplier;
+
+                if (!list[foodId]) {
+                    list[foodId] = 0;
+                }
+                list[foodId] += grams;
             });
+        });
+    });
 
-            return {
-                calories: totalCal,
-                protein: (Number(totalP) || 0).toFixed(1),
-                carbs:   (Number(totalC) || 0).toFixed(1),
-                fat:     (Number(totalF) || 0).toFixed(1),
-            };
+    // 2) Format into categories and convert grams → pounds for readability
+    const categorizedList = {};
+    for (const foodId in list) {
+        const food = FOOD_DB[foodId];
+        if (!food) continue;
+
+        const category = food.group || 'Other';
+        const totalGrams = list[foodId];
+        const totalPounds = (totalGrams / UNIT_MULTIPLIERS.lb).toFixed(1);
+
+        if (!categorizedList[category]) {
+            categorizedList[category] = [];
+        }
+
+        categorizedList[category].push({
+            name: food.name,
+            amount: totalPounds,
+            unit: 'lb',
+            totalGrams: Math.round(totalGrams),
+        });
+    }
+
+    return categorizedList;
+}
+
+
+        function displayShoppingListModal(plan) {
+            const categorizedList = generateShoppingList(plan);
+            const contentArea = document.getElementById('shopping-list-content');
+
+            // Title reflects actual number of days
+const titleEl = document.getElementById('shopping-list-title');
+if (titleEl) {
+    titleEl.textContent = `${plan.days.length}-DAY INGREDIENT TOTALS`;
+}
+            
+            let html = '';
+            
+            const sortedCategories = Object.keys(categorizedList).sort();
+
+            if (sortedCategories.length === 0) {
+                 html = '<p class="text-center text-gray-400">No ingredients added to the current plan.</p>';
+            } else {
+                sortedCategories.forEach(category => {
+                    html += `<div class="mb-6">
+                                <h3 class="text-xl font-bold text-primary mb-3 uppercase tracking-wide">${category}</h3>
+                                <ul class="space-y-2 list-disc list-inside bg-bg-body p-4 rounded-lg border border-gray-700">`;
+                    
+                    categorizedList[category].forEach(item => {
+                        html += `<li class="text-gray-300">
+                                    <span class="font-bold text-white">${item.amount} ${item.unit}</span> of ${item.name}
+                                    <span class="text-xs text-gray-500 ml-2">(${item.totalGrams}g total)</span>
+                                </li>`;
+                    });
+                    
+                    html += `</ul></div>`;
+                });
+            }
+            
+           contentArea.innerHTML = html;
+            document.getElementById('shopping-list-modal').classList.remove('hidden');
+
         }
         
-        function calculateTargetsFromPercentage(currentPlan, targetId, targetValue, newGoalCalories) {
+        // --- FINAL DELIVERY FUNCTION ---
+        function sendPlansToBackend(plan) {
+            const shoppingList = generateShoppingList(plan);
+            
+            // --- 1. CONSTRUCT HUMAN-READABLE EMAIL BODY (Simulating PDF Content) ---
+            
+            // Set base styling for white text and dark background contrast
+            let planSummaryHTML = `<div style="font-family: Inter, sans-serif; background-color: #1a1a1a; color: #FFFFFF; padding: 20px; border-radius: 8px;">`;
+            planSummaryHTML += `<h2 style="color: #DC2626; font-size: 24px; border-bottom: 2px solid #DC2626; padding-bottom: 5px;">DUANE SHORTT'S EXTREME FITNESS: FINAL PLAN</h2>`;
+            planSummaryHTML += `<p style="margin-top: 15px;"><strong>Client:</strong> ${plan.clientName}</p>`;
+            planSummaryHTML += `<p><strong>Goal Calories:</strong> ${plan.goalCalories} Cal</p>`;
+            planSummaryHTML += `<p><strong>Target Macros (P/C/F):</strong> ${plan.macroTargets.protein}g / ${plan.macroTargets.carbs}g / ${plan.macroTargets.fat}g</p>`;
+            planSummaryHTML += `<hr style="margin: 15px 0; border-top: 1px solid #4B5563;">`;
+
+            // Meal Plans Loop
+            plan.days.forEach(day => {
+                const dayTotals = calculateDayTotals({ days: [day], macroTargets: plan.macroTargets });
+                planSummaryHTML += `<h3 style="color: #DC2626; font-size: 20px; margin-top: 20px; font-weight: 700;">${day.dayName} (Total: ${dayTotals.calories} Cal)</h3>`;
+                
+                day.meals.forEach(meal => {
+                    planSummaryHTML += `<p style="margin-top: 10px; font-weight: 700; color: #FFFFFF;">— ${meal.mealName} —</p>`; 
+                    planSummaryHTML += `<ul style="list-style: none; padding: 0; margin-top: 5px; color: #FFFFFF;">`; 
+                    meal.items.forEach(item => {
+                        planSummaryHTML += `<li style="margin-left: 20px;">${item.amount}${item.unit} of ${FOOD_DB[item.foodItemId]?.name || 'Unknown'}</li>`;
+                    });
+                    planSummaryHTML += `</ul>`;
+                });
+            });
+
+            planSummaryHTML += `<h2 style="color: #10B981; font-size: 24px; border-bottom: 2px solid #10B981; padding-bottom: 5px; margin-top: 30px;">🛒 SHOPPING LIST</h2>`;
+
+            const categorizedList = generateShoppingList(plan);
+            const sortedCategories = Object.keys(categorizedList).sort();
+            
+            sortedCategories.forEach(category => {
+                planSummaryHTML += `<h4 style="font-size: 18px; margin-top: 15px; color: #FFFFFF; font-weight: 700;">${category.toUpperCase()}</h4>`;
+                planSummaryHTML += `<ul style="list-style: disc; padding-left: 20px; color: #E5E7EB;">`;
+                categorizedList[category].forEach(item => {
+                    planSummaryHTML += `<li><span style="font-weight: 700;">${item.amount} ${item.unit}</span> of ${item.name}</li>`;
+                });
+                planSummaryHTML += `</ul>`;
+            });
+            
+            planSummaryHTML += `<p style="margin-top: 30px; font-size: 14px; color: #9CA3AF;">Note: Your final PDF will be attached by the system. This is a summary preview.</p></div>`;
+
+
+            // --- 2. DISPLAY REVIEW MODAL ---
+            
+            document.getElementById('recipient-email').textContent = plan.clientEmail;
+            document.getElementById('plan-days-summary').textContent = `${plan.days.length} Day Plan + Shopping List`;
+            document.getElementById('payload-display').innerHTML = planSummaryHTML;
+
+            // --- 3. CONSTRUCT MAILTO LINK (Simulating N8N Email Trigger) ---
+            
+            const subject = encodeURIComponent(`Xtreme Fitness: Your Custom Nutrition Plan - ${plan.clientName}`);
+            const mailtoBody = encodeURIComponent(`Hi ${plan.clientName},\n\nYour personalized nutrition and workout plan is attached as a PDF file.\n\nPlease log into your secure client portal for any scheduled check-ins and to view your finalized plan.\n\nThank you,\nXtreme Fitness Coach`);
+            
+            const mailtoLink = `mailto:${plan.clientEmail}?subject=${subject}&body=${mailtoBody}`;
+
+            document.getElementById('mail-to-link').href = mailtoLink;
+            document.getElementById('email-confirmation-modal').classList.remove('hidden');
+        }
+
+
+        // --- Firebase Initialization and Auth ---
+        window.onload = async function() {
+            // Attach event listener for closing the modal
+            document.getElementById('close-shopping-list').onclick = () => {
+                document.getElementById('shopping-list-modal').classList.add('hidden');
+            };
+            document.getElementById('close-email-modal').onclick = () => {
+                document.getElementById('email-confirmation-modal').classList.add('hidden');
+            };
+
+            try {
+                // Ensure Firebase config is available before initialization
+                if (!firebaseConfig.projectId || firebaseConfig.projectId === 'mock-project-id') {
+                     throw new Error("Firebase configuration is missing. Using mock data.");
+                }
+
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                if (typeof __initial_auth_token !== 'undefined') {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                
+                userId = auth.currentUser?.uid || 'anonymous-user';
+                
+                startPlanListener();
+
+            } catch (error) {
+                console.error("Initialization failed. Displaying mock data.", error);
+                document.getElementById('plan-header').innerHTML = `
+                    <div class="p-2 bg-secondary rounded-lg text-sm text-center">
+                        ⚠️ Database Connection Failed. Displaying Mock Plan.
+                    </div>`;
+                
+                renderPlan(mockPlan);
+                
+                // Attach local listeners to the mock plan
+                const localPlan = JSON.parse(JSON.stringify(mockPlan));
+                attachLocalEventListeners(localPlan);
+                attachGoalsListeners(localPlan, 'local'); 
+                
+                document.getElementById('save-plan-btn').textContent = 'Save Meal Items';
+                
+                // CRITICAL FIX: Attach delegated handler for search and results click
+                attachDelegatedSearchHandler(localPlan, 'local');
+            }
+        };
+
+        // --- Real-Time Listener Function ---
+        function startPlanListener() {
+            const planDocRef = doc(db, `artifacts/${appId}/users/${userId}/plans`, PLAN_ID);
+            
+            setDoc(planDocRef, mockPlan, { merge: true }).catch(console.error);
+
+            onSnapshot(planDocRef, (doc) => {
+                if (doc.exists()) {
+                    const currentPlan = doc.data();
+                    renderPlan(currentPlan);
+                    attachFirestoreEventListeners(planDocRef, currentPlan);
+                    attachGoalsListeners(currentPlan, 'firestore', planDocRef); 
+                    
+                    // CRITICAL FIX: Attach delegated handler for search and results click
+                    attachDelegatedSearchHandler(currentPlan, 'firestore', planDocRef);
+                } else {
+                    document.getElementById('plan-container').innerHTML = `<p class="text-center text-gray-500 mt-10">No plan found for this client. Please check the plan ID.</p>`;
+                }
+            }, (error) => {
+                console.error("Error listening to plan:", error);
+                document.getElementById('plan-header').innerHTML = `<p class="text-red-500 text-center">Error fetching live data. Check console.</p>`;
+            });
+        }
+
+        // --- TARGET CALCULATION LOGIC (NON-NORMALIZING) ---
+        function calculateTargetsFromPercentage(currentPlan, targetId, targetValue, newGoalCalories = currentPlan.goalCalories) {
             const newPlan = JSON.parse(JSON.stringify(currentPlan));
             const targets = newPlan.macroTargets;
+            
+            // Set new goal calories
             newPlan.goalCalories = newGoalCalories;
+
+            // Update the single percentage that was changed
             if (targetId) targets[targetId] = targetValue;
             
-            const pPct = targets.proPct; const cPct = targets.carbPct; const fPct = targets.fatPct;
+            // --- CRITICAL: MACROS ARE CALCULATED BASED ON RAW PERCENTAGES ---
+            const pPct = targets.proPct;
+            const cPct = targets.carbPct;
+            const fPct = targets.fatPct;
+
+            // Calculate total calories for each macro using the RAW percentage
             const calPro = newPlan.goalCalories * (pPct / 100);
             const calCarb = newPlan.goalCalories * (cPct / 100);
             const calFat = newPlan.goalCalories * (fPct / 100);
 
-            targets.protein = Math.round(calPro / 4);
-            targets.carbs = Math.round(calCarb / 4);
-            targets.fat = Math.round(calFat / 9);
-            targets.totalPctSum = Math.round(targets.proPct + targets.carbPct + targets.fatPct);
+            // Convert calories to grams
+            targets.protein = Math.round(calPro / CAL_PER_PRO);
+            targets.carbs = Math.round(calCarb / CAL_PER_CARB);
+            targets.fat = Math.round(calFat / CAL_PER_FAT);
+
+            targets.totalPctSum = Math.round(targets.proPct + targets.carbPct + targets.fatPct); // Store raw sum for glow logic
+
             return newPlan;
         }
 
-        // --- READABLE EMAIL GENERATOR ---
-        function generateReadableEmail(plan) {
-            let text = `<h3 style="color:#DC2626;">XTREME FITNESS PLAN: ${plan.clientName}</h3>`;
-            text += `<p><strong>Goal:</strong> ${plan.goalCalories} Cal | <strong>P:</strong> ${plan.macroTargets.protein}g | <strong>C:</strong> ${plan.macroTargets.carbs}g | <strong>F:</strong> ${plan.macroTargets.fat}g</p><hr>`;
-            plan.days.forEach(day => {
-                const dayTotals = calculateDayTotals({ days: [day], macroTargets: plan.macroTargets }, plan.days.indexOf(day));
-                text += `<h4 style="margin-top:15px;">${day.dayName.toUpperCase()} (${dayTotals.calories} Cal)</h4>`;
-                day.meals.forEach(meal => {
-                    if (meal.items.length > 0) {
-                        text += `<p style="margin-bottom:2px;"><strong>${meal.mealName}:</strong></p><ul style="margin-top:0;">`;
-                        meal.items.forEach(item => {
-                            const foodName = FOOD_DB[item.foodItemId]?.name || "Unknown";
-                            text += `<li>${item.amount} ${item.unit || 'g'} ${foodName}</li>`;
-                        });
-                        text += `</ul>`;
-                    }
-                });
-            });
-            return text;
-        }
+       // --- MEAL CALCULATION LOGIC ---
+// dayIndexOverride is optional: if provided, we use that day; otherwise we use currentDayIndex
+function calculateDayTotals(plan, dayIndexOverride = null) {
+    const dayIndex = (dayIndexOverride !== null ? dayIndexOverride : currentDayIndex);
+    const day = plan.days[dayIndex];
 
+    if (!day) {
+        return {
+            calories: 0,
+            protein: '0.0',
+            carbs: '0.0',
+            fat: '0.0',
+        };
+    }
+
+    let totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
+
+    day.meals.forEach(meal => {
+        meal.mealCal = 0;
+        meal.mealP = 0;
+        meal.mealC = 0;
+        meal.mealF = 0;
+
+        meal.items.forEach(item => {
+            const food = FOOD_DB[item.foodItemId];
+            if (food) {
+                const amount = Number(item.amount) || 0;
+                const unitKey = (item.unit || 'g').toLowerCase();
+
+                // convert whatever unit → grams
+                const grams = amount * (UNIT_MULTIPLIERS[unitKey] || 1);
+
+                // food macros are per 100g
+                const factor = grams / 100;
+
+                item.calculatedCal = Math.round(food.cal * factor);
+                item.calculatedP   = Number(food.pro  * factor) || 0;
+                item.calculatedC   = Number(food.carb * factor) || 0;
+                item.calculatedF   = Number(food.fat  * factor) || 0;
+
+                meal.mealCal += item.calculatedCal;
+                meal.mealP   += item.calculatedP;
+                meal.mealC   += item.calculatedC;
+                meal.mealF   += item.calculatedF;
+            }
+        });
+
+        totalCal += meal.mealCal;
+        totalP   += meal.mealP;
+        totalC   += meal.mealC;
+        totalF   += meal.mealF;
+    });
+
+    return {
+        calories: totalCal,
+        protein: (Number(totalP) || 0).toFixed(1),
+        carbs:   (Number(totalC) || 0).toFixed(1),
+        fat:     (Number(totalF) || 0).toFixed(1),
+    };
+}
+
+
+
+        // --- DAY NAVIGATION HANDLER ---
+        function handleDayChange(plan, index, type, planDocRef = null) {
+            currentDayIndex = index;
+            // Reset meal editing state when changing days
+            mealEditingState = {}; 
+            mealAddBarVisible = {}; 
+            activeSearches = {};
+
+            renderPlan(plan);
+            
+            if (type === 'firestore') {
+                attachFirestoreEventListeners(planDocRef, plan);
+                attachGoalsListeners(plan, 'firestore', planDocRef);
+            } else if (type === 'local') {
+                attachLocalEventListeners(plan);
+                attachGoalsListeners(plan, 'local');
+            }
+        }
+        
         // --- UI RENDERING ---
         function renderPlan(plan) {
-            const day = plan.days[currentDayIndex];
+            const day = plan.days[currentDayIndex]; // Use currentDayIndex
             const totals = calculateDayTotals(plan);
             const targets = plan.macroTargets;
 
+            const targetP = Number(targets.protein);
+            const targetC = Number(targets.carbs);
+            const targetF = Number(targets.fat);
+            const totalPctSum = targets.totalPctSum || (targets.proPct + targets.carbPct + targets.fatPct);
+            const isOver100 = totalPctSum > 100;
+
             const renderMacroBar = (value, target, label, color) => {
-                const percentage = target > 0 ? Math.min(100, (Number(value) / target) * 100).toFixed(0) : 0;
-                const statusColor = Number(value) > target ? 'bg-secondary' : color; 
-                return `<div class="mb-4"><div class="flex justify-between text-sm font-medium mb-1"><span class="text-gray-300">${label}</span><span class="text-gray-300">${Number(value).toFixed(0)}g / ${target}g (${percentage}%)</span></div><div class="progress-bar-container"><div class="progress-bar ${statusColor}" style="width: ${percentage}%;"></div></div></div>`;
+                // Ensure value is a number, default to 0
+                const numValue = Number(value) || 0;
+                
+                const percentage = target > 0 ? Math.min(100, (numValue / target) * 100).toFixed(0) : 0;
+                const statusColor = numValue > target ? 'bg-secondary' : color; 
+                const valueFixed = numValue.toFixed(0);
+
+                return `
+                    <div class="mb-4">
+                        <div class="flex justify-between items-end mb-2">
+                            <span class="text-gray-400 font-bold text-sm">${label}</span>
+                            <span class="text-2xl font-black text-white">${valueFixed} / ${target}g</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar ${statusColor}" style="width: ${percentage}%;"></div>
+                        </div>
+                    </div>
+                `;
+            };
+            
+            const renderDayNavigation = (plan) => {
+                return `
+                    <div class="mt-4 border-t border-gray-700 pt-4">
+                        <h3 class="text-lg font-bold text-gray-200 mb-3 uppercase tracking-wide">Plan Days</h3>
+                        <div class="flex flex-col space-y-2">
+                            ${plan.days.map((day, index) => `
+                                <button data-day-index="${index}" class="day-nav-btn w-full text-left p-3 rounded-lg transition border border-transparent 
+                                    ${index === currentDayIndex ? 'bg-primary text-white font-bold shadow-lg shadow-red-900/50' : 'bg-bg-body text-gray-400 hover:bg-gray-700 hover:text-white border-gray-700'}">
+                                    <div class="flex justify-between items-center">
+                                        <span>${day.dayName}</span>
+                                        <i class="fa-solid fa-chevron-right text-xs ${index === currentDayIndex ? 'text-white' : 'text-gray-600'}"></i>
+                                    </div>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            };
+            
+            const renderAddFoodBar = (mealName, mealIndex) => {
+                return `
+                    <div id="add-bar-${mealName}" class="add-food-bar p-3 bg-bg-body rounded-lg mb-4 border border-gray-600 ${mealAddBarVisible[mealName] ? '' : 'hidden'}">
+                        <h4 class="text-xs font-bold text-gray-400 mb-2 uppercase">Search & Add Item:</h4>
+                        <div class="flex space-x-3 items-center">
+                            
+                            <!-- Search Input for Adding Item -->
+                            <div class="relative w-full">
+                                <input type="text" id="food-search-add-${mealName}" data-meal="${mealName}" data-index="-1" class="food-search-input food-search-add input-std w-full p-2 text-white" placeholder="Type food name..." value="${activeSearches[`add-${mealName}`] || ''}" />
+                                <div id="food-results-add-${mealName}" class="search-results absolute z-10 w-full mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                                    <!-- Results populated by JS -->
+                                </div>
+                            </div>
+
+                            <input id="amount-input-${mealName}" type="number" value="100" min="1" class="w-20 p-2 input-std text-center text-white" />
+                            <span class="text-gray-400 text-sm font-bold">g</span>
+                            <button data-meal="${mealName}" class="add-item-btn p-2 bg-success text-white rounded-lg hover:bg-green-600 transition shadow-lg">
+                                <i class="fa-solid fa-check"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
             };
 
-            const renderAddFoodBar = (mealName) => {
-                return `<div id="add-bar-${mealName}" class="add-food-bar p-3 bg-bg-body rounded-lg mb-4 border border-gray-600 ${mealAddBarVisible[mealName] ? '' : 'hidden'}"><h4 class="text-xs font-bold text-gray-400 mb-2 uppercase">Search & Add Item:</h4><div class="flex space-x-3 items-center"><div class="relative w-full"><input type="text" id="food-search-add-${mealName}" data-meal="${mealName}" class="food-search-input food-search-add input-std w-full p-2 text-white" placeholder="Type food name..." value="${activeSearches[`add-${mealName}`] || ''}" /><div id="food-results-add-${mealName}" class="search-results absolute z-10 w-full mt-1 bg-bg-surface border border-gray-600 rounded-lg shadow-xl max-h-48 overflow-y-auto hidden"></div></div><input id="amount-input-${mealName}" type="number" value="100" class="w-20 p-2 input-std text-center text-white" /><span class="text-gray-400 text-sm font-bold">g</span><button data-meal="${mealName}" class="add-item-btn p-2 bg-success text-white rounded-lg"><i class="fa-solid fa-check"></i></button><button data-meal="${mealName}" class="cancel-add-btn p-2 bg-secondary text-white rounded-lg"><i class="fa-solid fa-xmark"></i></button></div></div>`;
-            };
 
             const renderMealCard = (meal, mealIndex) => {
-                const isEditing = mealEditingState[meal.mealName] || false;
-                return `<div class="bg-bg-surface p-5 rounded-xl shadow-lg mb-6 border border-gray-700 relative overflow-hidden"><div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div><div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2 ml-2"><h3 class="text-xl font-black text-white uppercase tracking-wide">${meal.mealName}</h3><div class="flex space-x-3"><button data-meal="${meal.mealName}" class="edit-meal-btn text-gray-400 hover:text-white transition ${isEditing ? 'hidden' : ''}"><i class="fa-solid fa-pen-to-square fa-xl"></i></button><button data-meal="${meal.mealName}" class="add-item-toggle-btn text-info hover:text-blue-400 transition ${isEditing ? '' : 'hidden'}"><i class="fa-solid fa-plus-circle fa-xl"></i></button><button data-meal="${meal.mealName}" class="save-meal-edit-btn text-success hover:text-green-500 transition ${isEditing ? '' : 'hidden'}"><i class="fa-solid fa-floppy-disk fa-xl"></i></button><button data-meal="${meal.mealName}" class="cancel-meal-edit-btn text-secondary hover:text-red-600 transition ${isEditing ? '' : 'hidden'}"><i class="fa-solid fa-xmark fa-2xl"></i></button></div></div><div class="ml-2">${renderAddFoodBar(meal.mealName)}<div class="space-y-3">${meal.items.map((item, idx) => {const foodName = FOOD_DB[item.foodItemId]?.name || 'Unknown Item'; return `<div class="flex flex-col sm:flex-row items-center p-3 border border-gray-700 rounded-lg bg-bg-body hover:border-gray-500 transition"><div class="flex-grow w-full mr-4 text-gray-200">${foodName}</div><div class="flex items-center space-x-3 w-full sm:w-auto justify-end"><div class="flex items-center"><input type="number" class="item-amount-input w-24 p-2 input-std text-center text-white font-bold text-lg" value="${item.amount}" data-meal="${meal.mealName}" data-index="${idx}" ${!isEditing ? 'disabled' : ''} /><span class="text-sm text-gray-400 ml-2">${item.unit || 'g'}</span></div><div class="text-lg font-bold w-auto text-right min-w-[100px]"><span class="text-success">${item.calculatedCal || 0} Cal</span></div><button class="delete-item-btn text-gray-500 hover:text-secondary transition ${isEditing ? '' : 'hidden'}" data-meal="${meal.mealName}" data-index="${idx}"><i class="fa-solid fa-trash-can fa-lg"></i></button></div></div>`;}).join('')}</div><div class="mt-4 pt-3 border-t border-gray-700 font-semibold flex justify-between text-gray-300"><span class="uppercase tracking-wider text-lg text-white-500">Meal Totals</span><span><span class="font-bold text-lg text-success">${meal.mealCal || 0} Cal</span> <span class="text-protein ml-4 text-lg font-bold">P: ${Number(meal.mealP).toFixed(1)}g</span> <span class="text-info ml-2 text-lg font-bold">C: ${Number(meal.mealC).toFixed(1)}g</span> <span class="text-warning ml-2 text-lg font-bold">F: ${Number(meal.mealF).toFixed(1)}g</span></span></div></div></div>`;
+                // Check local meal editing state instead of global state
+                const isMealCurrentlyEditing = mealEditingState[meal.mealName] || false;
+                
+                return `
+                    <div class="bg-bg-surface p-5 rounded-xl shadow-lg mb-6 border border-gray-700 relative overflow-hidden">
+                        <!-- Decorative red bar on left -->
+                        <div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+                        
+                        <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2 ml-2">
+                            <h3 class="text-xl font-black text-white uppercase tracking-wide">${meal.mealName}</h3>
+                            <!-- Meal Editing Controls -->
+                            <div class="flex ${isMealCurrentlyEditing ? 'space-x-6' : 'space-x-3'}">
+      <!-- Edit Button (Visible when NOT editing) -->
+<button 
+    data-meal="${meal.mealName}" 
+    class="edit-meal-btn text-gray-400 hover:text-white transition 
+           ${isMealCurrentlyEditing ? 'hidden' : ''}" 
+    title="Edit Meal"
+>
+    <i class="fa-solid fa-pen-to-square fa-xl"></i>
+</button>
+
+<!-- Add Item Button (Visible WHEN editing) — BLUE -->
+<button 
+    data-meal="${meal.mealName}" 
+    class="add-item-toggle-btn text-info hover:text-blue-400 transition 
+           ${isMealCurrentlyEditing ? '' : 'hidden'}"
+    title="Add Item"
+>
+    <i class="fa-solid fa-plus-circle fa-xl"></i>
+</button>
+
+<!-- Save Button (Visible WHEN editing) — GREEN -->
+<button 
+    data-meal="${meal.mealName}" 
+    class="save-meal-edit-btn text-success hover:text-green-500 transition 
+           ${isMealCurrentlyEditing ? '' : 'hidden'}"
+    title="Save Changes"
+>
+    <i class="fa-solid fa-floppy-disk fa-xl"></i>
+</button>
+
+<!-- Cancel Button (Visible WHEN editing) — RED -->
+<button 
+    data-meal="${meal.mealName}" 
+    class="cancel-meal-edit-btn text-secondary hover:text-red-600 transition 
+           ${isMealCurrentlyEditing ? '' : 'hidden'}"
+    title="Cancel Editing"
+>
+    <i class="fa-solid fa-xmark fa-2xl"></i>
+</button>
+
+
+                            </div>
+                        </div>
+                        
+                        <div class="ml-2">
+                            ${renderAddFoodBar(meal.mealName, mealIndex)}
+
+                            <div class="space-y-3">
+                                ${meal.items.map((item, itemIndex) => {
+                                    const mealKey = getMealKey(meal.mealName, itemIndex);
+                                    return `
+                                    <div class="flex flex-col sm:flex-row items-start sm:items-center p-3 border border-gray-700 rounded-lg bg-bg-body hover:border-gray-500 transition" 
+                                         data-meal-name="${meal.mealName}" data-item-index="${itemIndex}">
+                                        
+                                        <div class="flex-grow w-full sm:w-2/5 mr-4 relative">
+                                            <!-- Food Name -->
+                                            <p class="text-lg font-medium text-white text-left">${FOOD_DB[item.foodItemId]?.name || 'Unknown Food'}</p>
+                                            
+                                            <!-- Macros (Line 2 - Large, Colored) -->
+                                            <div class="w-full text-left mt-1">
+                                                <span class="text-protein font-bold text-base">P:${Number(item.calculatedP).toFixed(1)}</span>
+                                                <span class="text-info ml-3 font-bold text-base">C:${Number(item.calculatedC).toFixed(1)}</span>
+                                                <span class="text-warning ml-3 font-bold text-base">F:${Number(item.calculatedF).toFixed(1)}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center space-x-3 mt-2 sm:mt-0 w-full sm:w-3/5 justify-end">
+                                            
+                                            <!-- Editable Amount Input -->
+                                            <div class="flex items-center space-x-2">
+    <!-- Amount Input -->
+    <input 
+        type="number" 
+        class="item-amount-input w-24 p-2 input-std text-center text-white font-bold text-lg" 
+        value="${item.amount}" 
+        min="0" 
+        data-meal="${meal.mealName}"
+        data-index="${itemIndex}"
+        ${!isMealCurrentlyEditing ? 'disabled' : ''}
+    />
+    <!-- Unit Selector -->
+    <select
+        class="item-unit-select input-std text-sm font-bold text-gray-200 bg-bg-body border-gray-600 px-2 py-2 rounded-md"
+        data-meal="${meal.mealName}"
+        data-index="${itemIndex}"
+        ${!isMealCurrentlyEditing ? 'disabled' : ''}
+    >
+        <option value="g"  ${item.unit === 'g'  || !item.unit ? 'selected' : ''}>g</option>
+        <option value="oz" ${item.unit === 'oz' ? 'selected' : ''}>oz</option>
+        <option value="lb" ${item.unit === 'lb' ? 'selected' : ''}>lb</option>
+    </select>
+</div>
+
+                                            
+                                            <!-- Calculated Calories (Line 1 - Large Green, Moved Right) -->
+                                            <div class="text-lg font-bold w-auto text-right min-w-[100px]">
+                                                <span class="text-success">${item.calculatedCal || 0} Cal</span>
+                                            </div>
+
+                                            <!-- Delete Button (Only visible in Editing Mode) -->
+                                            <button class="delete-item-btn text-gray-500 hover:text-secondary transition ${isMealCurrentlyEditing ? '' : 'hidden'}" 
+                                                    data-meal="${meal.mealName}" data-index="${itemIndex}" title="Remove Item">
+                                                <i class="fa-solid fa-trash-can fa-lg"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;}).join('')}
+                            </div>
+                            
+                            <!-- Meal Footer Totals -->
+                            <div class="mt-4 pt-3 border-t border-gray-700 font-semibold flex justify-between text-gray-300">
+                                <span class="uppercase tracking-wider text-lg text-white-500">Meal Totals</span>
+                                <span>
+                                    <span class="font-bold text-lg text-success">${meal.mealCal || 0} Cal</span> 
+                                    <span class="text-protein ml-4 text-lg font-bold">P: ${Number(meal.mealP).toFixed(1)}g</span> 
+                                    <span class="text-info ml-2 text-lg font-bold">C: ${Number(meal.mealC).toFixed(1)}g</span> 
+                                    <span class="text-warning ml-2 text-lg font-bold">F: ${Number(meal.mealF).toFixed(1)}g</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
             };
 
-            const html = `
+
+            document.getElementById('plan-container').innerHTML = `
                 <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-1 bg-bg-surface p-6 rounded-xl shadow-2xl h-fit sticky top-4 border-2 border-primary">
-                        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-3"><h1 class="text-2xl font-black text-white tracking-wider">DAILY GOALS</h1></div>
+                    
+                    <!-- Left Column: Totals Dashboard -->
+                    <div id="totals-dashboard" class="lg:col-span-1 bg-bg-surface p-6 rounded-xl shadow-2xl h-fit sticky top-4 border-2 border-primary">
+                        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-3">
+                            <h1 class="text-2xl font-black text-white tracking-wider">DAILY GOALS</h1>
+                        </div>
+                        
+                        <!-- Goals Editing Area -->
                         <div class="mb-6 p-4 bg-bg-body rounded-lg shadow-inner border border-gray-700">
-                            <div class="flex justify-between items-center mb-4"><p class="text-gray-400 text-sm font-bold uppercase">TARGET CALORIES</p><div class="flex items-center"><input type="number" id="goal-calorie-input" value="${plan.goalCalories}" class="input-as-text text-4xl font-black text-success text-right w-32" style="background-color: ${isGoalEditing ? '#1a1a1a' : 'transparent'}; border-bottom: ${isGoalEditing ? '2px solid #DC2626' : 'none'};" ${!isGoalEditing ? 'disabled' : ''} /><span class="text-lg font-bold text-success ml-1">Cal</span></div></div>
                             
-                            <div class="grid grid-cols-3 gap-2 mt-4">
-                                <div class="flex flex-col items-center p-2 bg-gray-800 rounded-lg border border-gray-700">
-                                    <p class="text-xs font-bold text-protein uppercase mb-1">PRO %</p>
-                                    <input type="number" id="proPct-pct-input" value="${targets.proPct}" class="macro-pct-inline-input input-as-text text-xl font-black text-white" ${!isGoalEditing ? 'disabled' : ''} />
-                                </div>
-                                <div class="flex flex-col items-center p-2 bg-gray-800 rounded-lg border border-gray-700">
-                                    <p class="text-xs font-bold text-info uppercase mb-1">CARB %</p>
-                                    <input type="number" id="carbPct-pct-input" value="${targets.carbPct}" class="macro-pct-inline-input input-as-text text-xl font-black text-white" ${!isGoalEditing ? 'disabled' : ''} />
-                                </div>
-                                <div class="flex flex-col items-center p-2 bg-gray-800 rounded-lg border border-gray-700">
-                                    <p class="text-xs font-bold text-warning uppercase mb-1">FAT %</p>
-                                    <input type="number" id="fatPct-pct-input" value="${targets.fatPct}" class="macro-pct-inline-input input-as-text text-xl font-black text-white" ${!isGoalEditing ? 'disabled' : ''} />
+                            <!-- Display Calorie Goal / Input Calorie Goal -->
+                            <div class="flex justify-between items-center mb-4">
+                                <p class="text-gray-400 text-sm font-bold uppercase">TARGET CALORIES</p>
+                                <div class="flex items-center">
+                                    <input 
+                                        type="number" 
+                                        id="goal-calorie-input"
+                                        value="${plan.goalCalories}"
+                                        class="input-as-text text-4xl font-black text-success text-right w-32"
+                                        style="background-color: ${isGoalEditing ? '#1a1a1a' : 'transparent'}; border-bottom: ${isGoalEditing ? '2px solid #DC2626' : 'none'};"
+                                        ${!isGoalEditing ? 'disabled' : ''}
+                                    >
+                                    <span class="text-lg font-bold text-success ml-1">Cal</span>
                                 </div>
                             </div>
                             
-                            <button id="toggle-goal-edit-btn" class="w-full py-3 mt-4 font-bold rounded-lg transition duration-150 uppercase tracking-wide ${isGoalEditing ? 'bg-success hover:bg-green-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-500'}">${isGoalEditing ? 'Save Goal Changes' : 'Edit Targets'}</button>
+                             <!-- Target Macros (Grams Only) -->
+<div class="mt-5 border-t border-gray-700 pt-5">
+    <h3 class="text-sm font-bold text-gray-400 mb-3 uppercase">Target Macros</h3>
+    <div class="grid grid-cols-3 gap-2">
+        ${[
+            { label: 'PROTEIN', targetG: targetP, color: 'text-protein', id: 'proPct' },
+            { label: 'CARBS', targetG: targetC, color: 'text-info', id: 'carbPct' },
+            { label: 'FAT', targetG: targetF, color: 'text-warning', id: 'fatPct' }
+        ].map(m => `
+            <div class="flex flex-col items-center p-2 bg-gray-800 rounded-lg border border-gray-700">
+                <!-- Macro Label -->
+                <p class="text-base font-extrabold text-gray-200 tracking-wide uppercase mb-1 mt-1">
+                    ${m.label}
+                </p>
+
+                <!-- Gram Display -->
+                <span
+                    id="${m.id}-display-grams"
+                    class="block text-2xl font-black ${m.color} text-center my-2"
+                >
+                    ${m.targetG}g
+                </span>
+            </div>
+        `).join('')}
+    </div>
+</div>
+
+<!-- Macro Percentages (mirrors Target Macros styling) -->
+<div class="mt-4 border-t border-gray-700 pt-4">
+    <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-bold text-gray-400 uppercase">Macro Percentages</h3>
+        <span
+            id="pct-warning"
+            class="text-xs font-bold tracking-wide ${isOver100 ? 'text-secondary' : 'text-gray-500'}"
+        >
+            Total: ${totalPctSum}% ${isOver100 ? '⚠️' : ''}
+        </span>
+    </div>
+
+    <div class="grid grid-cols-3 gap-2">
+        ${[
+            { label: 'PROTEIN', valuePct: targets.proPct, id: 'proPct', color: 'text-protein' },
+            { label: 'CARBS', valuePct: targets.carbPct, id: 'carbPct', color: 'text-info' },
+            { label: 'FAT', valuePct: targets.fatPct, id: 'fatPct', color: 'text-warning' }
+        ].map(m => `
+            <div class="flex flex-col items-center p-2 bg-gray-800 rounded-lg border border-gray-700">
+                <!-- Macro Label -->
+                <p class="text-base font-extrabold text-gray-200 tracking-wide uppercase mb-1 mt-1">
+                    ${m.label}
+                </p>
+
+                <!-- Percentage Input (styled like the grams row) -->
+                <div class="flex items-baseline justify-center space-x-1 my-2 w-auto mx-auto">
+                    <input 
+                        type="number"
+                        id="${m.id}-pct-input"
+                        value="${m.valuePct}"
+                        min="0"
+                        max="100"
+                        class="macro-pct-input macro-pct-inline-input input-as-text text-2xl font-black ${m.color} text-center"
+                        style="
+                            background-color: ${isGoalEditing ? '#111827' : 'transparent'};
+                            border-bottom: ${isGoalEditing ? '1px solid #4B5563' : 'none'};
+                            width: 3.5rem;
+                        "
+                        ${!isGoalEditing ? 'disabled' : ''}
+                    >
+                    <span class="text-sm text-gray-400 font-bold">%</span>
+                </div>
+            </div>
+        `).join('')}
+    </div>
+</div>
+
+
+                            <!-- Edit/Save Goals Button -->
+                            <button id="toggle-goal-edit-btn" class="w-full py-3 mt-4 font-bold rounded-lg transition duration-150 uppercase tracking-wide
+                                ${isGoalEditing ? (isOver100 ? 'bg-secondary hover:bg-red-700 text-white' : 'bg-success hover:bg-green-600 text-white') : 'bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-500'}">
+                                ${isGoalEditing ? 'Save Goal Changes' : 'Edit Targets'}
+                            </button>
                         </div>
-                        <div class="mt-5 border-t border-gray-700 pt-6"><h3 class="text-lg font-black text-white mb-4">CURRENT PLAN TOTALS</h3>
-                            <div class="mb-6"><div class="flex justify-between items-end mb-2"><span class="text-gray-400 font-bold text-sm">CALORIES</span><span class="text-2xl font-black text-white">${totals.calories} / ${plan.goalCalories}</span></div><div class="w-full bg-gray-700 rounded-full h-2.5"><div class="bg-success h-2.5 rounded-full" style="width: ${Math.min((totals.calories / plan.goalCalories) * 100, 100)}%"></div></div></div>
-                            ${renderMacroBar(totals.protein, targets.protein, 'PROTEIN', 'bg-protein')}
-                            ${renderMacroBar(totals.carbs, targets.carbs, 'CARBOHYDRATES', 'bg-info')}
-                            ${renderMacroBar(totals.fat, targets.fat, 'FATS', 'bg-warning')}
+
+                        <!-- Running Plan Totals -->
+                        <div class="mt-5 border-t border-gray-700 pt-6">
+                            <h3 class="text-lg font-black text-white mb-4">CURRENT PLAN TOTALS</h3>
+                            
+                            <!-- Calorie Progress Bar -->
+                            <div class="mb-6">
+                                <div class="flex justify-between items-end mb-2">
+                                    <span class="text-gray-400 font-bold text-sm">CALORIES</span>
+                                    <span class="text-2xl font-black text-white">${totals.calories} / ${plan.goalCalories}</span>
+                                </div>
+                                <div class="w-full bg-gray-700 rounded-full h-2.5">
+                                    <div class="bg-success h-2.5 rounded-full" style="width: ${Math.min((totals.calories / plan.goalCalories) * 100, 100)}%"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Macro Progress Bars -->
+                            ${renderMacroBar(totals.protein, targetP, 'PROTEIN', 'bg-protein')}
+                            ${renderMacroBar(totals.carbs, targetC, 'CARBOHYDRATES', 'bg-info')}
+                            ${renderMacroBar(totals.fat, targetF, 'FATS', 'bg-warning')}
                         </div>
+                        
+                        <!-- Day Navigation Tabs -->
+                        ${renderDayNavigation(plan)}
+                        
+                        <!-- Action Buttons -->
                         <div class="mt-8 pt-6 border-t border-gray-700 space-y-4">
-                            <button id="show-shopping-list-btn" class="w-full py-3 bg-gray-800 text-gray-300 font-bold rounded-lg hover:bg-gray-700 border border-gray-600 transition duration-150 flex items-center justify-center"><i class="fa-solid fa-cart-shopping mr-2"></i> View Shopping List</button>
-                            <button id="save-plan-btn" class="w-full py-3 bg-success text-white font-black rounded-lg shadow-lg hover:bg-green-600 transition duration-150 uppercase tracking-wide flex items-center justify-center"><i class="fa-solid fa-floppy-disk mr-2"></i> Save All Changes</button>
-                            <button id="email-plan-btn" class="w-full py-4 bg-primary text-white font-black rounded-lg shadow-lg shadow-red-900/50 hover:bg-red-700 transition duration-150 uppercase tracking-wide flex items-center justify-center"><i class="fa-solid fa-paper-plane mr-2"></i> Send Final Plan</button>
+                            <!-- Shopping List Button -->
+                            <button id="show-shopping-list-btn" class="w-full py-3 bg-gray-800 text-gray-300 font-bold rounded-lg hover:bg-gray-700 border border-gray-600 transition duration-150 flex items-center justify-center">
+                                <i class="fa-solid fa-cart-shopping mr-2"></i> View Shopping List
+                            </button>
+                            <!-- Main Save Button -->
+                            <button id="save-plan-btn" class="w-full py-3 bg-success text-white font-black rounded-lg shadow-lg hover:bg-green-600 transition duration-150 uppercase tracking-wide flex items-center justify-center">
+                                <i class="fa-solid fa-floppy-disk mr-2"></i> Save All Changes
+                            </button>
+                            <!-- NEW: Email Button -->
+                            <button id="email-plan-btn" class="w-full py-4 bg-primary text-white font-black rounded-lg shadow-lg shadow-red-900/50 hover:bg-red-700 transition duration-150 uppercase tracking-wide flex items-center justify-center">
+                                <i class="fa-solid fa-paper-plane mr-2"></i> Send Final Plan
+                            </button>
+
                             <div id="save-status" class="mt-3 text-center text-xs font-bold text-gray-500 uppercase tracking-widest"></div>
                         </div>
                     </div>
-                    <div class="lg:col-span-2">
-                        <div class="mb-6 flex justify-between items-end border-b border-gray-700 pb-4"><div><h2 class="text-4xl font-black text-white tracking-wide">${plan.clientName}</h2><p class="text-primary font-bold mt-1 text-3xl">${day.dayName}</p></div>
-                        <div class="flex space-x-2">
-                            ${plan.days.map((d, i) => `<button data-day-index="${i}" class="day-nav-btn px-4 py-2 rounded-lg font-bold transition ${i === currentDayIndex ? 'bg-primary text-white' : 'bg-gray-700 text-gray-400 hover:text-white'}">${d.dayName}</button>`).join('')}
-                        </div>
-                        </div>
-                        <div class="custom-scrollbar pr-3 pb-10">${day.meals.map(renderMealCard).join('')}</div>
-                    </div>
-                </div>`;
-            document.getElementById('plan-container').innerHTML = html;
-        }
-
-        // --- 9. EVENT DELEGATION ---
-        function attachDelegatedSearchHandler() {
-            const container = document.getElementById('plan-container');
-            container.onclick = (e) => {
-                const target = e.target.closest('button, .search-result-item');
-                if(!target) return;
-
-                if (target.classList.contains('day-nav-btn')) {
-                    currentDayIndex = parseInt(target.dataset.dayIndex, 10);
-                    renderPlan(currentPlan);
-                }
-                if (target.classList.contains('edit-meal-btn')) {
-                    mealEditingState[target.dataset.meal] = true;
-                    renderPlan(currentPlan);
-                }
-                if (target.classList.contains('add-item-toggle-btn')) {
-                    mealAddBarVisible[target.dataset.meal] = !mealAddBarVisible[target.dataset.meal];
-                    renderPlan(currentPlan);
-                }
-                if (target.classList.contains('cancel-add-btn')) {
-                    mealAddBarVisible[target.dataset.meal] = false;
-                    renderPlan(currentPlan);
-                }
-                if (target.classList.contains('save-meal-edit-btn')) {
-                    mealEditingState[target.dataset.meal] = false;
-                    renderPlan(currentPlan);
-                }
-                if (target.id === 'save-plan-btn') {
-                    updatePlanInFirestore(currentPlan);
-                }
-                if (target.classList.contains('delete-item-btn')) {
-                    const meal = currentPlan.days[currentDayIndex].meals.find(m => m.mealName === target.dataset.meal);
-                    meal.items.splice(target.dataset.index, 1);
-                    renderPlan(currentPlan);
-                }
-                if (target.classList.contains('add-item-btn')) {
-                    const mealName = target.dataset.meal;
-                    const input = document.getElementById(`food-search-add-${mealName}`);
-                    const amountInput = document.getElementById(`amount-input-${mealName}`);
-                    const foodId = input.dataset.selectedId;
-                    if(foodId) {
-                        const meal = currentPlan.days[currentDayIndex].meals.find(m => m.mealName === mealName);
-                        meal.items.push({ foodItemId: foodId, amount: parseFloat(amountInput.value) || 100, unit: 'g' });
-                        mealAddBarVisible[mealName] = false;
-                        renderPlan(currentPlan);
-                    }
-                }
-                if (target.classList.contains('search-result-item')) {
-                    const inputId = `food-search-add-${target.dataset.meal}`;
-                    const input = document.getElementById(inputId);
-                    input.value = FOOD_DB[target.dataset.foodId].name;
-                    input.dataset.selectedId = target.dataset.foodId;
-                    document.getElementById(`food-results-add-${target.dataset.meal}`).classList.add('hidden');
-                }
-                if(target.id === 'toggle-goal-edit-btn') {
-                    if(isGoalEditing) {
-                        const newCal = document.getElementById('goal-calorie-input').value;
-                        currentPlan = calculateTargetsFromPercentage(currentPlan, null, null, newCal);
-                        isGoalEditing = false;
-                    } else {
-                        isGoalEditing = true;
-                    }
-                    renderPlan(currentPlan);
-                }
-                if(target.id === 'show-shopping-list-btn') {
-                    const list = generateShoppingList(currentPlan);
-                    const modal = document.getElementById('shopping-list-content');
-                    modal.innerHTML = Object.keys(list).map(cat => `<h3 class='text-xl text-primary font-bold mt-4 uppercase'>${cat}</h3><ul>${list[cat].map(i => `<li>${i.amount} ${i.unit} ${i.name}</li>`).join('')}</ul>`).join('');
-                    document.getElementById('shopping-list-modal').classList.remove('hidden');
-                }
-                if(target.id === 'email-plan-btn') {
-                    document.getElementById('recipient-email').textContent = currentPlan.clientEmail;
-                    document.getElementById('payload-display').innerHTML = generateReadableEmail(currentPlan);
                     
-                    const subject = encodeURIComponent(`Nutrition Plan for ${currentPlan.clientName}`);
-                    const body = encodeURIComponent("Please find your plan attached.");
-                    document.getElementById('mail-to-link').href = `mailto:${currentPlan.clientEmail}?subject=${subject}&body=${body}`;
-                    document.getElementById('email-confirmation-modal').classList.remove('hidden');
-                }
-            };
+                    <!-- Right Column: Meal Planning Section -->
+                    <div class="lg:col-span-2">
+                        <div class="mb-6 flex justify-between items-end border-b border-gray-700 pb-4">
+    <div>
+        <!-- Client name: BIG & WHITE -->
+        <h2 class="text-4xl font-black text-white tracking-wide">${plan.clientName}</h2>
+        <!-- Plan name: SMALL & RED -->
+        <p class="text-primary font-bold mt-1 text-3xl">${day.dayName}</p>
+    </div>
+</div>
 
-            container.oninput = (e) => {
-                if (e.target.classList.contains('food-search-input')) {
-                    const query = e.target.value;
-                    const results = filterFoodItems(query);
-                    const resContainer = document.getElementById(`food-results-add-${e.target.dataset.meal}`);
-                    if(results.length > 0) {
-                        resContainer.innerHTML = results.map(f => `<div class="p-2 hover:bg-gray-600 cursor-pointer search-result-item" data-food-id="${f.id}" data-meal="${e.target.dataset.meal}">${f.name}</div>`).join('');
-                        resContainer.classList.remove('hidden');
-                    } else {
-                        resContainer.classList.add('hidden');
-                    }
-                }
-                if (e.target.classList.contains('item-amount-input')) {
-                    const meal = currentPlan.days[currentDayIndex].meals.find(m => m.mealName === e.target.dataset.meal);
-                    meal.items[e.target.dataset.index].amount = e.target.value;
-                }
-            };
+                        
+                        <!-- Meal Cards -->
+                        <div class="custom-scrollbar pr-3 pb-10">
+                            ${day.meals.map(renderMealCard).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
-        function generateShoppingList(plan) {
-            const list = {};
-            plan.days.forEach(day => {
-                day.meals.forEach(meal => {
-                    meal.items.forEach(item => {
-                        const food = FOOD_DB[item.foodItemId];
-                        if (food) {
-                            const cat = food.group || 'Other';
-                            if (!list[cat]) list[cat] = [];
-                            const existing = list[cat].find(i => i.name === food.name);
-                            if(existing) existing.amount += parseFloat(item.amount);
-                            else list[cat].push({ name: food.name, amount: parseFloat(item.amount), unit: 'g' });
-                        }
-                    });
+        // --- Event Listeners and Firestore Update ---
+        
+        async function updatePlanInFirestore(planDocRef, newPlan) {
+            const statusEl = document.getElementById('save-status');
+            statusEl.textContent = 'SAVING...';
+            try {
+                // Ensure isGoalEditing is false before saving
+                isGoalEditing = false;
+                
+                // Clear any individual meal editing states
+                Object.keys(mealEditingState).forEach(mealName => {
+                    mealEditingState[mealName] = false;
                 });
-            });
-            return list;
+                activeSearches = {}; // Clear active searches
+
+                const planToSave = JSON.parse(JSON.stringify(newPlan));
+                
+                await setDoc(planDocRef, planToSave, { merge: true });
+                statusEl.textContent = 'ALL CHANGES SAVED';
+                statusEl.classList.add('text-success');
+            } catch (e) {
+                console.error("Error updating document: ", e);
+                statusEl.textContent = 'ERROR SAVING';
+                statusEl.classList.add('text-secondary');
+            } finally {
+                setTimeout(() => {
+                    statusEl.textContent = '';
+                    statusEl.classList.remove('text-success', 'text-secondary');
+                }, 3000);
+            }
         }
 
+        // --- SEARCH HANDLERS ---
+
+        function updateSearchResultsUI(inputElement, mealName, itemIndex, currentPlan, planDocRef) {
+            const isAddBar = inputElement.classList.contains('food-search-add');
+            const key = isAddBar ? `add-${mealName}` : getMealKey(mealName, itemIndex);
+            const query = inputElement.value;
+            activeSearches[key] = query; // Update state
+            
+            const resultsContainerId = isAddBar ? `food-results-add-${mealName}` : `food-results-${key}`;
+            const resultsContainer = document.getElementById(resultsContainerId);
+            
+            if (!resultsContainer) return;
+
+            // Only show results if query is at least 2 characters long
+            if (query.length < 2) {
+                resultsContainer.classList.add('hidden');
+                resultsContainer.innerHTML = '';
+                return;
+            }
+            
+            const results = filterFoodItems(query);
+            
+            if (results.length > 0) {
+                resultsContainer.classList.remove('hidden');
+                resultsContainer.innerHTML = results.map(food => `
+                    <div class="p-3 text-sm cursor-pointer hover:bg-gray-700 select-none search-result-item border-b border-gray-700 last:border-0" 
+                         data-food-id="${food.id}" 
+                         data-meal="${mealName}" 
+                         data-index="${itemIndex}"
+                         data-type="${isAddBar ? 'add' : 'swap'}">
+                        <span class="font-bold text-white">${food.name}</span> <span class="text-gray-500 text-xs ml-2 uppercase tracking-wide">${food.group}</span>
+                    </div>
+                `).join('');
+            } else {
+                resultsContainer.classList.add('hidden');
+                resultsContainer.innerHTML = '<div class="p-3 text-sm text-gray-500 ">No foods found.</div>';
+            }
+            
+            // Re-attach listeners for clicking on results (via delegation)
+            // (Note: No need to attach directly here, handled by delegate)
+        }
+        
+        function handleSearchResultClick(event, currentPlan, searchKey, planDocRef, isAddBar) {
+            // Use event.currentTarget in the delegated handler setup
+
+            const resultItem = event.target.closest('.search-result-item');
+            if (!resultItem) return;
+
+            const selectedFoodId = resultItem.dataset.foodId;
+            const mealName = resultItem.dataset.meal;
+            const itemIndex = parseInt(resultItem.dataset.index, 10);
+            
+            activeSearches[searchKey] = FOOD_DB[selectedFoodId].name; // Set input display text
+            
+            let newPlan = JSON.parse(JSON.stringify(currentPlan));
+            const day = newPlan.days[currentDayIndex]; // Use currentDayIndex
+            const meal = day.meals.find(m => m.mealName === mealName);
+            
+            if (!meal) return;
+            
+            // Hide all result containers
+            document.querySelectorAll('.search-results').forEach(c => c.classList.add('hidden'));
+
+            if (isAddBar) {
+                // For Add Bar: Update the input field value and store ID for the 'Add' button click
+                const addInputEl = document.getElementById(`food-search-add-${mealName}`);
+                if (addInputEl) {
+                    addInputEl.value = FOOD_DB[selectedFoodId].name;
+                    addInputEl.setAttribute('data-selected-id', selectedFoodId);
+                }
+            } else {
+                // For Swap: Directly update the plan item and trigger recalculation/re-render
+                meal.items[itemIndex].foodItemId = selectedFoodId;
+                
+                // Clear search state and render
+                activeSearches[searchKey] = '';
+                renderPlan(newPlan);
+
+                // Attach listeners to the new state
+                attachFirestoreEventListeners(planDocRef, newPlan);
+                attachGoalsListeners(newPlan, 'firestore', planDocRef); 
+            }
+        }
+
+        // Consolidated handler for all meal item manipulation
+        const handlePlanUpdate = (event, currentPlan, type, planDocRef = null) => {
+const target = event.target.closest('.item-amount-input, .item-unit-select, .delete-item-btn, .add-item-btn, .edit-meal-btn, .save-meal-edit-btn, .add-item-toggle-btn, .cancel-meal-edit-btn, .day-nav-btn');
+            if (!target) return;
+
+            const mealName = target.dataset.meal;
+            const itemIndex = parseInt(target.dataset.index, 10);
+            const dayIndex = parseInt(target.dataset.dayIndex, 10);
+            
+            const isAmountChange = target.classList.contains('item-amount-input');
+            const isDelete = target.classList.contains('delete-item-btn');
+            const isAdd = target.classList.contains('add-item-btn');
+            const isDayNav = target.classList.contains('day-nav-btn');
+            const isMealControl = target.classList.contains('edit-meal-btn') || target.classList.contains('save-meal-edit-btn') || target.classList.contains('add-item-toggle-btn') || target.classList.contains('cancel-meal-edit-btn');
+            const isUnitChange = target.classList.contains('item-unit-select');
+
+            if (isDayNav) {
+                handleDayChange(currentPlan, dayIndex, type, planDocRef);
+                return;
+            }
+
+            let newPlan = JSON.parse(JSON.stringify(currentPlan));
+            const day = newPlan.days[currentDayIndex]; 
+            const meal = day.meals.find(m => m.mealName === mealName);
+            
+            if (!meal && !isMealControl) return;
+
+            if (isDelete) {
+    meal.items.splice(itemIndex, 1);
+} else if (isAmountChange) {
+    const newAmount = parseInt(target.value, 10) || 0;
+    if (newAmount >= 0) meal.items[itemIndex].amount = newAmount;
+} else if (isUnitChange) {
+    const newUnit = target.value || 'g';
+    meal.items[itemIndex].unit = newUnit;
+} else if (isAdd) {
+    // ... rest of your existing add code ...
+
+                const addInput = document.getElementById(`food-search-add-${mealName}`);
+                const amountInput = document.getElementById(`amount-input-${mealName}`);
+                
+                const newFoodId = addInput?.getAttribute('data-selected-id'); // Get ID from selected item
+                const newAmount = parseInt(amountInput.value, 10) || 100;
+                
+                if (newFoodId && newAmount > 0) {
+                    meal.items.push({ 
+                        foodItemId: newFoodId, 
+                        amount: newAmount, 
+                        unit: 'g' 
+                    });
+                }
+                mealAddBarVisible[mealName] = false; // Hide bar after adding
+                activeSearches = {}; // Clear all searches
+            } else if (isMealControl) {
+                 const mealName = target.dataset.meal;
+                 if (target.classList.contains('edit-meal-btn')) {
+                    mealEditingState = {};
+                    mealEditingState[mealName] = true;
+                    mealAddBarVisible[mealName] = false;
+                    activeSearches = {};
+                 } else if (target.classList.contains('save-meal-edit-btn')) {
+                    mealEditingState[mealName] = false;
+                    mealAddBarVisible[mealName] = false;
+                    activeSearches = {};
+                     // Trigger save logic later
+                 } else if (target.classList.contains('cancel-meal-edit-btn')) {
+                    mealEditingState[mealName] = false;
+                    mealAddBarVisible[mealName] = false;
+                    activeSearches = {};
+                    // Skip render and revert state
+                    if (type === 'firestore') {
+                         renderPlan(currentPlan); 
+                         attachFirestoreEventListeners(planDocRef, currentPlan);
+                         attachGoalsListeners(currentPlan, 'firestore', planDocRef);
+                    } else if (type === 'local') {
+                         renderPlan(currentPlan); 
+                         attachLocalEventListeners(currentPlan);
+                         attachGoalsListeners(currentPlan, 'local');
+                    }
+                    return; // Stop processing
+                 } else if (target.classList.contains('add-item-toggle-btn')) {
+                    mealAddBarVisible[mealName] = !mealAddBarVisible[mealName];
+                    activeSearches = {};
+                 }
+            } else {
+                // If it's a food swap input, handle via the delegation input handler
+                return; 
+            }
+
+            // Global save trigger/state update
+            renderPlan(newPlan);
+            
+            if (type === 'firestore') {
+                const saveButton = document.getElementById('save-plan-btn');
+                saveButton.onclick = () => {
+                    isGoalEditing = false; 
+                    updatePlanInFirestore(planDocRef, newPlan);
+                };
+                attachFirestoreEventListeners(planDocRef, newPlan);
+                attachGoalsListeners(newPlan, type, planDocRef);
+            } else if (type === 'local') {
+                attachLocalEventListeners(newPlan);
+                attachGoalsListeners(newPlan, type, planDocRef);
+            }
+        };
+
+
+        
+        // --- DELEGATION HANDLER (CRITICAL FIX) ---
+        function attachDelegatedSearchHandler(currentPlan, type, planDocRef = null) {
+            const planContainer = document.getElementById('plan-container');
+            
+            // 1. INPUT HANDLER (Handles typing in search bars and amount changes)
+            planContainer.oninput = (event) => {
+                const input = event.target;
+                if (input.classList.contains('food-search-input')) {
+} else if (
+    input.classList.contains('item-amount-input') ||
+    input.classList.contains('item-unit-select')
+) {
+    handlePlanUpdate(event, currentPlan, type, planDocRef); 
+} else if (input.classList.contains('macro-pct-input') || input.id === 'goal-calorie-input') {
+    
+}
+
+            };
+            
+            // 2. CLICK HANDLER (Handles all other actions, including clicking a search result)
+            planContainer.onclick = (event) => {
+                const target = event.target;
+                
+                // Check if a search result was clicked (delegation)
+                if (target.closest('.search-result-item')) {
+                    const parentContainer = target.closest('.search-results');
+                    const searchInput = parentContainer ? document.getElementById(parentContainer.id.replace('food-results-', 'food-search-')) : null;
+                    
+                    if (!searchInput) return;
+
+                    const isAddBar = searchInput.classList.contains('food-search-add');
+                    const mealName = target.closest('.search-result-item').dataset.meal;
+                    const itemIndex = parseInt(target.closest('.search-result-item').dataset.index, 10);
+                    const key = isAddBar ? `add-${mealName}` : getMealKey(mealName, itemIndex);
+                    
+                    handleSearchResultClick(event, currentPlan, key, planDocRef, isAddBar);
+                    return; 
+                }
+
+                // Handle Shopping List Button
+                if (target.closest('#show-shopping-list-btn')) {
+                    displayShoppingListModal(currentPlan);
+                    return;
+                }
+
+                // Handle Email Button
+                if (target.closest('#email-plan-btn')) {
+                    sendPlansToBackend(currentPlan);
+                    return;
+                }
+
+                // Handle Day Navigation
+                if (target.closest('.day-nav-btn')) {
+                    const index = parseInt(target.closest('.day-nav-btn').dataset.dayIndex, 10);
+                    handleDayChange(currentPlan, index, type, planDocRef);
+                    return;
+                }
+
+                // Handle Meal Controls (Edit, Save, Cancel, +)
+                if (target.closest('.edit-meal-btn, .save-meal-edit-btn, .add-item-toggle-btn, .cancel-meal-edit-btn')) {
+                    handlePlanUpdate(event, currentPlan, type, planDocRef);
+                    // If it was a Save button, trigger the main save logic
+                    if (target.closest('.save-meal-edit-btn')) {
+                        document.getElementById('save-plan-btn').onclick();
+                    }
+                    return;
+                }
+                
+                // Handle Delete and Add Item Button Clicks
+                 if (target.closest('.delete-item-btn, .add-item-btn')) {
+                    handlePlanUpdate(event, currentPlan, type, planDocRef);
+                    return;
+                 }
+            };
+            
+            // Must re-attach goals listeners after any render
+            attachGoalsListeners(currentPlan, type, planDocRef); 
+        }
+
+        function attachFirestoreEventListeners(planDocRef, currentPlan) {
+            // All specific event attachment logic is moved to the delegated handler.
+            attachGoalsListeners(currentPlan, 'firestore', planDocRef);
+        }
+        
+        // Attaches listeners for goals editing (separate from meal item manipulation)
+        function attachGoalsListeners(currentPlan, type, planDocRef = null) {
+            const toggleBtn = document.getElementById('toggle-goal-edit-btn');
+            
+            // If the user clicks Edit/Save Goals
+            toggleBtn.onclick = () => {
+                if (!isGoalEditing) {
+                    // --- SWITCH TO EDIT MODE ---
+                    isGoalEditing = true;
+                    // Rerender UI to enable inputs
+                    renderPlan(currentPlan); 
+                    // Re-attach listeners to the updated DOM for the new inputs
+                    attachGoalsListeners(currentPlan, type, planDocRef);
+                    attachDelegatedSearchHandler(currentPlan, type, planDocRef);
+                } else {
+                    // --- SWITCH TO SAVE MODE ---
+                    const calInput     = document.getElementById('goal-calorie-input');
+const proPctInput  = document.getElementById('proPct-pct-input');
+const carbPctInput = document.getElementById('carbPct-pct-input');
+const fatPctInput  = document.getElementById('fatPct-pct-input');
+
+
+                    const newCal = parseInt(calInput.value, 10) || currentPlan.goalCalories;
+                    const newProPct = parseInt(proPctInput.value, 10) || currentPlan.macroTargets.proPct;
+                    const newCarbPct = parseInt(carbPctInput.value, 10) || currentPlan.macroTargets.carbPct;
+                    const newFatPct = parseInt(fatPctInput.value, 10) || currentPlan.macroTargets.fatPct;
+
+                    // Calculate the new plan based on the saved percentages and new calorie goal
+                    let newPlan = calculateTargetsFromPercentage(currentPlan, 'proPct', newProPct, newCal);
+                    newPlan = calculateTargetsFromPercentage(newPlan, 'carbPct', newCarbPct, newCal);
+                    newPlan = calculateTargetsFromPercentage(newPlan, 'fatPct', newFatPct, newCal);
+
+                    if (type === 'firestore' && planDocRef) {
+                        updatePlanInFirestore(planDocRef, newPlan);
+                    }
+                    
+                    isGoalEditing = false;
+                    renderPlan(newPlan);
+                    
+                    // Crucial: Re-attach all listeners based on the updated plan state
+                    attachDelegatedSearchHandler(newPlan, type, planDocRef);
+                }
+            };
+            
+            // Attach real-time percentage listeners (for visualization, not saving)
+            document.querySelectorAll('.macro-pct-input, #goal-calorie-input').forEach(input => {
+                input.oninput = null;
+                
+                input.oninput = (event) => {
+                    if (isGoalEditing) {
+                        const targetId = input.id.includes('pro') ? 'proPct' : 
+                                         input.id.includes('carb') ? 'carbPct' : 
+                                         input.id.includes('fat') ? 'fatPct' : null;
+                        
+                        // Read all temporary UI values, including the calorie input
+                        const calInputEl = document.getElementById('goal-calorie-input');
+                        const newCal = parseInt(calInputEl.value, 10) || currentPlan.goalCalories;
+                       const proPct  = parseInt(document.getElementById('proPct-pct-input')?.value, 10)  || 0;
+const carbPct = parseInt(document.getElementById('carbPct-pct-input')?.value, 10) || 0;
+const fatPct  = parseInt(document.getElementById('fatPct-pct-input')?.value, 10)  || 0;
+
+
+                        // Create a temporary plan for instant UI feedback only
+                        let tempPlan = JSON.parse(JSON.stringify(currentPlan));
+                        
+                        // Apply temporary values
+                        tempPlan.macroTargets.proPct = proPct;
+                        tempPlan.macroTargets.carbPct = carbPct;
+                        tempPlan.macroTargets.fatPct = fatPct;
+                        
+                        // Update the single input that was just changed
+                        let updatedTargetId = targetId;
+                        let updatedValue = (targetId && input.value) ? parseInt(input.value, 10) : tempPlan.macroTargets[targetId];
+                        
+                        if(input.id === 'goal-calorie-input') {
+                            updatedTargetId = null;
+                            updatedValue = null;
+                        } else if (targetId) {
+                            tempPlan.macroTargets[targetId] = updatedValue;
+                        }
+                        
+                        // Recalculate the targets based on the current UI state
+                        tempPlan = calculateTargetsFromPercentage(tempPlan, updatedTargetId, updatedValue, newCal);
+                        
+                        // Manually update the dependent target gram and warning display elements
+                        document.getElementById('proPct-display-grams').innerText = tempPlan.macroTargets.protein + 'g';
+                        document.getElementById('carbPct-display-grams').innerText = tempPlan.macroTargets.carbs + 'g';
+                        document.getElementById('fatPct-display-grams').innerText = tempPlan.macroTargets.fat + 'g';
+
+                        const totalPctSum = tempPlan.macroTargets.totalPctSum;
+                        const isOver100 = totalPctSum > 100;
+
+                        const pctWarningEl = document.getElementById('pct-warning');
+                        pctWarningEl.innerText = `Total: ${totalPctSum}% ${isOver100 ? '⚠️' : ''}`;
+                        pctWarningEl.classList.toggle('text-secondary', isOver100);
+                        pctWarningEl.classList.toggle('text-gray-500', !isOver100);
+
+                        const toggleBtn = document.getElementById('toggle-goal-edit-btn');
+                        toggleBtn.classList.toggle('bg-secondary', isOver100);
+                        toggleBtn.classList.toggle('hover:bg-red-700', isOver100);
+                        toggleBtn.classList.toggle('bg-success', !isOver100);
+                        toggleBtn.classList.toggle('hover:bg-green-600', !isOver100);
+
+                        // Crucial: Re-attach listeners to the updated DOM to ensure the toggle button works
+                        attachGoalsListeners(currentPlan, type, planDocRef);
+                        attachFirestoreEventListeners(planDocRef, currentPlan);
+                    }
+                };
+            });
+        }
+
+
+        // Separate function to handle local fallback events (if Firebase fails)
+        function attachLocalEventListeners(plan) {
+            // All specific event attachment logic is moved to the delegated handler.
+            attachDelegatedSearchHandler(plan, 'local');
+        }
     </script>
 
-    <div id="plan-header" class="max-w-7xl mx-auto mb-6"></div>
+    <div id="plan-header" class="max-w-7xl mx-auto mb-6">
+        <!-- Error or Status messages appear here -->
+    </div>
+
     <div id="plan-container">
-        <div class="max-w-4xl mx-auto bg-bg-surface rounded-xl shadow-2xl p-10 text-center border border-gray-700">
+        <!-- Initial Loading State -->
+        <div class="max-w-4xl mx-auto bg-gray-800 rounded-xl shadow-2xl p-10 text-center border border-gray-700">
             <svg class="animate-spin h-8 w-8 text-primary mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <p class="text-gray-400">Loading plan...</p>
+            <p class="text-gray-400">Loading plan and authenticating coach...</p>
         </div>
     </div>
 </body>
