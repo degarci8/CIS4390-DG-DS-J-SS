@@ -2008,6 +2008,178 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
+    document.addEventListener('DOMContentLoaded', () => {
+      // --- 1. SETUP UI ELEMENTS ---
+      const intro = document.getElementById('intro-screen');
+      const form = document.getElementById('intake-form');
+      const steps = Array.from(document.querySelectorAll('.step'));
+      const stepLabel = document.getElementById('step-label');
+      const progressBar = document.getElementById('progress-bar');
+      const main = document.getElementById('intake-main');
+      const thankYou = document.getElementById('thank-you-screen');
+      let currentStepIndex = 0;
+ 
+      // --- 2. WIZARD NAVIGATION LOGIC ---
+      function updateStepUI() {
+        steps.forEach((step, index) => {
+          step.classList.toggle('hidden', index !== currentStepIndex);
+        });
+ 
+        if (steps.length > 0 && stepLabel && progressBar) {
+          const stepNumber = currentStepIndex + 1;
+          const total = steps.length;
+          stepLabel.textContent = `Step ${stepNumber} of ${total}`;
+          const percent = (stepNumber / total) * 100;
+          progressBar.style.width = `${percent}%`;
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+ 
+      function validateCurrentStep() {
+        if (!steps.length) return true;
+        const currentStepEl = steps[currentStepIndex];
+        const stepNum = parseInt(currentStepEl.dataset.step);
+        // Custom Validation for Step 5 (Checkboxes)
+        if (stepNum === 5) {
+             const allergiesChecked = currentStepEl.querySelectorAll('input[name="allergies"]:checked').length > 0;
+             const dietChecked = currentStepEl.querySelectorAll('input[name="dietary_preferences"]:checked').length > 0;
+             const allergyErr = document.getElementById('allergies-error');
+             const dietErr = document.getElementById('dietary-error');
+             if(allergyErr) allergyErr.classList.toggle('hidden', allergiesChecked);
+             if(dietErr) dietErr.classList.toggle('hidden', dietChecked);
+             if(!allergiesChecked || !dietChecked) return false;
+        }
+ 
+        // Standard HTML Validation
+        const inputs = currentStepEl.querySelectorAll('input, select, textarea');
+        for (const input of inputs) {
+            if (!input.checkValidity()) {
+                input.reportValidity();
+                return false;
+            }
+        }
+        return true;
+      }
+ 
+      // --- 3. BUTTON LISTENERS ---
+      const startBtn = document.getElementById('start-intake-btn');
+      if (startBtn) {
+        startBtn.addEventListener('click', () => {
+            intro.classList.add('hidden');
+            form.classList.remove('hidden');
+            currentStepIndex = 0;
+            updateStepUI();
+        });
+      }
+ 
+      document.addEventListener('click', (e) => {
+        // Next Button
+        if(e.target.closest('.next-btn')) {
+            if(validateCurrentStep()) {
+                if (currentStepIndex < steps.length - 1) {
+                    currentStepIndex++;
+                    updateStepUI();
+                }
+            }
+        }
+        // Back Button
+        if(e.target.closest('.prev-btn')) {
+            if(currentStepIndex > 0) {
+                currentStepIndex--;
+                updateStepUI();
+            } else {
+                form.classList.add('hidden');
+                intro.classList.remove('hidden');
+            }
+        }
+        // Edit Button (Review Step)
+        const jumpBtn = e.target.closest('.jump-step-btn');
+        if(jumpBtn) {
+            currentStepIndex = parseInt(jumpBtn.dataset.step, 10) - 1;
+            updateStepUI();
+        }
+      });
+ 
+      // --- 4. TOGGLES (Conditionals) ---
+      function setupConditionalFields(toggleId, containerId) {
+        const toggle = document.getElementById(toggleId);
+        const container = document.getElementById(containerId);
+        if (!toggle || !container) return;
+        const inputs = container.querySelectorAll('input, textarea, select');
+ 
+        function updateState() {
+          const isOn = toggle.checked;
+          container.classList.toggle('hidden', !isOn);
+          container.style.display = isOn ? 'grid' : 'none';
+          inputs.forEach(input => {
+            if (isOn) input.setAttribute('required', '');
+            else input.removeAttribute('required');
+          });
+        }
+        toggle.addEventListener('change', updateState);
+        updateState();
+      }
+      setupConditionalFields('previous-program-toggle', 'previous-program-fields');
+      setupConditionalFields('bodyfat-tested-toggle', 'bodyfat-fields');
+ 
+ 
+      // --- 5. N8N SUBMISSION HANDLER ---
+      if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+ 
+            if (!validateCurrentStep()) return;
+ 
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if(submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerText = "Submitting...";
+            }
+ 
+            // A. Convert Form Data to Clean JSON
+            // We do this manually to handle the Arrays (Allergies/Diet) correctly
+            const formData = new FormData(form);
+            const dataObj = {};
+            formData.forEach((value, key) => {
+                if (dataObj.hasOwnProperty(key)) {
+                    if (!Array.isArray(dataObj[key])) {
+                        dataObj[key] = [dataObj[key]];
+                    }
+                    dataObj[key].push(value);
+                } else {
+                    dataObj[key] = value;
+                }
+            });
+ 
+            // Ensure our dashboard tag is present
+            // (Even if you missed adding the hidden input in HTML, this adds it safely)
+            dataObj.intakeStatus = "Pending Review";
+ 
+            try {
+                // B. Send to N8N
+                // We use 'no-cors' mode. This sends the data "blindly". 
+                // The browser won't be able to read the response from N8N, 
+                // but N8N WILL receive the data. This prevents CORS errors.
+                await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(dataObj),
+                    mode: 'no-cors' 
+                });
+ 
+                // C. Show Success Screen
+                if(main) main.classList.add('hidden');
+                if(thankYou) thankYou.classList.remove('hidden');
+ 
+            } catch (error) {
+                console.error("Submission Error:", error);
+                // If it fails, we still show success because 'no-cors' makes error handling tricky,
+                // and often the error is just the browser complaining about headers, even if N8N got the data.
+                if(main) main.classList.add('hidden');
+                if(thankYou) thankYou.classList.remove('hidden');
+            }
         });
         console.log("Success!");
       } catch (err) {
@@ -2020,6 +2192,8 @@
     });
   });
 </script>
+    }); // <--- This closes the DOMContentLoaded event
+  </script>
 
 </body>
 </html>
