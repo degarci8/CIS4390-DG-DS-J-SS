@@ -23,13 +23,13 @@
   </style>
 
   <style>
-  /* Show conditional sections when toggle is on */
-  #previous-program-toggle:checked ~ #previous-program-fields {
-    display: grid;
-  }
-  #bodyfat-tested-toggle:checked ~ #bodyfat-fields {
-    display: grid;
-  }
+    /* Show conditional sections when toggle is on */
+    #previous-program-toggle:checked ~ #previous-program-fields {
+      display: grid;
+    }
+    #bodyfat-tested-toggle:checked ~ #bodyfat-fields {
+      display: grid;
+    }
   </style>
 
   <script id="tailwind-config">
@@ -161,7 +161,8 @@
           action="https://djshortt.app.n8n.cloud/webhook/4fc73d32-f765-4619-8285-933001be28e3"
           method="POST"
           class="space-y-6 hidden"
-        > <input type="hidden" name="intakeStatus" value="Pending Review" />
+        >
+          <input type="hidden" name="intakeStatus" value="Pending Review" />
         
           <!-- STEP 1: Personal Information -->
           <section class="step" data-step="1">
@@ -1568,7 +1569,7 @@
                       name="program_consist"
                       rows="3"
                       placeholder="e.g., Keto diet, 5x5 lifting"
-                      class="form-textarea peer w-full resize-y rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
+                      class="form-textarea peer w-full resize-y rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder-text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
                     ></textarea>
                   </div>
 
@@ -1594,7 +1595,7 @@
                       name="past_challenges"
                       rows="3"
                       placeholder="What did you struggle with?"
-                      class="form-textarea peer w-full resize-y rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
+                      class="form-textarea peer w-full resize-y rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder-text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
                     ></textarea>
                   </div>
                 </div>
@@ -1634,7 +1635,7 @@
                       type="number"
                       required
                       placeholder="e.g. 68"
-                      class="form-input peer w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
+                      class="form-input peer w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder-text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
                     />
                   </div>
 
@@ -1692,7 +1693,7 @@
                     <select
                       id="bf_method"
                       name="bf_method"
-                      class="form-select peer w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
+                      class="form-select peer w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder-text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
                     >
                       <option disabled selected value="">Select method...</option>
                       <option value="calipers">Calipers</option>
@@ -1716,7 +1717,7 @@
                       type="number"
                       step="0.1"
                       placeholder="e.g. 22.5"
-                      class="form-input peer w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
+                      class="form-input peer w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-brand-white dark:bg-background-dark p-3 text-base font-normal leading-normal text-brand-charcoal dark:text-gray-100 placeholder:text-brand-gray dark:placeholder-text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/50"
                     />
                   </div>
 
@@ -1865,151 +1866,7 @@
   </div>
 
   <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const intro = document.getElementById('intro-screen');
-    const form = document.getElementById('intake-form');
-    const steps = Array.from(document.querySelectorAll('.step'));
-    const stepLabel = document.getElementById('step-label');
-    const progressBar = document.getElementById('progress-bar');
-    const main = document.getElementById('intake-main');
-    const thankYou = document.getElementById('thank-you-screen');
-    let currentStepIndex = 0;
-
-    // --- YOUR NEW PRODUCTION URL GOES HERE ---
-    // Make sure this DOES NOT have "-test" in it!
-    const N8N_WEBHOOK_URL = "https://djshortt.app.n8n.cloud/webhook/4fc73d32-f765-4619-8285-933001be28e3"; 
-
-    // Helper: Update UI
-    function updateStepUI() {
-      steps.forEach((step, index) => {
-        step.classList.toggle('hidden', index !== currentStepIndex);
-      });
-      if (steps.length > 0 && stepLabel && progressBar) {
-        const stepNumber = currentStepIndex + 1;
-        stepLabel.textContent = `Step ${stepNumber} of ${steps.length}`;
-        progressBar.style.width = `${(stepNumber / steps.length) * 100}%`;
-      }
-    }
-
-    // Helper: Validation
-    function validateCurrentStep() {
-      if (!steps.length || !form) return true;
-      const currentStepEl = steps[currentStepIndex];
-      const stepNumber = parseInt(currentStepEl.dataset.step || '', 10);
-
-      // Step 5 Special Validation (Checkbox Groups)
-      if (stepNumber === 5) {
-        const allergiesChecked = currentStepEl.querySelectorAll('input[name="allergies"]:checked').length > 0;
-        const dietaryChecked = currentStepEl.querySelectorAll('input[name="dietary_preferences"]:checked').length > 0;
-        
-        document.getElementById('allergies-error')?.classList.toggle('hidden', allergiesChecked);
-        document.getElementById('dietary-error')?.classList.toggle('hidden', dietaryChecked);
-
-        if (!allergiesChecked || !dietaryChecked) return false;
-      }
-
-      // Standard HTML5 Validation
-      const fields = currentStepEl.querySelectorAll('input, select, textarea');
-      for (const field of fields) {
-        if (!field.checkValidity()) {
-          field.reportValidity();
-          return false;
-        }
-      }
-      return true;
-    }
-
-    // Navigation Event Listeners
-    document.getElementById('start-intake-btn')?.addEventListener('click', () => {
-      intro.classList.add('hidden');
-      form.classList.remove('hidden');
-      updateStepUI();
-    });
-
-    document.addEventListener('click', (e) => {
-      if (e.target.closest('.next-btn')) {
-        if (validateCurrentStep() && currentStepIndex < steps.length - 1) {
-          currentStepIndex++;
-          updateStepUI();
-        }
-      }
-      if (e.target.closest('.prev-btn')) {
-        if (currentStepIndex > 0) {
-          currentStepIndex--;
-          updateStepUI();
-        } else {
-          form.classList.add('hidden');
-          intro.classList.remove('hidden');
-        }
-      }
-      // Review Screen "Edit" Buttons
-      const jumpBtn = e.target.closest('.jump-step-btn');
-      if (jumpBtn) {
-        currentStepIndex = parseInt(jumpBtn.dataset.step, 10) - 1;
-        updateStepUI();
-      }
-    });
-
-    // Toggle Logic (Previous Program / Bodyfat)
-    function setupConditionalFields(toggleId, containerId) {
-      const toggle = document.getElementById(toggleId);
-      const container = document.getElementById(containerId);
-      if (!toggle || !container) return;
-      
-      const inputs = container.querySelectorAll('input, textarea, select');
-      const update = () => {
-        const isOn = toggle.checked;
-        container.classList.toggle('hidden', !isOn);
-        container.style.display = isOn ? 'grid' : 'none';
-        inputs.forEach(input => isOn ? input.setAttribute('required', '') : input.removeAttribute('required'));
-      };
-      toggle.addEventListener('change', update);
-      update();
-    }
-    setupConditionalFields('previous-program-toggle', 'previous-program-fields');
-    setupConditionalFields('bodyfat-tested-toggle', 'bodyfat-fields');
-
-
-    // --- THE FIX: ROBUST SUBMISSION HANDLER ---
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (!validateCurrentStep()) return;
-
-      // 1. Convert FormData to Clean JSON
-      const formData = new FormData(form);
-      const data = {};
-      
-      // Handle checkboxes (arrays) and standard fields
-      const arrayFields = ['medical_conditions', 'allergies', 'dietary_preferences'];
-      
-      for (const [key, value] of formData.entries()) {
-        if (arrayFields.includes(key)) {
-          if (!data[key]) data[key] = [];
-          data[key].push(value);
-        } else {
-          data[key] = value;
-        }
-      }
-
-      // Convert arrays to strings for easier reading in n8n/Sheets (optional)
-      // e.g., ["Milk", "Eggs"] becomes "Milk, Eggs"
-      arrayFields.forEach(field => {
-        if(data[field] && Array.isArray(data[field])) {
-           data[field] = data[field].join(', ');
-        }
-      });
-
-      console.log("Sending data to:", N8N_WEBHOOK_URL);
-      console.log("Payload:", data);
-
-      // 2. Send JSON to n8n
-      try {
-        await fetch(N8N_WEBHOOK_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
     document.addEventListener('DOMContentLoaded', () => {
-      // --- 1. SETUP UI ELEMENTS ---
       const intro = document.getElementById('intro-screen');
       const form = document.getElementById('intake-form');
       const steps = Array.from(document.querySelectorAll('.step'));
@@ -2018,13 +1875,13 @@
       const main = document.getElementById('intake-main');
       const thankYou = document.getElementById('thank-you-screen');
       let currentStepIndex = 0;
- 
-      // --- 2. WIZARD NAVIGATION LOGIC ---
+
+      // Update which step is visible + progress bar
       function updateStepUI() {
         steps.forEach((step, index) => {
           step.classList.toggle('hidden', index !== currentStepIndex);
         });
- 
+
         if (steps.length > 0 && stepLabel && progressBar) {
           const stepNumber = currentStepIndex + 1;
           const total = steps.length;
@@ -2032,167 +1889,162 @@
           const percent = (stepNumber / total) * 100;
           progressBar.style.width = `${percent}%`;
         }
+
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
- 
+
+      // Validate current step (including special group validation for Step 5)
       function validateCurrentStep() {
-        if (!steps.length) return true;
+        if (!steps.length || !form) return true;
+
         const currentStepEl = steps[currentStepIndex];
-        const stepNum = parseInt(currentStepEl.dataset.step);
-        // Custom Validation for Step 5 (Checkboxes)
-        if (stepNum === 5) {
-             const allergiesChecked = currentStepEl.querySelectorAll('input[name="allergies"]:checked').length > 0;
-             const dietChecked = currentStepEl.querySelectorAll('input[name="dietary_preferences"]:checked').length > 0;
-             const allergyErr = document.getElementById('allergies-error');
-             const dietErr = document.getElementById('dietary-error');
-             if(allergyErr) allergyErr.classList.toggle('hidden', allergiesChecked);
-             if(dietErr) dietErr.classList.toggle('hidden', dietChecked);
-             if(!allergiesChecked || !dietChecked) return false;
-        }
- 
-        // Standard HTML Validation
-        const inputs = currentStepEl.querySelectorAll('input, select, textarea');
-        for (const input of inputs) {
-            if (!input.checkValidity()) {
-                input.reportValidity();
-                return false;
+        const stepNumber = parseInt(currentStepEl.dataset.step || '', 10);
+
+        // Custom validation for Step 5 checkboxes
+        if (stepNumber === 5) {
+          const allergiesChecked =
+            currentStepEl.querySelectorAll('input[name="allergies"]:checked').length > 0;
+          const dietaryChecked =
+            currentStepEl.querySelectorAll('input[name="dietary_preferences"]:checked').length > 0;
+
+          const allergiesError = document.getElementById('allergies-error');
+          const dietaryError = document.getElementById('dietary-error');
+
+          if (allergiesError) {
+            allergiesError.classList.toggle('hidden', allergiesChecked);
+          }
+          if (dietaryError) {
+            dietaryError.classList.toggle('hidden', dietaryChecked);
+          }
+
+          if (!allergiesChecked || !dietaryChecked) {
+            const firstError = !allergiesChecked ? allergiesError : dietaryError;
+            if (firstError && typeof firstError.scrollIntoView === 'function') {
+              firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
+            return false;
+          }
         }
+
+        // Standard HTML5 validation for fields in this step
+        const fields = currentStepEl.querySelectorAll('input, select, textarea');
+        for (const field of fields) {
+          if (!field.checkValidity()) {
+            field.reportValidity();
+            return false;
+          }
+        }
+
         return true;
       }
- 
-      // --- 3. BUTTON LISTENERS ---
+
+      // Start button
       const startBtn = document.getElementById('start-intake-btn');
-      if (startBtn) {
+      if (startBtn && intro && form) {
         startBtn.addEventListener('click', () => {
-            intro.classList.add('hidden');
-            form.classList.remove('hidden');
-            currentStepIndex = 0;
-            updateStepUI();
+          intro.classList.add('hidden');
+          form.classList.remove('hidden');
+          currentStepIndex = 0;
+          updateStepUI();
         });
       }
- 
+
+      // Next / Back / Jump buttons
       document.addEventListener('click', (e) => {
-        // Next Button
-        if(e.target.closest('.next-btn')) {
-            if(validateCurrentStep()) {
-                if (currentStepIndex < steps.length - 1) {
-                    currentStepIndex++;
-                    updateStepUI();
-                }
-            }
-        }
-        // Back Button
-        if(e.target.closest('.prev-btn')) {
-            if(currentStepIndex > 0) {
-                currentStepIndex--;
-                updateStepUI();
-            } else {
-                form.classList.add('hidden');
-                intro.classList.remove('hidden');
-            }
-        }
-        // Edit Button (Review Step)
+        const nextBtn = e.target.closest('.next-btn');
+        const prevBtn = e.target.closest('.prev-btn');
         const jumpBtn = e.target.closest('.jump-step-btn');
-        if(jumpBtn) {
-            currentStepIndex = parseInt(jumpBtn.dataset.step, 10) - 1;
+
+        if (nextBtn) {
+          if (!validateCurrentStep()) return;
+          if (currentStepIndex < steps.length - 1) {
+            currentStepIndex++;
             updateStepUI();
+          }
+        }
+
+        if (prevBtn) {
+          if (currentStepIndex > 0) {
+            currentStepIndex--;
+            updateStepUI();
+          } else if (form && intro) {
+            // From step 1 back to intro
+            form.classList.add('hidden');
+            intro.classList.remove('hidden');
+            if (stepLabel) stepLabel.textContent = 'Welcome';
+            if (progressBar) progressBar.style.width = '0%';
+          }
+        }
+
+        if (jumpBtn) {
+          const targetStep = parseInt(jumpBtn.dataset.step, 10);
+          if (!Number.isNaN(targetStep) && targetStep >= 1 && targetStep <= steps.length) {
+            if (intro && form) {
+              intro.classList.add('hidden');
+              form.classList.remove('hidden');
+            }
+            currentStepIndex = targetStep - 1;
+            updateStepUI();
+          }
         }
       });
- 
-      // --- 4. TOGGLES (Conditionals) ---
+
+      // Conditional fields (Previous program + body fat)
       function setupConditionalFields(toggleId, containerId) {
         const toggle = document.getElementById(toggleId);
         const container = document.getElementById(containerId);
         if (!toggle || !container) return;
-        const inputs = container.querySelectorAll('input, textarea, select');
- 
+
+        const controlledInputs = container.querySelectorAll('input, textarea, select');
+
         function updateState() {
           const isOn = toggle.checked;
           container.classList.toggle('hidden', !isOn);
           container.style.display = isOn ? 'grid' : 'none';
-          inputs.forEach(input => {
-            if (isOn) input.setAttribute('required', '');
-            else input.removeAttribute('required');
+
+          controlledInputs.forEach((input) => {
+            if (isOn) {
+              input.setAttribute('required', '');
+            } else {
+              input.removeAttribute('required');
+            }
           });
         }
+
         toggle.addEventListener('change', updateState);
         updateState();
       }
+
       setupConditionalFields('previous-program-toggle', 'previous-program-fields');
       setupConditionalFields('bodyfat-tested-toggle', 'bodyfat-fields');
- 
- 
-      // --- 5. N8N SUBMISSION HANDLER ---
-      if (form) {
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
- 
-            if (!validateCurrentStep()) return;
- 
-            const submitBtn = form.querySelector('button[type="submit"]');
-            if(submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerText = "Submitting...";
-            }
- 
-            // A. Convert Form Data to Clean JSON
-            // We do this manually to handle the Arrays (Allergies/Diet) correctly
-            const formData = new FormData(form);
-            const dataObj = {};
-            formData.forEach((value, key) => {
-                if (dataObj.hasOwnProperty(key)) {
-                    if (!Array.isArray(dataObj[key])) {
-                        dataObj[key] = [dataObj[key]];
-                    }
-                    dataObj[key].push(value);
-                } else {
-                    dataObj[key] = value;
-                }
-            });
- 
-            // Ensure our dashboard tag is present
-            // (Even if you missed adding the hidden input in HTML, this adds it safely)
-            dataObj.intakeStatus = "Pending Review";
- 
-            try {
-                // B. Send to N8N
-                // We use 'no-cors' mode. This sends the data "blindly". 
-                // The browser won't be able to read the response from N8N, 
-                // but N8N WILL receive the data. This prevents CORS errors.
-                await fetch(form.action, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(dataObj),
-                    mode: 'no-cors' 
-                });
- 
-                // C. Show Success Screen
-                if(main) main.classList.add('hidden');
-                if(thankYou) thankYou.classList.remove('hidden');
- 
-            } catch (error) {
-                console.error("Submission Error:", error);
-                // If it fails, we still show success because 'no-cors' makes error handling tricky,
-                // and often the error is just the browser complaining about headers, even if N8N got the data.
-                if(main) main.classList.add('hidden');
-                if(thankYou) thankYou.classList.remove('hidden');
-            }
-        });
-        console.log("Success!");
-      } catch (err) {
-        console.error("Submission error (check CORS in n8n settings):", err);
-      }
 
-      // 3. Show Thank You (Regardless of n8n response to avoid getting stuck)
-      main.classList.add('hidden');
-      thankYou.classList.remove('hidden');
+      // Submit handler: send to n8n and show thank-you
+      if (form && main && thankYou) {
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+
+          // Make sure everything is valid before final submit
+          if (!form.reportValidity()) {
+            return;
+          }
+
+          const data = new FormData(form);
+
+          try {
+            await fetch(form.action, {
+              method: 'POST',
+              body: data,
+            });
+          } catch (err) {
+            console.error('Submission error (network/CORS likely):', err);
+            // We still show the thank-you screen so users don't get stuck.
+          }
+
+          main.classList.add('hidden');
+          thankYou.classList.remove('hidden');
+        });
+      }
     });
-  });
-</script>
-    }); // <--- This closes the DOMContentLoaded event
   </script>
 
 </body>
