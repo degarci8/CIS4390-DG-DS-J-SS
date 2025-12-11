@@ -158,7 +158,7 @@
         <!-- Multi-step form (hidden until "Start Intake") -->
         <form
           id="intake-form"
-          action="https://djshortt.app.n8n.cloud/webhook-test/4fc73d32-f765-4619-8285-933001be28e3"
+          action="https://djshortt.app.n8n.cloud/webhook/4fc73d32-f765-4619-8285-933001be28e3"
           method="POST"
           class="space-y-6 hidden"
         > <input type="hidden" name="intakeStatus" value="Pending Review" />
@@ -1865,6 +1865,149 @@
   </div>
 
   <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const intro = document.getElementById('intro-screen');
+    const form = document.getElementById('intake-form');
+    const steps = Array.from(document.querySelectorAll('.step'));
+    const stepLabel = document.getElementById('step-label');
+    const progressBar = document.getElementById('progress-bar');
+    const main = document.getElementById('intake-main');
+    const thankYou = document.getElementById('thank-you-screen');
+    let currentStepIndex = 0;
+
+    // --- YOUR NEW PRODUCTION URL GOES HERE ---
+    // Make sure this DOES NOT have "-test" in it!
+    const N8N_WEBHOOK_URL = "https://djshortt.app.n8n.cloud/webhook/4fc73d32-f765-4619-8285-933001be28e3"; 
+
+    // Helper: Update UI
+    function updateStepUI() {
+      steps.forEach((step, index) => {
+        step.classList.toggle('hidden', index !== currentStepIndex);
+      });
+      if (steps.length > 0 && stepLabel && progressBar) {
+        const stepNumber = currentStepIndex + 1;
+        stepLabel.textContent = `Step ${stepNumber} of ${steps.length}`;
+        progressBar.style.width = `${(stepNumber / steps.length) * 100}%`;
+      }
+    }
+
+    // Helper: Validation
+    function validateCurrentStep() {
+      if (!steps.length || !form) return true;
+      const currentStepEl = steps[currentStepIndex];
+      const stepNumber = parseInt(currentStepEl.dataset.step || '', 10);
+
+      // Step 5 Special Validation (Checkbox Groups)
+      if (stepNumber === 5) {
+        const allergiesChecked = currentStepEl.querySelectorAll('input[name="allergies"]:checked').length > 0;
+        const dietaryChecked = currentStepEl.querySelectorAll('input[name="dietary_preferences"]:checked').length > 0;
+        
+        document.getElementById('allergies-error')?.classList.toggle('hidden', allergiesChecked);
+        document.getElementById('dietary-error')?.classList.toggle('hidden', dietaryChecked);
+
+        if (!allergiesChecked || !dietaryChecked) return false;
+      }
+
+      // Standard HTML5 Validation
+      const fields = currentStepEl.querySelectorAll('input, select, textarea');
+      for (const field of fields) {
+        if (!field.checkValidity()) {
+          field.reportValidity();
+          return false;
+        }
+      }
+      return true;
+    }
+
+    // Navigation Event Listeners
+    document.getElementById('start-intake-btn')?.addEventListener('click', () => {
+      intro.classList.add('hidden');
+      form.classList.remove('hidden');
+      updateStepUI();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.next-btn')) {
+        if (validateCurrentStep() && currentStepIndex < steps.length - 1) {
+          currentStepIndex++;
+          updateStepUI();
+        }
+      }
+      if (e.target.closest('.prev-btn')) {
+        if (currentStepIndex > 0) {
+          currentStepIndex--;
+          updateStepUI();
+        } else {
+          form.classList.add('hidden');
+          intro.classList.remove('hidden');
+        }
+      }
+      // Review Screen "Edit" Buttons
+      const jumpBtn = e.target.closest('.jump-step-btn');
+      if (jumpBtn) {
+        currentStepIndex = parseInt(jumpBtn.dataset.step, 10) - 1;
+        updateStepUI();
+      }
+    });
+
+    // Toggle Logic (Previous Program / Bodyfat)
+    function setupConditionalFields(toggleId, containerId) {
+      const toggle = document.getElementById(toggleId);
+      const container = document.getElementById(containerId);
+      if (!toggle || !container) return;
+      
+      const inputs = container.querySelectorAll('input, textarea, select');
+      const update = () => {
+        const isOn = toggle.checked;
+        container.classList.toggle('hidden', !isOn);
+        container.style.display = isOn ? 'grid' : 'none';
+        inputs.forEach(input => isOn ? input.setAttribute('required', '') : input.removeAttribute('required'));
+      };
+      toggle.addEventListener('change', update);
+      update();
+    }
+    setupConditionalFields('previous-program-toggle', 'previous-program-fields');
+    setupConditionalFields('bodyfat-tested-toggle', 'bodyfat-fields');
+
+
+    // --- THE FIX: ROBUST SUBMISSION HANDLER ---
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!validateCurrentStep()) return;
+
+      // 1. Convert FormData to Clean JSON
+      const formData = new FormData(form);
+      const data = {};
+      
+      // Handle checkboxes (arrays) and standard fields
+      const arrayFields = ['medical_conditions', 'allergies', 'dietary_preferences'];
+      
+      for (const [key, value] of formData.entries()) {
+        if (arrayFields.includes(key)) {
+          if (!data[key]) data[key] = [];
+          data[key].push(value);
+        } else {
+          data[key] = value;
+        }
+      }
+
+      // Convert arrays to strings for easier reading in n8n/Sheets (optional)
+      // e.g., ["Milk", "Eggs"] becomes "Milk, Eggs"
+      arrayFields.forEach(field => {
+        if(data[field] && Array.isArray(data[field])) {
+           data[field] = data[field].join(', ');
+        }
+      });
+
+      console.log("Sending data to:", N8N_WEBHOOK_URL);
+      console.log("Payload:", data);
+
+      // 2. Send JSON to n8n
+      try {
+        await fetch(N8N_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
     document.addEventListener('DOMContentLoaded', () => {
       // --- 1. SETUP UI ELEMENTS ---
       const intro = document.getElementById('intro-screen');
@@ -2038,7 +2181,17 @@
                 if(thankYou) thankYou.classList.remove('hidden');
             }
         });
+        console.log("Success!");
+      } catch (err) {
+        console.error("Submission error (check CORS in n8n settings):", err);
       }
+
+      // 3. Show Thank You (Regardless of n8n response to avoid getting stuck)
+      main.classList.add('hidden');
+      thankYou.classList.remove('hidden');
+    });
+  });
+</script>
     }); // <--- This closes the DOMContentLoaded event
   </script>
 

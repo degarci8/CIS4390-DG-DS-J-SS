@@ -4,24 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Real-Time Nutrition Editor</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        'primary': '#1D4ED8',
+                        'primary': '#DC2626', // Xtreme Red
                         'secondary': '#DC2626',
                         'success': '#10B981',
                         'warning': '#F59E0B',
                         'info': '#3B82F6',
                         'protein': '#EF4444',
+                        'bg-body': '#1a1a1a', 
+                        'bg-surface': '#262626'
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
@@ -31,24 +34,48 @@
         }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .progress-bar-container { height: 8px; background-color: #374151; border-radius: 9999px; overflow: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #1a1a1a; }
+        
+        /* Scrollbars */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1a1a1a; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #DC2626; }
+
+        /* Hide Number Spinners */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        /* Inputs */
+        .input-as-text { border: none; background: none; padding: 0; color: inherit; font-size: inherit; font-weight: inherit; outline: none; text-align: center; width: 100%; transition: border-bottom 0.1s; }
+        .input-as-text:focus { border-bottom: 2px solid #DC2626; background-color: #1a1a1a; }
+        
+        .input-std { background-color: #1a1a1a; border: 1px solid #4B5563; color: #E5E7EB; border-radius: 0.5rem; transition: border-color 0.2s; }
+        .input-std:focus { outline: none; border-color: #DC2626; }
+        .input-std:disabled { border: none; background-color: transparent; }
+
+        /* Macro Percent Inputs */
+        .macro-pct-inline-input { text-align: center !important; background: transparent; border: none; width: 3.5rem; }
+
+        /* Modal */
+        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); z-index: 50; display: flex; justify-content: center; align-items: center; }
+        .progress-bar-container { height: 8px; background-color: #374151; border-radius: 9999px; overflow: hidden; margin-bottom: 12px; }
         .progress-bar { height: 100%; transition: width 0.3s ease; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #4B5563; border-radius: 10px; }
-        .custom-scrollbar { scrollbar-width: thin; scrollbar-color: #4B5563 #1F2937; }
-        .input-as-text { border: none; background: none; padding: 0; color: inherit; font-size: inherit; font-weight: inherit; outline: none; text-align: center; width: 100%; }
-        .input-as-text:focus { border-bottom: 1px solid #1D4ED8; background-color: #1F2937; }
-        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.75); z-index: 50; display: flex; justify-content: center; align-items: center; }
     </style>
 </head>
-<body class="bg-gray-900 min-h-screen p-4 sm:p-8 text-white">
+<body class="bg-bg-body min-h-screen p-4 sm:p-8 text-white">
+
+    <nav class="max-w-7xl mx-auto mb-6 flex items-center justify-between">
+        <a href="dashboard.html" class="flex items-center text-gray-400 hover:text-primary transition font-semibold">
+            <i class="fa-solid fa-arrow-left mr-2"></i> Back to Dashboard
+        </a>
+    </nav>
 
     <div id="shopping-list-modal" class="modal-backdrop hidden">
-        <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-gray-700">
-            <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-6">
-                <h2 class="text-3xl font-bold text-success">🛒 Weekly Shopping List</h2>
+        <div class="bg-bg-surface p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border-2 border-gray-700">
+            <div class="flex justify-between items-center border-b border-gray-600 pb-4 mb-6">
+                <h2 id="shopping-list-title" class="text-3xl font-black text-success tracking-wide">SHOPPING LIST</h2>
                 <button id="close-shopping-list" class="text-gray-400 hover:text-white transition"><i class="fa-solid fa-xmark fa-2x"></i></button>
             </div>
             <div id="shopping-list-content"></div>
@@ -56,28 +83,29 @@
     </div>
     
     <div id="email-confirmation-modal" class="modal-backdrop hidden">
-        <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-gray-700">
-            <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-6">
-                <h2 class="text-3xl font-bold text-primary">📧 Final Plan Review</h2>
+        <div class="bg-bg-surface p-8 rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border-2 border-gray-700">
+            <div class="flex justify-between items-center border-b border-gray-600 pb-4 mb-6">
+                <h2 class="text-3xl font-black text-primary tracking-wide">FINAL PLAN REVIEW</h2>
                 <button id="close-email-modal" class="text-gray-400 hover:text-white transition"><i class="fa-solid fa-xmark fa-2x"></i></button>
             </div>
             <div id="email-payload-content">
-                <p class="text-gray-300 mb-2">Ready to deliver. This action will launch your email client with the plan summary.</p>
-                <div class="p-3 bg-gray-900 rounded-lg text-sm mb-4">
+                <p class="text-gray-300 mb-4">Review the plan summary before delivery.</p>
+                <div class="p-4 bg-bg-body rounded-lg text-sm mb-6 border border-gray-700">
                     <p class="text-gray-400">Recipient: <strong class="text-white" id="recipient-email"></strong></p>
+                    <p class="text-gray-400">Plan: <strong class="text-white" id="plan-days-summary"></strong></p>
                 </div>
-                <h3 class="text-xl font-bold text-gray-200 mb-2">Email Preview:</h3>
-                <div class="bg-gray-900 p-4 rounded-lg text-sm font-mono text-gray-200 whitespace-pre-wrap max-h-60 overflow-y-auto">
-                    <pre id="payload-display"></pre>
+                <h3 class="text-xl font-bold text-gray-200 mb-3 uppercase">Email Preview</h3>
+                <div class="bg-bg-body p-4 rounded-lg text-sm font-mono text-gray-200 max-h-60 overflow-y-auto border border-gray-700">
+                    <div id="payload-display"></div>
                 </div>
-                <a id="mail-to-link" href="#" class="block w-full text-center py-3 mt-6 bg-success text-white font-bold rounded-lg shadow-lg hover:bg-green-600 transition duration-150">
-                    <i class="fa-solid fa-envelope mr-2"></i> Open Email Client
+                <a id="mail-to-link" href="#" class="block w-full text-center py-3 mt-8 bg-success text-white font-black rounded-lg shadow-lg hover:bg-green-600 transition duration-150">
+                    <i class="fa-solid fa-paper-plane mr-2"></i> Confirm & Open Email
                 </a>
             </div>
         </div>
     </div>
 
-<script>
+    <script>
         // --- 1. FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyA_D8lToqMx6-9wVei86AVrhtFsoPNRzUA",
@@ -101,12 +129,8 @@
         let mealAddBarVisible = {};
         let activeSearches = {};
         const MAX_SEARCH_RESULTS = 8;
-
-        const CAL_PER_PRO = 4;
-        const CAL_PER_CARB = 4;
-        const CAL_PER_FAT = 9;
-
         let FOOD_DB = {}; 
+        const UNIT_MULTIPLIERS = { g: 1, oz: 28.35, lb: 453.59 };
 
         // --- 3. INITIALIZATION & AUTH ---
         window.onload = function() {
@@ -121,7 +145,6 @@
 
             auth.onAuthStateChanged((user) => {
                 if (user) {
-                    console.log("Authorized. Loading data for client:", clientId);
                     loadDataFromFirebase();
                 } else {
                     window.location.href = "login.html";
@@ -132,68 +155,89 @@
             document.getElementById('close-email-modal').onclick = () => document.getElementById('email-confirmation-modal').classList.add('hidden');
         };
 
-        // --- 4. DATA LOADING (UPDATED FOR N8N) ---
+        // --- 4. DATA LOADING (ROBUST) ---
         async function loadDataFromFirebase() {
             try {
-                // A. Fetch Client Profile (to check if Coach already saved a plan)
                 const clientDoc = await db.collection("clients").doc(clientId).get();
                 if (!clientDoc.exists) throw new Error("Client not found");
                 const clientData = clientDoc.data();
                 const clientEmail = clientData.email;
 
-                // B. Fetch N8N Data
                 let n8nPlanData = null;
-                
+                let calculatedMacros = null;
+
                 if (clientEmail) {
-                    const planQuery = await db.collection("clientPlans")
-                                              .where("clientKey", "==", clientEmail)
-                                              .limit(1)
-                                              .get();
+                    const planQuery = await db.collection("clientPlans").where("clientKey", "==", clientEmail).limit(1).get();
 
                     if (!planQuery.empty) {
                         const n8nDoc = planQuery.docs[0].data();
-                        console.log("Found N8N Document:", n8nDoc);
-
-                        // 1. Parse Food DB
+                        
+                        // Parse Food DB (Double-Parse Safety)
                         if (n8nDoc.recommendedFoodsJson) {
-                            try {
-                                const parsedFoods = typeof n8nDoc.recommendedFoodsJson === 'string' 
-                                    ? JSON.parse(n8nDoc.recommendedFoodsJson) 
-                                    : n8nDoc.recommendedFoodsJson;
-                                populateFoodDB(parsedFoods);
-                            } catch (e) { console.error("Error parsing foods:", e); }
+                            let raw = n8nDoc.recommendedFoodsJson;
+                            if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch(e){} }
+                            if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch(e){} }
+                            populateFoodDB(raw);
                         }
 
-                        // 2. Parse Initial Plan (The logic you asked for)
+                        // Parse Initial Plan (Double-Parse Safety)
                         if (n8nDoc.initialPlanJson) {
-                            try {
-                                n8nPlanData = typeof n8nDoc.initialPlanJson === 'string'
-                                    ? JSON.parse(n8nDoc.initialPlanJson)
-                                    : n8nDoc.initialPlanJson;
-                                console.log("Parsed N8N Plan:", n8nPlanData);
-                            } catch (e) { console.error("Error parsing initial plan:", e); }
+                            let rawPlan = n8nDoc.initialPlanJson;
+                            if (typeof rawPlan === 'string') { try { rawPlan = JSON.parse(rawPlan); } catch(e){} }
+                            if (typeof rawPlan === 'string') { try { rawPlan = JSON.parse(rawPlan); } catch(e){} }
+                            n8nPlanData = rawPlan;
+                        }
+                        
+                        // Parse Calculated Macros
+                        if (n8nDoc.clientPreviewJson) {
+                            let rawPreview = n8nDoc.clientPreviewJson;
+                            if (typeof rawPreview === 'string') { try { rawPreview = JSON.parse(rawPreview); } catch(e){} }
+                            if (typeof rawPreview === 'string') { try { rawPreview = JSON.parse(rawPreview); } catch(e){} }
+                            if (rawPreview && rawPreview.MacroTargets) {
+                                calculatedMacros = rawPreview.MacroTargets;
+                            }
                         }
                     }
                 }
 
-                // C. DETERMINE WHICH PLAN TO USE
-                // PRIORITY 1: Coach's Saved Plan (from 'clients' collection)
-                if (clientData.nutritionPlan) {
-                    console.log("Loading Coach's Saved Plan...");
+                // Determine Plan Priority
+                const isValid = (p) => p && typeof p === 'object' && Array.isArray(p.days);
+
+                if (clientData.nutritionPlan && isValid(clientData.nutritionPlan)) {
                     currentPlan = clientData.nutritionPlan;
-                } 
-                // PRIORITY 2: N8N Generated Plan (from 'clientPlans' collection)
-                else if (n8nPlanData) {
-                    console.log("Loading N8N Generated Plan...");
+                } else if (n8nPlanData && isValid(n8nPlanData)) {
                     currentPlan = n8nPlanData;
-                } 
-                // PRIORITY 3: Fallback Calculator
-                else {
-                    console.warn("No plan found. Generating fallback.");
+                    // Sanitize Units: Convert Serving to Grams if needed
+                    currentPlan.days.forEach(day => {
+                        day.meals.forEach(meal => {
+                            meal.items.forEach(item => {
+                                if (!item.unit || item.unit === 'serving' || item.unit === 'serv') {
+                                    item.unit = 'g';
+                                    if (item.amount < 10) item.amount = (item.amount || 1) * 100;
+                                }
+                            });
+                        });
+                    });
+                } else {
                     currentPlan = generateFallbackPlan(clientData);
                 }
+                
+                // Force Update Macros from N8N calculation
+                if (calculatedMacros) {
+                    currentPlan.goalCalories = calculatedMacros.DailyCalories || currentPlan.goalCalories;
+                    currentPlan.macroTargets.protein = calculatedMacros.DailyProtein_g || currentPlan.macroTargets.protein;
+                    currentPlan.macroTargets.carbs = calculatedMacros.DailyCarbs_g || currentPlan.macroTargets.carbs;
+                    currentPlan.macroTargets.fat = calculatedMacros.DailyFat_g || currentPlan.macroTargets.fat;
+                    
+                    // Recalculate % for UI display
+                    const cal = currentPlan.goalCalories;
+                    if(cal > 0) {
+                        currentPlan.macroTargets.proPct = Math.round(((currentPlan.macroTargets.protein * 4) / cal) * 100);
+                        currentPlan.macroTargets.carbPct = Math.round(((currentPlan.macroTargets.carbs * 4) / cal) * 100);
+                        currentPlan.macroTargets.fatPct = Math.round(((currentPlan.macroTargets.fat * 9) / cal) * 100);
+                    }
+                }
 
-                // Ensure names are up to date
                 currentPlan.clientName = `${clientData.firstName || ''} ${clientData.lastName || ''}`;
                 currentPlan.clientEmail = clientData.email || '';
 
@@ -201,20 +245,17 @@
                 attachDelegatedSearchHandler();
 
             } catch (error) {
-                console.error("Error loading data:", error);
-                document.getElementById('plan-container').innerHTML = `<p class='text-center text-red-500 mt-10'>Error loading data: ${error.message}</p>`;
+                console.error("Error loading:", error);
+                document.getElementById('plan-container').innerHTML = `<p class='text-center text-red-500 mt-10'>Error loading data.</p>`;
             }
         }
 
-        // --- HELPER: Convert USDA JSON to Editor Format ---
+        // --- HELPER: Populate Food DB with Safe IDs ---
         function populateFoodDB(apiFoods) {
             FOOD_DB = {}; 
             if (!Array.isArray(apiFoods)) return;
-
             apiFoods.forEach(item => {
-                let group = item.Category || 'Other'; // Use N8N category if available
-                
-                // Fallback to macro logic if Category is generic
+                let group = item.Category || 'Other';
                 if (!item.Category || item.Category === 'meal' || item.Category === 'other') {
                     const p = parseFloat(item.Protein_g) || 0;
                     const c = parseFloat(item.Carbs_g) || 0;
@@ -223,10 +264,7 @@
                     else if (c > p && c > f) group = 'Carb';
                     else if (f > p && f > c) group = 'Fat';
                 }
-
-                // Safe ID creation
                 const safeId = item.foodId || `gen_${Math.random().toString(36).substr(2, 9)}`;
-                
                 FOOD_DB[safeId] = {
                     name: item.Food,
                     cal: item.Calories,
@@ -239,43 +277,46 @@
             });
         }
 
-        // --- FALLBACK GENERATOR (Last Resort) ---
         function generateFallbackPlan(clientData) {
-            // This only runs if N8N failed completely
+            let pref = String(clientData.nutrition_plan_preference || clientData.PlanPreference || '3').toLowerCase();
+            let dayLabels = ['Training Day', 'Rest Day', 'Active Recovery'];
+            if (pref.includes('1') || pref.includes('one')) dayLabels = ['Daily Plan'];
+            else if (pref.includes('7') || pref.includes('seven')) dayLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+            const planDays = dayLabels.map(label => ({
+                dayName: label,
+                meals: [
+                    { mealName: 'Breakfast', items: [] },
+                    { mealName: 'Lunch', items: [] },
+                    { mealName: 'Dinner', items: [] },
+                    { mealName: 'Snack', items: [] }
+                ]
+            }));
+
             return {
                 goalCalories: 2000,
                 macroTargets: { protein: 150, carbs: 200, fat: 65, proPct: 30, carbPct: 40, fatPct: 30, totalPctSum: 100 },
-                days: [
-                    { dayName: 'Day 1', meals: [{ mealName: 'Breakfast', items: [] }, { mealName: 'Lunch', items: [] }, { mealName: 'Dinner', items: [] }] },
-                    { dayName: 'Day 2', meals: [{ mealName: 'Breakfast', items: [] }, { mealName: 'Lunch', items: [] }, { mealName: 'Dinner', items: [] }] }
-                ]
+                days: planDays
             };
         }
 
-        // --- 5. SAVING TO FIRESTORE ---
         function updatePlanInFirestore(newPlan) {
             const statusEl = document.getElementById('save-status');
-            statusEl.textContent = 'Saving...';
-            statusEl.className = "mt-3 text-center text-sm font-bold text-gray-400";
-            
+            statusEl.textContent = 'SAVING...';
             db.collection("clients").doc(clientId).update({
                 nutritionPlan: newPlan,
                 intakeStatus: "Completed", 
                 planLastUpdated: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
-                statusEl.textContent = 'Plan Saved & Marked Complete!';
-                statusEl.className = "mt-3 text-center text-sm font-bold text-success";
+                statusEl.textContent = 'ALL CHANGES SAVED';
+                statusEl.className = "mt-3 text-center text-xs font-bold text-success uppercase tracking-widest";
                 setTimeout(() => { statusEl.textContent = ''; }, 3000);
             }).catch((error) => {
-                console.error("Error saving:", error);
-                statusEl.textContent = 'Error saving.';
-                statusEl.className = "mt-3 text-center text-sm font-bold text-secondary";
+                statusEl.textContent = 'ERROR SAVING';
+                statusEl.className = "mt-3 text-center text-xs font-bold text-secondary uppercase tracking-widest";
             });
         }
 
-        // --- 6. LOGIC HELPERS ---
-        function getMealKey(mealName, itemIndex) { return `${mealName}-${itemIndex}`; }
-        
         function filterFoodItems(query) {
             const lowerQuery = query.toLowerCase().trim();
             if (lowerQuery.length < 2) return [];
@@ -289,32 +330,45 @@
             return results;
         }
 
-        function calculateDayTotals(plan) {
-            const day = plan.days[currentDayIndex];
+        function calculateDayTotals(plan, dayIndexOverride = null) {
+            const dayIndex = (dayIndexOverride !== null ? dayIndexOverride : currentDayIndex);
+            const day = plan.days[dayIndex];
+            if (!day) return { calories: 0, protein: '0.0', carbs: '0.0', fat: '0.0' };
+
             let totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
+
             day.meals.forEach(meal => {
                 meal.mealCal = 0; meal.mealP = 0; meal.mealC = 0; meal.mealF = 0;
                 meal.items.forEach(item => {
                     const food = FOOD_DB[item.foodItemId];
                     if (food) {
-                        const factor = (Number(item.amount) || 0); // Logic adjusted: Amount is usually "serving" or "g"
-                        // If unit is "serving", factor is directly amount. If "g", factor is amount/100 (assuming 100g base)
-                        // For USDA data, your base is usually 1 serving or 100g. 
-                        // To keep it simple for now, we assume linear multiplication:
-                        
+                        const amount = Number(item.amount) || 0;
+                        const unitKey = (item.unit || 'g').toLowerCase();
+                        const grams = amount * (UNIT_MULTIPLIERS[unitKey] || 1);
+                        const factor = grams / 100;
+
                         item.calculatedCal = Math.round(food.cal * factor);
-                        item.calculatedP = (food.pro * factor);
-                        item.calculatedC = (food.carb * factor);
-                        item.calculatedF = (food.fat * factor);
-                        
-                        meal.mealCal += item.calculatedCal; meal.mealP += item.calculatedP; meal.mealC += item.calculatedC; meal.mealF += item.calculatedF;
+                        item.calculatedP   = Number(food.pro  * factor) || 0;
+                        item.calculatedC   = Number(food.carb * factor) || 0;
+                        item.calculatedF   = Number(food.fat  * factor) || 0;
+
+                        meal.mealCal += item.calculatedCal;
+                        meal.mealP   += item.calculatedP;
+                        meal.mealC   += item.calculatedC;
+                        meal.mealF   += item.calculatedF;
                     }
                 });
                 totalCal += meal.mealCal; totalP += meal.mealP; totalC += meal.mealC; totalF += meal.mealF;
             });
-            return { calories: totalCal, protein: totalP.toFixed(1), carbs: totalC.toFixed(1), fat: totalF.toFixed(1) };
-        }
 
+            return {
+                calories: totalCal,
+                protein: (Number(totalP) || 0).toFixed(1),
+                carbs:   (Number(totalC) || 0).toFixed(1),
+                fat:     (Number(totalF) || 0).toFixed(1),
+            };
+        }
+        
         function calculateTargetsFromPercentage(currentPlan, targetId, targetValue, newGoalCalories) {
             const newPlan = JSON.parse(JSON.stringify(currentPlan));
             const targets = newPlan.macroTargets;
@@ -326,19 +380,40 @@
             const calCarb = newPlan.goalCalories * (cPct / 100);
             const calFat = newPlan.goalCalories * (fPct / 100);
 
-            targets.protein = Math.round(calPro / CAL_PER_PRO);
-            targets.carbs = Math.round(calCarb / CAL_PER_CARB);
-            targets.fat = Math.round(calFat / CAL_PER_FAT);
+            targets.protein = Math.round(calPro / 4);
+            targets.carbs = Math.round(calCarb / 4);
+            targets.fat = Math.round(calFat / 9);
             targets.totalPctSum = Math.round(targets.proPct + targets.carbPct + targets.fatPct);
             return newPlan;
         }
 
-        // --- 7. UI RENDERING ---
+        // --- READABLE EMAIL GENERATOR ---
+        function generateReadableEmail(plan) {
+            let text = `<h3 style="color:#DC2626;">XTREME FITNESS PLAN: ${plan.clientName}</h3>`;
+            text += `<p><strong>Goal:</strong> ${plan.goalCalories} Cal | <strong>P:</strong> ${plan.macroTargets.protein}g | <strong>C:</strong> ${plan.macroTargets.carbs}g | <strong>F:</strong> ${plan.macroTargets.fat}g</p><hr>`;
+            plan.days.forEach(day => {
+                const dayTotals = calculateDayTotals({ days: [day], macroTargets: plan.macroTargets }, plan.days.indexOf(day));
+                text += `<h4 style="margin-top:15px;">${day.dayName.toUpperCase()} (${dayTotals.calories} Cal)</h4>`;
+                day.meals.forEach(meal => {
+                    if (meal.items.length > 0) {
+                        text += `<p style="margin-bottom:2px;"><strong>${meal.mealName}:</strong></p><ul style="margin-top:0;">`;
+                        meal.items.forEach(item => {
+                            const foodName = FOOD_DB[item.foodItemId]?.name || "Unknown";
+                            text += `<li>${item.amount} ${item.unit || 'g'} ${foodName}</li>`;
+                        });
+                        text += `</ul>`;
+                    }
+                });
+            });
+            return text;
+        }
+
+        // --- UI RENDERING ---
         function renderPlan(plan) {
             const day = plan.days[currentDayIndex];
             const totals = calculateDayTotals(plan);
             const targets = plan.macroTargets;
-            
+
             const renderMacroBar = (value, target, label, color) => {
                 const percentage = target > 0 ? Math.min(100, (Number(value) / target) * 100).toFixed(0) : 0;
                 const statusColor = Number(value) > target ? 'bg-secondary' : color; 
@@ -346,95 +421,66 @@
             };
 
             const renderAddFoodBar = (mealName) => {
-                return `<div id="add-bar-${mealName}" class="add-food-bar p-3 bg-gray-700 rounded-lg ${mealAddBarVisible[mealName] ? '' : 'hidden'}"><h4 class="text-sm font-semibold mb-2">Add Item:</h4><div class="flex space-x-3 items-center"><div class="relative w-full"><input type="text" id="food-search-add-${mealName}" data-meal="${mealName}" class="food-search-input food-search-add w-full p-2 border border-gray-600 rounded-lg text-gray-200 bg-gray-800" placeholder="Type food name..." value="${activeSearches[`add-${mealName}`] || ''}" /><div id="food-results-add-${mealName}" class="search-results absolute z-10 w-full mt-1 bg-gray-600 rounded-lg shadow-xl max-h-48 overflow-y-auto hidden"></div></div><input id="amount-input-${mealName}" type="number" value="1" step="0.5" class="w-20 p-2 border border-gray-600 rounded-lg text-center text-gray-100 bg-gray-800" /><span class="text-gray-400">serv</span><button data-meal="${mealName}" class="add-item-btn p-2 bg-success text-white rounded-lg"><i class="fa-solid fa-check"></i></button></div></div>`;
+                return `<div id="add-bar-${mealName}" class="add-food-bar p-3 bg-bg-body rounded-lg mb-4 border border-gray-600 ${mealAddBarVisible[mealName] ? '' : 'hidden'}"><h4 class="text-xs font-bold text-gray-400 mb-2 uppercase">Search & Add Item:</h4><div class="flex space-x-3 items-center"><div class="relative w-full"><input type="text" id="food-search-add-${mealName}" data-meal="${mealName}" class="food-search-input food-search-add input-std w-full p-2 text-white" placeholder="Type food name..." value="${activeSearches[`add-${mealName}`] || ''}" /><div id="food-results-add-${mealName}" class="search-results absolute z-10 w-full mt-1 bg-bg-surface border border-gray-600 rounded-lg shadow-xl max-h-48 overflow-y-auto hidden"></div></div><input id="amount-input-${mealName}" type="number" value="100" class="w-20 p-2 input-std text-center text-white" /><span class="text-gray-400 text-sm font-bold">g</span><button data-meal="${mealName}" class="add-item-btn p-2 bg-success text-white rounded-lg"><i class="fa-solid fa-check"></i></button><button data-meal="${mealName}" class="cancel-add-btn p-2 bg-secondary text-white rounded-lg"><i class="fa-solid fa-xmark"></i></button></div></div>`;
             };
 
             const renderMealCard = (meal, mealIndex) => {
                 const isEditing = mealEditingState[meal.mealName] || false;
-                return `<div class="bg-gray-800 p-4 rounded-xl shadow-lg mb-6 border border-gray-700">
-                    <div class="flex justify-between items-center mb-3 border-b border-gray-700 pb-2">
-                        <h3 class="text-xl font-bold text-secondary">${meal.mealName}</h3>
-                        <div class="flex space-x-3">
-                            <button data-meal="${meal.mealName}" class="edit-meal-btn text-primary ${isEditing ? 'hidden' : ''}"><i class="fa-solid fa-pen-to-square fa-lg"></i></button>
-                            <button data-meal="${meal.mealName}" class="add-item-toggle-btn text-success ${isEditing ? '' : 'hidden'}"><i class="fa-solid fa-plus-circle fa-lg"></i></button>
-                            <button data-meal="${meal.mealName}" class="save-meal-edit-btn text-primary ${isEditing ? '' : 'hidden'}"><i class="fa-solid fa-floppy-disk fa-lg"></i></button>
-                        </div>
-                    </div>
-                    ${renderAddFoodBar(meal.mealName)}
-                    <div class="space-y-4 pt-3">
-                        ${meal.items.map((item, idx) => {
-                            const foodName = FOOD_DB[item.foodItemId]?.name || 'Unknown Item';
-                            return `<div class="flex flex-col sm:flex-row items-center p-3 border border-gray-700 rounded-lg bg-gray-900">
-                                <div class="flex-grow w-full mr-4 text-gray-200">${foodName}</div>
-                                <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
-                                    <div class="flex items-center">
-                                        <input type="number" class="item-amount-input w-20 p-2 border border-gray-600 rounded-lg text-center text-gray-100 bg-gray-700" value="${item.amount}" data-meal="${meal.mealName}" data-index="${idx}" ${!isEditing ? 'disabled' : ''} />
-                                        <span class="text-sm text-gray-400 ml-2">${item.unit || 'serv'}</span>
-                                    </div>
-                                    <div class="text-sm font-mono text-gray-400 min-w-[100px] text-right"><span class="text-primary font-bold">${item.calculatedCal || 0} Cal</span></div>
-                                    <button class="delete-item-btn text-secondary ${isEditing ? '' : 'hidden'}" data-meal="${meal.mealName}" data-index="${idx}"><i class="fa-solid fa-trash-can"></i></button>
-                                </div>
-                            </div>`;
-                        }).join('')}
-                    </div>
-                    <div class="mt-4 pt-3 border-t border-gray-700 text-sm font-semibold flex justify-between">
-                        <span class="text-gray-400">MEAL TOTALS:</span>
-                        <span class="text-gray-200">${meal.mealCal || 0} Cal | P: ${(meal.mealP || 0).toFixed(1)}g</span>
-                    </div>
-                </div>`;
+                return `<div class="bg-bg-surface p-5 rounded-xl shadow-lg mb-6 border border-gray-700 relative overflow-hidden"><div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div><div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2 ml-2"><h3 class="text-xl font-black text-white uppercase tracking-wide">${meal.mealName}</h3><div class="flex space-x-3"><button data-meal="${meal.mealName}" class="edit-meal-btn text-gray-400 hover:text-white transition ${isEditing ? 'hidden' : ''}"><i class="fa-solid fa-pen-to-square fa-xl"></i></button><button data-meal="${meal.mealName}" class="add-item-toggle-btn text-info hover:text-blue-400 transition ${isEditing ? '' : 'hidden'}"><i class="fa-solid fa-plus-circle fa-xl"></i></button><button data-meal="${meal.mealName}" class="save-meal-edit-btn text-success hover:text-green-500 transition ${isEditing ? '' : 'hidden'}"><i class="fa-solid fa-floppy-disk fa-xl"></i></button><button data-meal="${meal.mealName}" class="cancel-meal-edit-btn text-secondary hover:text-red-600 transition ${isEditing ? '' : 'hidden'}"><i class="fa-solid fa-xmark fa-2xl"></i></button></div></div><div class="ml-2">${renderAddFoodBar(meal.mealName)}<div class="space-y-3">${meal.items.map((item, idx) => {const foodName = FOOD_DB[item.foodItemId]?.name || 'Unknown Item'; return `<div class="flex flex-col sm:flex-row items-center p-3 border border-gray-700 rounded-lg bg-bg-body hover:border-gray-500 transition"><div class="flex-grow w-full mr-4 text-gray-200">${foodName}</div><div class="flex items-center space-x-3 w-full sm:w-auto justify-end"><div class="flex items-center"><input type="number" class="item-amount-input w-24 p-2 input-std text-center text-white font-bold text-lg" value="${item.amount}" data-meal="${meal.mealName}" data-index="${idx}" ${!isEditing ? 'disabled' : ''} /><span class="text-sm text-gray-400 ml-2">${item.unit || 'g'}</span></div><div class="text-lg font-bold w-auto text-right min-w-[100px]"><span class="text-success">${item.calculatedCal || 0} Cal</span></div><button class="delete-item-btn text-gray-500 hover:text-secondary transition ${isEditing ? '' : 'hidden'}" data-meal="${meal.mealName}" data-index="${idx}"><i class="fa-solid fa-trash-can fa-lg"></i></button></div></div>`;}).join('')}</div><div class="mt-4 pt-3 border-t border-gray-700 font-semibold flex justify-between text-gray-300"><span class="uppercase tracking-wider text-lg text-white-500">Meal Totals</span><span><span class="font-bold text-lg text-success">${meal.mealCal || 0} Cal</span> <span class="text-protein ml-4 text-lg font-bold">P: ${Number(meal.mealP).toFixed(1)}g</span> <span class="text-info ml-2 text-lg font-bold">C: ${Number(meal.mealC).toFixed(1)}g</span> <span class="text-warning ml-2 text-lg font-bold">F: ${Number(meal.mealF).toFixed(1)}g</span></span></div></div></div>`;
             };
 
             const html = `
-                <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-1 bg-gray-800 p-6 rounded-xl shadow-2xl h-fit sticky top-4 border border-gray-700">
-                        <h1 class="text-2xl font-bold text-primary mb-6">Goals</h1>
-                        <div class="mb-6 p-4 bg-gray-900 rounded-lg border border-gray-700">
-                            <div class="flex justify-between items-center mb-4">
-                                <p class="text-gray-400 text-sm">TARGET CALORIES</p>
-                                <input type="number" id="goal-calorie-input" value="${plan.goalCalories}" class="input-as-text text-4xl font-extrabold text-white text-right w-24" style="border-bottom: ${isGoalEditing ? '1px solid #1D4ED8' : 'none'};" ${!isGoalEditing ? 'disabled' : ''} />
+                <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-1 bg-bg-surface p-6 rounded-xl shadow-2xl h-fit sticky top-4 border-2 border-primary">
+                        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-3"><h1 class="text-2xl font-black text-white tracking-wider">DAILY GOALS</h1></div>
+                        <div class="mb-6 p-4 bg-bg-body rounded-lg shadow-inner border border-gray-700">
+                            <div class="flex justify-between items-center mb-4"><p class="text-gray-400 text-sm font-bold uppercase">TARGET CALORIES</p><div class="flex items-center"><input type="number" id="goal-calorie-input" value="${plan.goalCalories}" class="input-as-text text-4xl font-black text-success text-right w-32" style="background-color: ${isGoalEditing ? '#1a1a1a' : 'transparent'}; border-bottom: ${isGoalEditing ? '2px solid #DC2626' : 'none'};" ${!isGoalEditing ? 'disabled' : ''} /><span class="text-lg font-bold text-success ml-1">Cal</span></div></div>
+                            
+                            <div class="grid grid-cols-3 gap-2 mt-4">
+                                <div class="flex flex-col items-center p-2 bg-gray-800 rounded-lg border border-gray-700">
+                                    <p class="text-xs font-bold text-protein uppercase mb-1">PRO %</p>
+                                    <input type="number" id="proPct-pct-input" value="${targets.proPct}" class="macro-pct-inline-input input-as-text text-xl font-black text-white" ${!isGoalEditing ? 'disabled' : ''} />
+                                </div>
+                                <div class="flex flex-col items-center p-2 bg-gray-800 rounded-lg border border-gray-700">
+                                    <p class="text-xs font-bold text-info uppercase mb-1">CARB %</p>
+                                    <input type="number" id="carbPct-pct-input" value="${targets.carbPct}" class="macro-pct-inline-input input-as-text text-xl font-black text-white" ${!isGoalEditing ? 'disabled' : ''} />
+                                </div>
+                                <div class="flex flex-col items-center p-2 bg-gray-800 rounded-lg border border-gray-700">
+                                    <p class="text-xs font-bold text-warning uppercase mb-1">FAT %</p>
+                                    <input type="number" id="fatPct-pct-input" value="${targets.fatPct}" class="macro-pct-inline-input input-as-text text-xl font-black text-white" ${!isGoalEditing ? 'disabled' : ''} />
+                                </div>
                             </div>
-                            <div class="grid grid-cols-3 gap-4 text-center">
-                                <div><p class="text-2xl font-bold text-protein">${targets.protein}g</p><p class="text-xs text-gray-500">Protein</p></div>
-                                <div><p class="text-2xl font-bold text-info">${targets.carbs}g</p><p class="text-xs text-gray-500">Carbs</p></div>
-                                <div><p class="text-2xl font-bold text-warning">${targets.fat}g</p><p class="text-xs text-gray-500">Fat</p></div>
-                            </div>
-                            <button id="toggle-goal-edit-btn" class="w-full py-2 mt-4 font-bold rounded-lg ${isGoalEditing ? 'bg-success' : 'bg-primary'} text-white">
-                                ${isGoalEditing ? 'Save Goals' : 'Edit Goals'}
-                            </button>
+                            
+                            <button id="toggle-goal-edit-btn" class="w-full py-3 mt-4 font-bold rounded-lg transition duration-150 uppercase tracking-wide ${isGoalEditing ? 'bg-success hover:bg-green-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-500'}">${isGoalEditing ? 'Save Goal Changes' : 'Edit Targets'}</button>
                         </div>
-                        <div class="mt-5 pt-5 border-t border-gray-700">
-                            <h3 class="text-lg font-bold text-gray-200 mb-4">Current Status</h3>
-                            ${renderMacroBar(totals.protein, targets.protein, 'Protein', 'bg-protein')}
-                            ${renderMacroBar(totals.carbs, targets.carbs, 'Carbs', 'bg-info')}
-                            ${renderMacroBar(totals.fat, targets.fat, 'Fat', 'bg-warning')}
+                        <div class="mt-5 border-t border-gray-700 pt-6"><h3 class="text-lg font-black text-white mb-4">CURRENT PLAN TOTALS</h3>
+                            <div class="mb-6"><div class="flex justify-between items-end mb-2"><span class="text-gray-400 font-bold text-sm">CALORIES</span><span class="text-2xl font-black text-white">${totals.calories} / ${plan.goalCalories}</span></div><div class="w-full bg-gray-700 rounded-full h-2.5"><div class="bg-success h-2.5 rounded-full" style="width: ${Math.min((totals.calories / plan.goalCalories) * 100, 100)}%"></div></div></div>
+                            ${renderMacroBar(totals.protein, targets.protein, 'PROTEIN', 'bg-protein')}
+                            ${renderMacroBar(totals.carbs, targets.carbs, 'CARBOHYDRATES', 'bg-info')}
+                            ${renderMacroBar(totals.fat, targets.fat, 'FATS', 'bg-warning')}
                         </div>
-                        <div class="mt-4 border-t border-gray-700 pt-4 flex flex-col space-y-2">
-                            ${plan.days.map((d, i) => `<button data-day-index="${i}" class="day-nav-btn w-full text-left p-2 rounded-lg ${i === currentDayIndex ? 'bg-primary text-white' : 'bg-gray-700 text-gray-300'}">${d.dayName}</button>`).join('')}
-                        </div>
-                        <div class="mt-5 pt-5 border-t border-gray-700 space-y-3">
-                            <button id="show-shopping-list-btn" class="w-full py-3 bg-gray-700 text-white rounded-lg font-bold">Show Shopping List</button>
-                            <button id="save-plan-btn" class="w-full py-3 bg-secondary text-white rounded-lg font-bold">Save Changes</button>
-                            <button id="email-plan-btn" class="w-full py-3 bg-primary text-white rounded-lg font-bold">Email Plan</button>
-                            <div id="save-status"></div>
+                        <div class="mt-8 pt-6 border-t border-gray-700 space-y-4">
+                            <button id="show-shopping-list-btn" class="w-full py-3 bg-gray-800 text-gray-300 font-bold rounded-lg hover:bg-gray-700 border border-gray-600 transition duration-150 flex items-center justify-center"><i class="fa-solid fa-cart-shopping mr-2"></i> View Shopping List</button>
+                            <button id="save-plan-btn" class="w-full py-3 bg-success text-white font-black rounded-lg shadow-lg hover:bg-green-600 transition duration-150 uppercase tracking-wide flex items-center justify-center"><i class="fa-solid fa-floppy-disk mr-2"></i> Save All Changes</button>
+                            <button id="email-plan-btn" class="w-full py-4 bg-primary text-white font-black rounded-lg shadow-lg shadow-red-900/50 hover:bg-red-700 transition duration-150 uppercase tracking-wide flex items-center justify-center"><i class="fa-solid fa-paper-plane mr-2"></i> Send Final Plan</button>
+                            <div id="save-status" class="mt-3 text-center text-xs font-bold text-gray-500 uppercase tracking-widest"></div>
                         </div>
                     </div>
                     <div class="lg:col-span-2">
-                        <div class="mb-4">
-                            <h2 class="text-3xl font-bold text-gray-100">${day.dayName} - ${plan.clientName}</h2>
+                        <div class="mb-6 flex justify-between items-end border-b border-gray-700 pb-4"><div><h2 class="text-4xl font-black text-white tracking-wide">${plan.clientName}</h2><p class="text-primary font-bold mt-1 text-3xl">${day.dayName}</p></div>
+                        <div class="flex space-x-2">
+                            ${plan.days.map((d, i) => `<button data-day-index="${i}" class="day-nav-btn px-4 py-2 rounded-lg font-bold transition ${i === currentDayIndex ? 'bg-primary text-white' : 'bg-gray-700 text-gray-400 hover:text-white'}">${d.dayName}</button>`).join('')}
                         </div>
-                        <div class="custom-scrollbar h-[80vh] overflow-y-auto pr-2">
-                            ${day.meals.map(renderMealCard).join('')}
                         </div>
+                        <div class="custom-scrollbar pr-3 pb-10">${day.meals.map(renderMealCard).join('')}</div>
                     </div>
                 </div>`;
-            
             document.getElementById('plan-container').innerHTML = html;
         }
 
-        // --- 8. EVENT DELEGATION ---
+        // --- 9. EVENT DELEGATION ---
         function attachDelegatedSearchHandler() {
             const container = document.getElementById('plan-container');
-            
             container.onclick = (e) => {
                 const target = e.target.closest('button, .search-result-item');
                 if(!target) return;
@@ -449,6 +495,10 @@
                 }
                 if (target.classList.contains('add-item-toggle-btn')) {
                     mealAddBarVisible[target.dataset.meal] = !mealAddBarVisible[target.dataset.meal];
+                    renderPlan(currentPlan);
+                }
+                if (target.classList.contains('cancel-add-btn')) {
+                    mealAddBarVisible[target.dataset.meal] = false;
                     renderPlan(currentPlan);
                 }
                 if (target.classList.contains('save-meal-edit-btn')) {
@@ -470,8 +520,7 @@
                     const foodId = input.dataset.selectedId;
                     if(foodId) {
                         const meal = currentPlan.days[currentDayIndex].meals.find(m => m.mealName === mealName);
-                        // Default to 1 serving if adding via search
-                        meal.items.push({ foodItemId: foodId, amount: parseFloat(amountInput.value) || 1, unit: 'serv' });
+                        meal.items.push({ foodItemId: foodId, amount: parseFloat(amountInput.value) || 100, unit: 'g' });
                         mealAddBarVisible[mealName] = false;
                         renderPlan(currentPlan);
                     }
@@ -496,12 +545,13 @@
                 if(target.id === 'show-shopping-list-btn') {
                     const list = generateShoppingList(currentPlan);
                     const modal = document.getElementById('shopping-list-content');
-                    modal.innerHTML = Object.keys(list).map(cat => `<h3 class='text-xl text-primary font-bold mt-4'>${cat}</h3><ul>${list[cat].map(i => `<li>${i.amount} ${i.unit} ${i.name}</li>`).join('')}</ul>`).join('');
+                    modal.innerHTML = Object.keys(list).map(cat => `<h3 class='text-xl text-primary font-bold mt-4 uppercase'>${cat}</h3><ul>${list[cat].map(i => `<li>${i.amount} ${i.unit} ${i.name}</li>`).join('')}</ul>`).join('');
                     document.getElementById('shopping-list-modal').classList.remove('hidden');
                 }
                 if(target.id === 'email-plan-btn') {
                     document.getElementById('recipient-email').textContent = currentPlan.clientEmail;
-                    document.getElementById('payload-display').textContent = JSON.stringify(currentPlan, null, 2);
+                    document.getElementById('payload-display').innerHTML = generateReadableEmail(currentPlan);
+                    
                     const subject = encodeURIComponent(`Nutrition Plan for ${currentPlan.clientName}`);
                     const body = encodeURIComponent("Please find your plan attached.");
                     document.getElementById('mail-to-link').href = `mailto:${currentPlan.clientEmail}?subject=${subject}&body=${body}`;
@@ -528,7 +578,6 @@
             };
         }
 
-        // --- 9. SHOPPING LIST LOGIC ---
         function generateShoppingList(plan) {
             const list = {};
             plan.days.forEach(day => {
@@ -540,7 +589,7 @@
                             if (!list[cat]) list[cat] = [];
                             const existing = list[cat].find(i => i.name === food.name);
                             if(existing) existing.amount += parseFloat(item.amount);
-                            else list[cat].push({ name: food.name, amount: parseFloat(item.amount), unit: 'serv' });
+                            else list[cat].push({ name: food.name, amount: parseFloat(item.amount), unit: 'g' });
                         }
                     });
                 });
@@ -550,9 +599,9 @@
 
     </script>
 
-    <div id="plan-header" class="max-w-6xl mx-auto mb-6"></div>
+    <div id="plan-header" class="max-w-7xl mx-auto mb-6"></div>
     <div id="plan-container">
-        <div class="max-w-4xl mx-auto bg-gray-800 rounded-xl shadow-2xl p-10 text-center border border-gray-700">
+        <div class="max-w-4xl mx-auto bg-bg-surface rounded-xl shadow-2xl p-10 text-center border border-gray-700">
             <svg class="animate-spin h-8 w-8 text-primary mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
