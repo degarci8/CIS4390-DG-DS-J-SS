@@ -232,10 +232,14 @@
           <td class="h-[72px] px-6 py-4 whitespace-nowrap text-right text-sm font-medium table-col-4">
             <div class="flex items-center justify-end">
               ${actionButton}
-              <button class="text-primary hover:text-primary/80 transition-colors font-bold tracking-wide"
-                onclick="window.open('https://nutritionplangenerator.web.app/editor.html', '_blank')">
+              <a
+                class="text-primary hover:text-primary/80 transition-colors font-bold tracking-wide"
+                href="https://nutritionplangenerator.web.app/editor.html?clientId=${encodeURIComponent(docId)}"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Open Plan Editor
-              </button>
+              </a>
             </div>
           </td>
         </tr>
