@@ -105,10 +105,10 @@ Details on Firestore rules, access control, and PII/PHI handling are documented 
 
 | Team Member | Story Points | Contribution % |
 | :--- | :---: | :---: |
-| DJ Shortt | X | X |
-| Jacob Blanco | X | X |
-| Derek Garcia | X | X |
-| Sarah Steadham | X | X |
-| **Total** | **X** | **100%** |
+| DJ Shortt | 23 | 24.7 |
+| Jacob Blanco | 23 | 24.7 |
+| Derek Garcia | 24 | 25.8 |
+| Sarah Steadham | 23 | 24.7 |
+| **Total** | **93** | **100%** |
 
 
