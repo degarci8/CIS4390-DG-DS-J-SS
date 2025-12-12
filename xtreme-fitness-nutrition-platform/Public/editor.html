@@ -145,11 +145,11 @@
         // --- 3. INITIALIZATION & AUTH ---
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
-            clientId = urlParams.get('id');
+            clientId = urlParams.get('clientId') || urlParams.get('id'); // supports both
 
             if (!clientId) {
                 alert("No Client ID found. Redirecting to dashboard.");
-                window.location.href = "dashboard.html";
+                window.location.href = "https://nutritionplangenerator.web.app/dashboard.html";
                 return;
             }
 
@@ -157,7 +157,7 @@
                 if (user) {
                     loadDataFromFirebase();
                 } else {
-                    window.location.href = "login.html";
+                    window.location.href = "https://nutritionplangenerator.web.app/login.html";
                 }
             });
 
