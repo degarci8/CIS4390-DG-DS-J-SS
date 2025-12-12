@@ -66,7 +66,7 @@
         <a href="https://nutritionplangenerator.web.app/dashboard.html" class="flex items-center text-gray-400 hover:text-primary transition font-semibold">
             <i class="fa-solid fa-arrow-left mr-2"></i> Back to Dashboard
         </a>
-        <div class="text-sm text-gray-500">Editor v2.1</div>
+    
     </nav>
 
     <div id="shopping-list-modal" class="modal-backdrop hidden">
@@ -294,18 +294,45 @@
             });
         }
 
-        // --- 6. LOGIC HELPERS ---
+     // --- 6. LOGIC HELPERS ---
+        // UPDATED: Smart Search Algorithm
         function filterFoodItems(query) {
             const lowerQuery = query.toLowerCase().trim();
             if (lowerQuery.length < 2) return [];
+ 
             const results = [];
-            for (const id in FOOD_DB) {
-                if (FOOD_DB[id].name.toLowerCase().includes(lowerQuery)) {
-                    results.push({ id, name: FOOD_DB[id].name, group: FOOD_DB[id].group });
+            const ids = Object.keys(FOOD_DB);
+ 
+            // 1. Gather all matches
+            for (const id of ids) {
+                const food = FOOD_DB[id];
+                const name = food.name.toLowerCase();
+                const index = name.indexOf(lowerQuery);
+ 
+                if (index !== -1) {
+                    results.push({
+                        id: id,
+                        name: food.name,
+                        group: food.group,
+                        // Score: 0 means it starts with the letter (Best). 
+                        // Higher numbers means the match is further inside the word.
+                        score: index 
+                    });
                 }
-                if (results.length >= MAX_SEARCH_RESULTS) break;
             }
-            return results;
+ 
+            // 2. Sort Results
+            // Priority A: Match appears earlier in the word (Score)
+            // Priority B: Alphabetical order
+            results.sort((a, b) => {
+                if (a.score !== b.score) {
+                    return a.score - b.score; // Lower score (starts with) wins
+                }
+                return a.name.localeCompare(b.name); // Alphabetical tie-breaker
+            });
+ 
+            // 3. Return top results
+            return results.slice(0, MAX_SEARCH_RESULTS);
         }
 
         function calculateDayTotals(plan) {
@@ -361,7 +388,7 @@
                         text += `  ${meal.mealName}:\n`;
                         meal.items.forEach(item => {
                             const foodName = FOOD_DB[item.foodItemId]?.name || "Unknown Item";
-                            text += `    - ${item.amount} ${item.unit || 'serv'} ${foodName}\n`;
+                            text += `    - ${item.amount} ${item.unit || 'oz'} ${foodName}\n`;
                         });
                         text += `\n`;
                     }
@@ -394,7 +421,7 @@
                             <div id="food-results-add-${mealName}" class="search-results absolute z-10 w-full mt-1 bg-surface-dark rounded-lg shadow-xl max-h-48 overflow-y-auto hidden border border-gray-600"></div>
                         </div>
                         <input id="amount-input-${mealName}" type="number" value="1" step="0.5" class="w-20 p-2 border border-gray-600 rounded-lg text-center text-gray-100 bg-gray-800" />
-                        <span class="text-gray-400">serv</span>
+                        <span class="text-gray-400">oz</span>
                         <button data-meal="${mealName}" class="add-item-btn p-2 bg-success text-white rounded-lg"><i class="fa-solid fa-check"></i></button>
                         <button data-meal="${mealName}" class="cancel-add-btn p-2 bg-secondary text-white rounded-lg"><i class="fa-solid fa-xmark"></i></button>
                     </div>
@@ -403,13 +430,13 @@
 
             const renderMealCard = (meal, mealIndex) => {
                 const isEditing = mealEditingState[meal.mealName] || false;
-                return `<div class="bg-surface-dark p-4 rounded-xl shadow-lg mb-6 border border-gray-700">
-                    <div class="flex justify-between items-center mb-3 border-b border-gray-700 pb-2">
-                        <h3 class="text-xl font-bold text-secondary">${meal.mealName}</h3>
-                        <div class="flex space-x-3">
-                            <button data-meal="${meal.mealName}" class="edit-meal-btn text-primary ${isEditing ? 'hidden' : ''}"><i class="fa-solid fa-pen-to-square fa-lg"></i></button>
-                            <button data-meal="${meal.mealName}" class="add-item-toggle-btn text-success ${isEditing ? '' : 'hidden'}"><i class="fa-solid fa-plus-circle fa-lg"></i></button>
-                            <button data-meal="${meal.mealName}" class="save-meal-edit-btn text-primary ${isEditing ? '' : 'hidden'}"><i class="fa-solid fa-floppy-disk fa-lg"></i></button>
+                return `<div class="bg-surface-dark p-4 rounded-xl shadow-lg mb-6 border border-gray-700 border-l-4 border-primary">
+                <div class="flex justify-between items-center mb-3 border-b border-gray-700 pb-2">
+                <h3 class="text-xl font-bold text-secondary">${meal.mealName}</h3>
+                <div class="flex space-x-3">
+                <button data-meal="${meal.mealName}" class="edit-meal-btn text-primary ${isEditing ? 'hidden' : ''}"><i class="fa-solid fa-pen-to-square fa-lg"></i></button>
+                <button data-meal="${meal.mealName}" class="add-item-toggle-btn text-success ${isEditing ? '' : 'hidden'}"><i class="fa-solid fa-plus-circle fa-lg"></i></button>
+                <button data-meal="${meal.mealName}" class="save-meal-edit-btn text-primary ${isEditing ? '' : 'hidden'}"><i class="fa-solid fa-floppy-disk fa-lg"></i></button>
                         </div>
                     </div>
                     ${renderAddFoodBar(meal.mealName)}
@@ -441,7 +468,7 @@
                                 <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
                                     <div class="flex items-center">
                                         <input type="number" class="item-amount-input w-20 p-2 border border-gray-600 rounded-lg text-center text-gray-100 bg-gray-800" value="${item.amount}" data-meal="${meal.mealName}" data-index="${idx}" ${!isEditing ? 'disabled' : ''} />
-                                        <span class="text-sm text-gray-400 ml-2">${item.unit || 'serv'}</span>
+                                        <span class="text-sm text-gray-400 ml-2">${item.unit || 'oz'}</span>
                                     </div>
                                     <div class="text-sm font-mono text-gray-400 min-w-[100px] text-right"><span class="text-primary font-bold">${item.calculatedCal || 0} Cal</span></div>
                                     <button class="delete-item-btn text-secondary ${isEditing ? '' : 'hidden'}" data-meal="${meal.mealName}" data-index="${idx}"><i class="fa-solid fa-trash-can"></i></button>
@@ -552,7 +579,7 @@
                     const foodId = input.dataset.selectedId;
                     if(foodId) {
                         const meal = currentPlan.days[currentDayIndex].meals.find(m => m.mealName === mealName);
-                        meal.items.push({ foodItemId: foodId, amount: parseFloat(amountInput.value) || 1, unit: 'serv' });
+                        meal.items.push({ foodItemId: foodId, amount: parseFloat(amountInput.value) || 1, unit: 'oz' });
                         mealAddBarVisible[mealName] = false;
                         renderPlan(currentPlan);
                     }
@@ -673,7 +700,7 @@
                             if (!list[cat]) list[cat] = [];
                             const existing = list[cat].find(i => i.name === food.name);
                             if(existing) existing.amount += parseFloat(item.amount);
-                            else list[cat].push({ name: food.name, amount: parseFloat(item.amount), unit: 'serv' });
+                            else list[cat].push({ name: food.name, amount: parseFloat(item.amount), unit: 'oz' });
                         }
                     });
                 });
