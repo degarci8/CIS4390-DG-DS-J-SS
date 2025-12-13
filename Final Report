@@ -1,0 +1,343 @@
+
+Automated Nutrition Plan Generator Final Report
+
+ 
+EXECUTIVE SUMMARY
+Objective
+SmartIntake is a web-based automation platform that streamlines client intake and plan generation for small businesses. The tool collects client information through digital intake forms, applies pre-programmed business rules or formulas (e.g., nutritional guidelines, service plans, or lesson outlines), and automatically generates a draft plan for review.
+
+While initially designed for fitness and nutrition professionals, SmartIntake’s framework can be adapted to other industries such as education, beauty, or home services where intake forms and personalized service plans are required.
+
+Background
+This system was conceptualized after interviewing Peak Fitness, a gym in Kerrville, TX. The owner expressed the need for a solution to reduce manual intake and nutrition planning time, which currently takes up to 2.5 hours per client. The proposed solution will significantly reduce this time, allowing small business owners to focus on revenue-generating activities.
+
+Methodology
+•	Discovery & Requirements: The project began with a structured stakeholder interview conducted with the owner of Peak Fitness in Kerrville, Texas. The purpose of this phase was to identify operational pain points, inefficiencies, and constraints in the current client intake and nutrition planning process. Through this interview, the team documented:
+o	The existing manual intake workflow
+o	The time required to build personalized nutrition plans (1–2.5 hours per client)
+o	Data accuracy concerns related to inconsistent food databases
+o	Key functional requirements, including dietary restrictions, macro targets, and coach approval workflows
+o	Non-functional requirements such as affordability, data security, and ease of use
+•	System Design & Data Modeling: The system was structured to separate concerns across intake collection, data normalization, business logic execution, and output delivery. A critical component of this phase was the design of a custom food database. Existing nutrition data sources were found to be inconsistent, incomplete, or incompatible with automation needs. To address this, the project lead manually curated and standardized a food bank containing hundreds of entries. Each entry was normalized to a consistent serving size, unit of measurement, macro and micronutrient structure, dietary tags, and meal category classification.
+•	Automation Workflow Implementation: Automation logic was implemented using n8n, an open-source workflow automation platform. This phase focused on translating nutritional rules, formulas, and constraints into deterministic workflows rather than opaque AI models. Key automation components included:
+o	Intake form parsing and validation
+o	Calorie and macronutrient calculations
+o	Rule-based food filtering (dietary restrictions, preferences, exclusions)
+o	Meal distribution logic across breakfast, lunch, dinner, and snacks
+o	Error handling for missing or restrictive data scenarios
+•	User Interface Integration: Parallel to backend automation, the team developed user-facing interfaces that allowed coaches to interact with the system efficiently. This included:
+o	A digital intake form for client data submission
+o	A trainer-facing review workflow to approve or adjust generated plans
+o	A structured output format for client delivery
+•	Testing, Validation, & Integration: Testing was conducted iteratively throughout development, with emphasis on functional accuracy rather than synthetic benchmarks. Generated nutrition plans were compared against manually created plans to validate macro distribution, dietary compliance, and overall feasibility. Special attention was given to:
+o	Data consistency across food entries
+o	Correct application of exclusion rules
+o	Stability under varying intake profiles
+o	Workflow resilience when encountering null or missing values
+
+Key Findings
+•	Manual intake and nutrition planning consume significant time. The process currently takes 1–2.5 hours per client, limiting the number of clients the trainer can serve daily.
+•	Automating repetitive tasks can directly increase revenue. By offloading data entry and formula calculations to an automated system, the trainer can focus on higher-value services, potentially earning thousands more weekly.
+•	Data accuracy and reliability are critical to adoption. The client emphasized that automation must be trustworthy and align closely with human judgment; if accuracy is compromised, the system will not be used.
+•	Security and cost are the main barriers. Peak Fitness needs a solution that stores data securely and remains affordable. We are targeting under $200 per year instead of the quoted $150,000 per year from commercial AI systems.
+•	Scalability potential is high. The same framework can be adapted for other service-based industries such as education, wellness, and personal care. Any business that relies on client intake and personalized service generation.
+
+
+
+
+
+
+
+Recommendations
+•	Expand and maintain the custom food database to include additional foods, brands, and specialty diets.
+•	Integrate barcode scanning to automate nutrition data entry and reduce manual database updates.
+•	Develop automated goal recalculation to regenerate meal plans as client metrics change.
+•	Build a client-facing mobile application for nutrition access, progress tracking, and communication.
+•	Introduce AI-assisted features to support client interaction and reduce coach administrative workload while preserving rule-based accuracy.
+
+Conclusion
+
+This project delivered a functional nutrition automation platform that replaces manual meal planning with a scalable, rule-based system designed for real coaching workflows. By combining clean data, automation logic, and human oversight, the platform improves accuracy, saves time, and enables sustainable growth for small fitness businesses. Most importantly, the project demonstrates how technical and organizational skills developed through academic study can be applied to solve real-world problems with lasting impact beyond graduation.
+
+Project Milestones: E.g. Major steps required to complete your project.
+
+•	Milestone 1: Discovery & Requirements
+•	Milestone 2: N8N Infrastructure & Data Model
+•	Milestone 3: Intake Workflow & Rules Engine
+•	Milestone 4: Trainer Dashboard & Delivery 
+•	Milestone 5: Security, Testing & Final Demo
+
+
+
+Materials List:
+
+Hardware
+•	Personal laptops/desktops for development and testing
+•	Internet connectivity for cloud-based services and API access
+•	Audio/video recording equipment for project demonstration and marketing video production
+
+
+
+
+
+Software
+
+•	n8n (Cloud Version) – Workflow automation platform used to implement all business logic and orchestration
+•	Firebase / Firestore – Cloud database used for structured data storage and retrieval
+•	Microsoft Excel – Data preprocessing, normalization, and validation of the food database
+•	GitHub – Version control, issue tracking, and project documentation
+•	Google Forms / Web-based Forms – Client intake data collection
+•	Google Video / Screen Recording Tools – Marketing and demonstration video production
+•	USDA FoodData Central – Open-source nutrition data reference used during database construction
+•	HTML/CSS/JavaScript – Front-end interface development and prototyping
+
+
+Deliverables: E.g. Report, Deployed architecture, other project outcomes etc.
+
+1.	Nutrition Automation Platform Prototype
+2.	Custom Nutrition Food Database
+3.	Automated Workflow Architecture (n8n)
+4.	Digital Client Intake For
+5.	Trainer Review & Approval Workflow
+6.	Project Documentation & Technical Artifacts
+7.	Marketing Demonstration Video
+
+Professional Accomplishments: E.g. New skills that you developed 
+
+1.	Workflow automation design using n8n
+2.	Rule-based logic implementation for real-world constraints
+3.	Data normalization and large-scale dataset validation
+4.	Translating business requirements into technical system architecture
+5.	Cross-functional team leadership and task coordination
+6.	Technical documentation and professional report writing
+7.	Stakeholder communication and requirements elicitation
+8.	Project planning, milestone tracking, and delivery management
+9.	Systems thinking across front-end, automation, and data layers
+
+
+
+
+
+
+
+
+PROJECT SCHEDULE MANAGEMENT
+
+Create a Gantt chart with the application of your choice and replace it with the picture presented below.
+ 
+
+
+
+Github Project Link: https://github.com/users/degarci8/projects/5
+Github Project Repository:  https://github.com/degarci8/CIS4390-DG-DS-J-SS.git
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EXECUTIVE SUMMARY	1
+PROJECT SCHEDULE MANAGEMENT	3
+MILESTONE 1: DISCOVERY & REQUIREMENTS	5
+HEADER 1	5
+Header 2	5
+Header 3	5
+MILESTONE 2: N8N INFRASTRUCTURE & DATA MODEL	6
+HEADER 1	6
+Header 2	6
+Header 3	6
+MILESTONE 3: INTAKE WORKFLOW & RULES ENGINE	7
+HEADER 1	7
+Header 2	7
+Header 3	7
+MILESTONE 4: TRAINER DASHBOARD & DELIVERY	8
+HEADER 1	8
+Header 2	8
+Header 3	8
+MILESTONE 5: SECURITY, TESTING & FINAL DEMO	9
+HEADER 1	9
+Header 2	9
+Header 3	9
+REFERENCES	10
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Milestone 1: Discovery & Requirements
+Discovery
+The project began with broad discovery across the fitness and nutrition industry. Interviews and informal discussions were conducted with approximately 28 fitness-related businesses to identify common operational challenges. While several pain points emerged, nutrition planning consistently stood out as one of the most time-consuming and inefficient processes. Based on alignment, accessibility, and real-world applicability, the team decided to focus specifically on Peak Fitness as the primary stakeholder for this project.
+
+ 
+
+Pain Points
+Through stakeholder interviews, several key pain points were identified. Coaches were spending excessive time manually building meal plans, often relying on spreadsheets and inconsistent nutrition data sources. Scaling client load created bottlenecks, reduced plan quality, and increased burnout. Additionally, existing nutrition software solutions were either too limited in functionality or prohibitively expensive for small businesses.
+
+
+Requirements
+To address these pain points, the system needed to automate meal plan generation while maintaining accuracy, affordability, and coach oversight. Core requirements included consistent nutrition data, support for dietary restrictions and preferences, scalable automation, and the ability for coaches to review and approve plans before delivery. These requirements guided all subsequent design and development decisions.
+
+
+Milestone 2: N8N Infrastructure & Data Model
+System Architecture
+During this phase, the overall system architecture was designed. The team selected n8n as the automation platform due to its flexibility, transparency, and suitability for rule-based logic. Data flow was structured to separate intake processing, calculation logic, food selection, and output delivery, ensuring maintainability and scalability.
+
+Flow A: Nutrition Plan Generator
+ 
+
+Flow B: Manual Food Uploader (custom food bank)
+ 
+
+Custom Food Database
+A major focus of this milestone was the creation of a custom food database. Existing nutrition databases were found to be inconsistent and unreliable for automation. Hundreds of food entries were manually curated, normalized to a standard serving size, and tagged with macro values, micronutrients, dietary indicators, food categories, and meal classifications. This ensured deterministic and accurate automation results.
+
+Data Normalization
+All nutrition data was standardized to consistent units and formats to eliminate discrepancies between sources. This normalization step was critical to ensuring that calculations, comparisons, and filtering logic behaved predictably within automated workflows.
+
+Milestone 3: Intake Workflow & Rules Engine
+Intake Workflow
+A structured digital intake workflow was developed to collect client information, including goals, dietary preferences, restrictions, and health considerations. Validation logic ensured that required fields were present before automation execution began.
+
+Rules Engine
+Nutrition logic was translated into a rule-based engine capable of calculating calorie and macronutrient targets. Food selection rules were applied to filter items based on dietary constraints, preferences, and macro compatibility. The rules engine ensured consistent behavior across all client profiles.
+
+Error Handling & Edge Cases
+Conditional logic and fallback paths were implemented to handle restrictive diets, missing data, or conflicting inputs. This prevented system failures and ensured reliable plan generation under a wide range of scenarios.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Milestone 4: Trainer Dashboard & Delivery
+Trainer Review Workflow
+A coach-facing review step was implemented to allow trainers to inspect and adjust generated meal plans before delivery. This preserved professional oversight while still benefiting from automation efficiency.
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+User Interface Requirements
+Functional UI requirements were defined to ensure the system aligned with real coaching workflows. Interfaces were designed to be intuitive, modern, and efficient, minimizing friction for trainers.
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Plan Delivery
+Finalized meal plans were structured for clear presentation and easy delivery to clients. This milestone ensured that automation outputs were not only accurate but also usable in a real business setting.
+
+ 
+
+
+
+
+
+Milestone 5: Security, Testing & Final Demo
+Testing & Validation
+Automated workflows were tested across multiple client scenarios to validate calculation accuracy, rule enforcement, and system stability. Outputs were compared against manually created plans to confirm correctness.
+
+Security & Reliability
+Basic security considerations were addressed, including controlled data access and structured data handling. Workflow resilience was improved through defensive logic and validation checks.
+
+Image of secure coach log in screen
+ 
+
+Final Demonstration
+The final milestone concluded with documentation finalization and the creation of a professional marketing-style demonstration video. This demo showcased the platform’s functionality, value proposition, and future expansion potential.
+
+
+
+
+
+
+
+
+References
+U.S. Department of Agriculture. (2024). FoodData Central. https://fdc.nal.usda.gov
+
+n8n GmbH. (2024). n8n documentation. https://docs.n8n.io
+
+Google. (2024). Cloud Firestore documentation. https://firebase.google.com/docs/firestore
+
+OpenAI. (2024). OpenAI API documentation. https://platform.openai.com/docs
+
+Google. (2024). Gemini [Large language model]. https://gemini.google.com
+
+Shortt, D. (2025). Interview with small business fitness coach regarding automation needs [Personal communication].
+
+Futurepedia. (2025). How to use n8n (workflow automation tutorial) [Video]. YouTube. https://www.youtube.com/watch?v=e3OV3LnrS7o
